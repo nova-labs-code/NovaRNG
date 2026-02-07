@@ -2,9 +2,6 @@
    NOVA RNG — FULL CSS
    =============================== */
 
-/* -------------------------
-   BODY & CONTAINER
-   ------------------------- */
 body {
   margin: 0;
   padding: 0;
@@ -12,7 +9,7 @@ body {
   background: #0a0a0a;
   color: #eee;
   overflow: hidden;
-  touch-action: manipulation; /* disables pinch-zoom gestures */
+  touch-action: manipulation;
 }
 
 .container {
@@ -20,13 +17,10 @@ body {
   height: 100vh;
   position: relative;
   overflow: hidden;
-  padding: 0;
   font-size: 16px;
 }
 
-/* -------------------------
-   PAGE STYLE
-   ------------------------- */
+/* Pages */
 .page {
   position: absolute;
   top: 0;
@@ -46,9 +40,7 @@ h1, h2 {
   margin-top: 0;
 }
 
-/* -------------------------
-   BUTTONS
-   ------------------------- */
+/* Roll buttons */
 #roll-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -81,9 +73,7 @@ button.roll-btn:disabled {
   cursor: not-allowed;
 }
 
-/* -------------------------
-   RESULT BOX
-   ------------------------- */
+/* Result box */
 #result {
   margin-top: 20px;
   font-size: 1.6rem;
@@ -99,28 +89,25 @@ button.roll-btn:disabled {
   z-index: 1;
 }
 
-/* Semi-transparent wipe bar (blue) */
+/* Wipe animation frame - blue */
 .wipe-bar {
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 157, 255, 0.96); /* semi-transparent blue */
+  background: rgba(0, 157, 255, 0.96);
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
 
-/* Wipe animation */
 @keyframes wipeLeftToRight {
   0% { left: -100%; }
   50% { left: 0%; }
   100% { left: 100%; }
 }
 
-/* -------------------------
-   HISTORY & STREAK
-   ------------------------- */
+/* Roll history and streak */
 #roll-history {
   margin-top: 20px;
   font-size: 1rem;
@@ -132,9 +119,7 @@ button.roll-btn:disabled {
   font-weight: bold;
 }
 
-/* -------------------------
-   ODDS PAGE
-   ------------------------- */
+/* Odds page boxes */
 .odds-box {
   background: #1a1a1a;
   border: 2px solid #444;
@@ -149,7 +134,7 @@ button.roll-btn:disabled {
 }
 
 .odds-box.owned {
-  /* color will be set dynamically by JS based on rarity range */
+  /* border and background set dynamically in JS */
 }
 
 .odds-box:hover {
@@ -157,9 +142,7 @@ button.roll-btn:disabled {
   border-color: #009dff;
 }
 
-/* -------------------------
-   STATS PAGE
-   ------------------------- */
+/* Stats page */
 .prob-panel {
   margin-top: 20px;
   font-size: 1rem;
@@ -179,9 +162,7 @@ button.roll-btn:disabled {
   background: #111;
 }
 
-/* -------------------------
-   POPUP NOTIFICATION
-   ------------------------- */
+/* Popup notifications */
 #popup {
   position: fixed;
   bottom: 10px;
@@ -198,9 +179,7 @@ button.roll-btn:disabled {
   pointer-events: none;
 }
 
-/* -------------------------
-   RESPONSIVE
-   ------------------------- */
+/* Responsive */
 @media (max-width: 480px) {
   .page {
     padding: 15px 10px;

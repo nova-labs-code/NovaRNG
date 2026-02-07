@@ -7,7 +7,7 @@ fetch("rarities.json")
   .then(data => {
     rarities = data;
     initOddsPanel();
-    renderStats(); // initial stats render
+    renderStats();
   });
 
 // Stats saved in localStorage
@@ -42,7 +42,6 @@ document.getElementById("pick-btn").addEventListener("click", () => {
   const button = document.getElementById("pick-btn");
 
   button.disabled = true;
-
   const result = pickRarity();
   rolledRarity = result;
 
@@ -50,31 +49,37 @@ document.getElementById("pick-btn").addEventListener("click", () => {
   const textEl = resultElem.querySelector(".result-text");
   textEl.textContent = `🎉 You got: ${result}!`;
 
-  // Add semi-transparent wipe bar
+  // Semi-transparent wipe bar
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
   resultElem.appendChild(wipe);
 
-  // Remove wipe bar after animation + 0.5s cooldown
+  // Remove wipe + cooldown
   setTimeout(() => {
     wipe.remove();
     setTimeout(() => { button.disabled = false; }, 500);
   }, 650);
 
-  // Reveal odds
+  // Reveal odds & mark owned
   revealRarity(result);
 
-  // Update stats
+  // Update stats & save
   updateStats(result);
 });
 
-// Reveal rarity on odds page
+// Reveal rarity on odds page and mark owned
 function revealRarity(rarityName){
+  const total = rarities.reduce((s,x)=>s+1/x.number,0);
   rarities.forEach((r,i)=>{
+    const el = document.getElementById(`rarity-${i}`);
+    const percent = ((1/r.number)/total*100).toFixed(2);
+    if(stats[r.rarity]) {
+      el.classList.add("rarity-owned");
+    } else {
+      el.classList.remove("rarity-owned");
+    }
     if(r.rarity === rarityName){
-      const total = rarities.reduce((s,x)=>s+1/x.number,0);
-      const percent = ((1/r.number)/total*100).toFixed(2);
-      document.getElementById(`rarity-${i}`).textContent = `${r.rarity} - ${percent}%`;
+      el.textContent = `${r.rarity} - ${percent}%`;
     }
   });
 }
@@ -105,6 +110,7 @@ document.getElementById("reset-stats").addEventListener("click", ()=>{
   stats = {};
   localStorage.removeItem('novaRNGStats');
   renderStats();
+  initOddsPanel(); // reset odds highlights
 });
 
 // Swipe detection for 3 pages
@@ -119,11 +125,10 @@ document.addEventListener("touchend", e => {
     document.getElementById("page3")
   ];
 
-  // Determine current page (the one closest to 0%)
   let currentIndex = pages.findIndex(p => {
     const transform = getComputedStyle(p).transform;
     if(transform === 'none') return true;
-    return transform.includes('matrix(1, 0, 0, 1, 0, 0)'); // translateX(0)
+    return transform.includes('matrix(1, 0, 0, 1, 0, 0)');
   });
   if(currentIndex === -1) currentIndex = 0;
 

@@ -18,6 +18,7 @@ const popup = document.getElementById("popup");
 const pickBtn = document.getElementById("pick-btn");
 const autoRollBtn = document.getElementById("auto-roll-btn");
 const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
+const resetStatsBtn = document.getElementById("reset-stats");
 
 let canRoll = true;
 let autoRollInterval = null;
@@ -161,11 +162,8 @@ function updateStatsText(){
 function startAutoRoll(speed){
   if(autoRollInterval) clearInterval(autoRollInterval);
   if(fastAutoRollInterval) clearInterval(fastAutoRollInterval);
-  if(speed===1000){
-    autoRollInterval = setInterval(()=>{ if(canRoll) roll(); },1000);
-  } else if(speed===500){
-    fastAutoRollInterval = setInterval(()=>{ if(canRoll) roll(); },500);
-  }
+  if(speed===1000) autoRollInterval = setInterval(()=>{ if(canRoll) roll(); },1000);
+  else if(speed===500) fastAutoRollInterval = setInterval(()=>{ if(canRoll) roll(); },500);
 }
 
 function stopAutoRoll(){
@@ -176,17 +174,36 @@ function stopAutoRoll(){
 function updateAutoRollButtons(){
   autoRollBtn.disabled = totalRolls<100;
   fastAutoRollBtn.disabled = totalRolls<1000;
-
-  autoRollBtn.title = totalRolls<100 ? `Locked. ${100-totalRolls} rolls to unlock` : '';
-  fastAutoRollBtn.title = totalRolls<1000 ? `Locked. ${1000-totalRolls} rolls to unlock` : '';
 }
 
 // -----------------------------
 // EVENT LISTENERS
 // -----------------------------
 pickBtn.addEventListener("click",roll);
-autoRollBtn.addEventListener("click",()=>startAutoRoll(1000));
-fastAutoRollBtn.addEventListener("click",()=>startAutoRoll(500));
+
+// Auto-roll clicks with popup if locked
+autoRollBtn.addEventListener("click", ()=>{
+  if(totalRolls<100) showPopup(`Locked — get ${100-totalRolls} more rolls`);
+  else startAutoRoll(1000);
+});
+
+fastAutoRollBtn.addEventListener("click", ()=>{
+  if(totalRolls<1000) showPopup(`Locked — get ${1000-totalRolls} more rolls`);
+  else startAutoRoll(500);
+});
+
+// Reset stats
+resetStatsBtn.addEventListener("click", ()=>{
+  rollHistory=[];
+  owned={};
+  totalRolls=0;
+  saveData();
+  updateRollHistory();
+  updateOdds();
+  updateStatsText();
+  updateAutoRollButtons();
+  showPopup("Stats reset!");
+});
 
 // -----------------------------
 // INIT

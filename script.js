@@ -32,12 +32,19 @@ function pickRarity() {
   return rarities[rarities.length-1].rarity;
 }
 
-// Roll button
+// Roll button with rolling animation
 document.getElementById("pick-btn").addEventListener("click", ()=>{
-  const result = pickRarity();
-  rolledRarity = result;
-  document.getElementById("result").textContent = `🎉 You got: ${result}!`;
-  revealRarity(result);
+  const resultElem = document.getElementById("result");
+  resultElem.classList.add("rolling");
+  resultElem.textContent = "Rolling...";
+
+  setTimeout(()=>{
+    const result = pickRarity();
+    rolledRarity = result;
+    resultElem.classList.remove("rolling");
+    resultElem.textContent = `🎉 You got: ${result}!`;
+    revealRarity(result);
+  }, 700); // matches animation duration
 });
 
 // Reveal rarity on odds page

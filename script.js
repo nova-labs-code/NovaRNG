@@ -32,36 +32,46 @@ function pickRarity() {
   return rarities[rarities.length-1].rarity;
 }
 
-// Roll button with unique frame reveal
-document.getElementById("pick-btn").addEventListener("click", ()=>{
+// Roll button with solid wipe animation
+document.getElementById("pick-btn").addEventListener("click", () => {
   const resultElem = document.getElementById("result");
 
   // Pick rarity immediately
   const result = pickRarity();
   rolledRarity = result;
 
-  // Clear previous content
-  resultElem.textContent = '';
+  // Clear previous result
+  resultElem.innerHTML = "";
 
-  // Create text span
-  const textSpan = document.createElement('span');
-  textSpan.textContent = `🎉 You got: ${result}!`;
-  textSpan.classList.add('text-fade');
-  resultElem.appendChild(textSpan);
+  // Create text element (hidden initially)
+  const text = document.createElement("div");
+  text.className = "result-text";
+  text.textContent = `🎉 You got: ${result}!`;
+  resultElem.appendChild(text);
 
-  // Create yellow frame overlay
-  const frame = document.createElement('div');
-  frame.classList.add('reveal-frame');
-  resultElem.appendChild(frame);
+  // Create solid wipe bar
+  const wipe = document.createElement("div");
+  wipe.className = "wipe-bar";
+  resultElem.appendChild(wipe);
 
-  // Reveal rarity in odds page
+  // Reveal text after wipe passes
+  setTimeout(() => {
+    text.classList.add("reveal-text");
+  }, 450);
+
+  // Remove wipe bar after animation
+  setTimeout(() => {
+    wipe.remove();
+  }, 700);
+
+  // Update odds page
   revealRarity(result);
 });
 
 // Reveal rarity on odds page
 function revealRarity(rarityName){
   rarities.forEach((r,i)=>{
-    if(r.rarity===rarityName){
+    if(r.rarity === rarityName){
       const total = rarities.reduce((s,x)=>s+1/x.number,0);
       const percent = ((1/r.number)/total*100).toFixed(2);
       document.getElementById(`rarity-${i}`).textContent = `${r.rarity} - ${percent}%`;
@@ -71,16 +81,16 @@ function revealRarity(rarityName){
 
 // Swipe detection
 let startX = 0;
-document.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
-document.addEventListener("touchend", e=>{
+document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+document.addEventListener("touchend", e => {
   const endX = e.changedTouches[0].clientX;
   const page1 = document.getElementById("page1");
   const page2 = document.getElementById("page2");
 
-  if(startX-endX>50){ // swipe left → page2
+  if(startX - endX > 50){ // swipe left → page2
     page1.style.transform = "translateX(-100%)";
     page2.style.transform = "translateX(0%)";
-  } else if(endX-startX>50){ // swipe right → page1
+  } else if(endX - startX > 50){ // swipe right → page1
     page1.style.transform = "translateX(0%)";
     page2.style.transform = "translateX(100%)";
   }

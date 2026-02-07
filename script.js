@@ -1,5 +1,5 @@
 /* ===============================
-   NOVA RNG — FULL SYSTEM
+   NOVA RNG — MATCHES YOUR HTML
    =============================== */
 
 let rarities = [];
@@ -12,7 +12,7 @@ let autoRolling = false;
 let autoTimer = null;
 
 /* ---------- PAGE SYSTEM ---------- */
-const pages = [...document.querySelectorAll(".page")];
+const pages = Array.from(document.querySelectorAll(".page"));
 let currentPageIndex = 0;
 
 /* ---------- ELEMENTS ---------- */
@@ -26,10 +26,10 @@ const historyBox = document.getElementById("roll-history");
 const streakBox = document.getElementById("login-streak");
 const popup = document.getElementById("popup");
 
-const oddsList = document.getElementById("odds-list");
-const statsTotal = document.getElementById("stats-total");
-const statsList = document.getElementById("stats-list");
-const statsGraph = document.getElementById("stats-graph");
+const oddsPanel = document.getElementById("odds-panel");
+const statsPanel = document.getElementById("stats-panel");
+const statsCanvas = document.getElementById("stats-graph");
+const resetStatsBtn = document.getElementById("reset-stats");
 
 /* ===============================
    LOAD RARITIES
@@ -66,7 +66,7 @@ function saveAll() {
 }
 
 /* ===============================
-   PAGE SWIPE
+   PAGE SWIPING
    =============================== */
 
 function restorePages() {
@@ -82,9 +82,10 @@ function goToPage(i) {
   restorePages();
 }
 
-/* Touch swipe */
 let startX = 0;
-document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+document.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
 document.addEventListener("touchend", e => {
   const dx = e.changedTouches[0].clientX - startX;
   if (Math.abs(dx) < 60) return;
@@ -109,14 +110,14 @@ function updateLoginStreak() {
 
   localStorage.setItem("nova_last", today);
   localStorage.setItem("nova_streak", streak);
-  if (streakBox) streakBox.textContent = `Login Streak: ${streak}`;
+  streakBox.textContent = `Login Streak: ${streak}`;
 }
 
 /* ===============================
-   ROLL LOGIC
+   ROLLING
    =============================== */
 
-rollBtn?.addEventListener("click", roll);
+rollBtn.addEventListener("click", roll);
 
 function roll() {
   if (rollBtn.disabled) return;
@@ -132,7 +133,6 @@ function roll() {
   if (history.length > 5) history.pop();
 
   trackDaily(rarity);
-
   saveAll();
   updateAll();
 
@@ -169,11 +169,9 @@ function weightedPick() {
 function trackDaily(rarity) {
   const today = new Date().toISOString().slice(0, 10);
   if (!dailyStats[today]) dailyStats[today] = 0;
-
   const r = rarities.find(x => x.rarity === rarity);
   dailyStats[today] += r.number;
 
-  // keep last 7 days only
   const days = Object.keys(dailyStats).sort().slice(-7);
   dailyStats = Object.fromEntries(days.map(d => [d, dailyStats[d]]));
 }
@@ -182,8 +180,8 @@ function trackDaily(rarity) {
    AUTO ROLL
    =============================== */
 
-autoBtn?.addEventListener("click", () => toggleAuto(100, 1000));
-fastBtn?.addEventListener("click", () => toggleAuto(1000, 500));
+autoBtn.onclick = () => toggleAuto(100, 1000);
+fastBtn.onclick = () => toggleAuto(1000, 500);
 
 function toggleAuto(req, cd) {
   if (totalRolls() < req) {
@@ -209,7 +207,7 @@ function autoLoop(cd) {
 }
 
 /* ===============================
-   UI UPDATES (ALL PAGES)
+   UI UPDATES
    =============================== */
 
 function updateAll() {
@@ -220,44 +218,31 @@ function updateAll() {
 }
 
 function updateHistory() {
-  if (!historyBox) return;
   historyBox.innerHTML = "<b>Last 5 Rolls</b>";
   history.forEach(r => historyBox.innerHTML += `<div>${r}</div>`);
 }
 
 function updateOdds() {
-  if (!oddsList) return;
-  oddsList.innerHTML = "";
-
+  oddsPanel.innerHTML = "";
   rarities.forEach(r => {
-    const ownedIt = owned[r.rarity];
     const div = document.createElement("div");
-
-    div.textContent = ownedIt
-      ? `${r.rarity} — 1 / ${r.number}`
-      : "??? Odds";
-
-    div.style.color = ownedIt ? "#55ff88" : "#aaa";
-    oddsList.appendChild(div);
+    if (owned[r.rarity]) {
+      div.textContent = `${r.rarity} — 1 / ${r.number}`;
+      div.style.color = "#55ff88";
+    } else {
+      div.textContent = "??? Odds";
+      div.style.color = "#aaa";
+    }
+    oddsPanel.appendChild(div);
   });
 }
 
 function updateStats() {
-  if (!statsTotal || !statsList) return;
-
-  statsTotal.textContent = `Total Rolls: ${totalRolls()}`;
-  statsList.innerHTML = "";
-
+  statsPanel.innerHTML = `<b>Total Rolls:</b> ${totalRolls()}<br><br>`;
   Object.entries(stats).forEach(([k, v]) => {
-    statsList.innerHTML += `<div>${k}: ${v}</div>`;
+    statsPanel.innerHTML += `${k}: ${v}<br>`;
   });
-
-  if (statsGraph) {
-    statsGraph.innerHTML = "";
-    Object.entries(dailyStats).forEach(([d, v]) => {
-      statsGraph.innerHTML += `<div>${d}: ${v}</div>`;
-    });
-  }
+  drawGraph();
 }
 
 function updateAutoButtons() {
@@ -268,6 +253,41 @@ function updateAutoButtons() {
 function totalRolls() {
   return Object.values(stats).reduce((a, b) => a + b, 0);
 }
+
+/* ===============================
+   GRAPH (CANVAS)
+   =============================== */
+
+function drawGraph() {
+  const ctx = statsCanvas.getContext("2d");
+  ctx.clearRect(0, 0, statsCanvas.width, statsCanvas.height);
+
+  const values = Object.values(dailyStats);
+  if (!values.length) return;
+
+  const max = Math.max(...values);
+  const barW = statsCanvas.width / values.length;
+
+  Object.values(dailyStats).forEach((v, i) => {
+    const h = (v / max) * statsCanvas.height;
+    ctx.fillStyle = "#ffdd55";
+    ctx.fillRect(i * barW, statsCanvas.height - h, barW - 6, h);
+  });
+}
+
+/* ===============================
+   RESET STATS
+   =============================== */
+
+resetStatsBtn.onclick = () => {
+  if (!confirm("Reset all stats?")) return;
+  stats = {};
+  history = [];
+  owned = {};
+  dailyStats = {};
+  saveAll();
+  updateAll();
+};
 
 /* ===============================
    POPUP

@@ -2,23 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Nova RNG</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-
   <!-- Page 1: Roll -->
   <div class="page" id="page1">
     <h1>Nova RNG</h1>
     <div id="login-streak">Login Streak: 0</div>
 
     <div id="roll-buttons">
-      <button id="pick-btn" class="roll-btn">🎲 Roll</button>
-      <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
-      <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+      <div class="roll-btn-container"><button id="pick-btn" class="roll-btn">🎲 Roll</button></div>
+      <div class="roll-btn-container"><button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button></div>
+      <div class="roll-btn-container"><button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button></div>
     </div>
 
     <div id="result"><div class="result-text">🎉 Ready to roll!</div></div>
@@ -28,19 +27,18 @@
   <!-- Page 2: Odds -->
   <div class="page" id="page2">
     <h2>Rarity Odds</h2>
-    <div id="odds-panel" class="prob-panel"></div>
+    <div id="odds-panel"></div>
   </div>
 
   <!-- Page 3: Stats -->
   <div class="page" id="page3">
     <h2>Your Stats</h2>
-    <div id="stats-panel" class="prob-panel"></div>
-    <canvas id="stats-graph" width="350" height="150"></canvas>
+    <div id="stats-panel"></div>
     <button id="reset-stats">Reset Stats</button>
   </div>
 
   <!-- Notification popup -->
-  <div id="popup" class="popup"></div>
+  <div id="popup"></div>
 </div>
 
 <script src="script.js"></script>

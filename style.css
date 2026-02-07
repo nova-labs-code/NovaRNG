@@ -1,3 +1,6 @@
+/* ----------------------------- */
+/* GENERAL STYLES */
+/* ----------------------------- */
 body {
   margin: 0;
   padding: 0;
@@ -34,7 +37,9 @@ h1, h2 {
   margin-top: 0;
 }
 
-/* Roll Buttons */
+/* ----------------------------- */
+/* ROLL BUTTONS (PAGE 1) */
+/* ----------------------------- */
 #roll-buttons {
   display: flex;
   justify-content: center;
@@ -63,7 +68,9 @@ button.roll-btn:disabled {
   cursor: not-allowed;
 }
 
-/* Result box */
+/* ----------------------------- */
+/* RESULT BOX WITH WIPE ANIMATION */
+/* ----------------------------- */
 #result {
   margin-top: 20px;
   font-size: 1.6rem;
@@ -79,14 +86,13 @@ button.roll-btn:disabled {
   z-index: 1;
 }
 
-/* Wipe animation frame (blue) */
 .wipe-bar {
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 157, 255, 0.96);
+  background: rgba(0, 157, 255, 0.96); /* semi-transparent blue */
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
@@ -97,7 +103,9 @@ button.roll-btn:disabled {
   100% { left: 100%; }
 }
 
-/* Roll history */
+/* ----------------------------- */
+/* ROLL HISTORY & LOGIN STREAK */
+/* ----------------------------- */
 #roll-history {
   margin-top: 20px;
   font-size: 1rem;
@@ -109,7 +117,9 @@ button.roll-btn:disabled {
   font-weight: bold;
 }
 
-/* Odds Page Boxes */
+/* ----------------------------- */
+/* ODDS PAGE STYLING */
+/* ----------------------------- */
 #odds-panel {
   display: flex;
   flex-direction: column;
@@ -139,7 +149,9 @@ button.roll-btn:disabled {
   border-color: #009dff;
 }
 
-/* Stats page */
+/* ----------------------------- */
+/* STATS PAGE STYLING */
+/* ----------------------------- */
 #stats-panel {
   margin-top: 20px;
   font-size: 1rem;
@@ -156,7 +168,9 @@ button.roll-btn:disabled {
   background: #111;
 }
 
-/* Popup notifications */
+/* ----------------------------- */
+/* POPUP NOTIFICATIONS */
+/* ----------------------------- */
 #popup {
   position: fixed;
   bottom: 10px;
@@ -173,10 +187,11 @@ button.roll-btn:disabled {
   pointer-events: none;
 }
 
-/* Responsive */
+/* ----------------------------- */
+/* RESPONSIVE */
 @media(max-width:480px){
-  .page{padding:15px 10px;}
-  .roll-btn{font-size:0.9rem; padding:8px 12px;}
-  #result{font-size:1.3rem;}
-  .odds-box{font-size:1rem; padding:10px 12px; margin:10px 10px;}
+  .page { padding: 15px 10px; }
+  .roll-btn { font-size: 0.9rem; padding: 8px 12px; }
+  #result { font-size: 1.3rem; }
+  .odds-box { font-size: 1rem; padding: 10px 12px; margin: 10px 10px; }
 }

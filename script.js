@@ -1,5 +1,5 @@
 let rarities = [];
-let rolledRarity = null; // Store the last rolled rarity
+let rolledRarity = null;
 
 // Load rarities
 fetch("rarities.json")
@@ -7,60 +7,60 @@ fetch("rarities.json")
   .then(data => {
     rarities = data;
     initOddsPanel();
-  });
+  })
+  .catch(err => console.error("Failed to load rarities:", err));
 
-// Initialize odds panel with ??? and percentages
+// Initialize odds panel with ??? %
 function initOddsPanel() {
   const panel = document.getElementById("odds-panel");
-  const probs = rarities.map(r => ({ rarity: r.rarity, prob: 1/r.number }));
-  const total = probs.reduce((s, p) => s + p.prob, 0);
-
+  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
   panel.innerHTML = "<h3>Current Odds</h3>";
-  probs.forEach((p, i) => {
-    const percent = ((p.prob/total)*100).toFixed(2);
+  rarities.forEach((r,i)=>{
+    const percent = ((1/r.number)/total*100).toFixed(2);
     panel.innerHTML += `<div id="rarity-${i}">??? - ${percent}%</div>`;
   });
 }
 
-// Pick rarity weighted
+// Pick weighted rarity
 function pickRarity() {
-  const probs = rarities.map(r => ({ rarity: r.rarity, weight: 1/r.number }));
-  const total = probs.reduce((s, p) => s + p.weight, 0);
+  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
   let rand = Math.random() * total;
   let cum = 0;
-  for (let p of probs) {
-    cum += p.weight;
-    if (rand <= cum) return p.rarity;
+  for(let i=0;i<rarities.length;i++){
+    cum += 1/rarities[i].number;
+    if(rand <= cum) return rarities[i].rarity;
   }
-  return probs[probs.length-1].rarity;
+  return rarities[rarities.length-1].rarity;
 }
 
 // Roll button
-document.getElementById("pick-btn").addEventListener("click", () => {
+document.getElementById("pick-btn").addEventListener("click", ()=>{
   const result = pickRarity();
   rolledRarity = result;
   document.getElementById("result").textContent = `🎉 You got: ${result}!`;
   revealRarity(result);
 });
 
-// Reveal rolled rarity on the odds page
-function revealRarity(rarityName) {
-  rarities.forEach((r, i) => {
-    if(r.rarity === rarityName){
-      document.getElementById(`rarity-${i}`).textContent = `${r.rarity} - ${((1/r.number)/rarities.reduce((s, x)=>s+1/x.number,0)*100).toFixed(2)}%`;
+// Reveal rarity on page 2
+function revealRarity(rarityName){
+  rarities.forEach((r,i)=>{
+    if(r.rarity===rarityName){
+      const total = rarities.reduce((s,x)=>s+1/x.number,0);
+      const percent = ((1/r.number)/total*100).toFixed(2);
+      document.getElementById(`rarity-${i}`).textContent = `${r.rarity} - ${percent}%`;
     }
   });
 }
 
-// Swipe between pages
+// Swipe detection
 let startX = 0;
-document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-document.addEventListener("touchend", e => {
+document.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
+document.addEventListener("touchend", e=>{
   const endX = e.changedTouches[0].clientX;
   const pagesDiv = document.querySelector(".pages");
-  if(startX - endX > 50){ // swipe left
-    pagesDiv.style.transform = "translateX(-50%)";
-  } else if(endX - startX > 50){ // swipe right
-    pagesDiv.style.transform = "translateX(0%)";
+  if(startX-endX>50){ // swipe left
+    pagesDiv.style.transform="translateX(-100vw)";
+  } else if(endX-startX>50){ // swipe right
+    pagesDiv.style.transform="translateX(0)";
   }
 });

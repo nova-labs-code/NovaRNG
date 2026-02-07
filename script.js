@@ -13,45 +13,22 @@ fetch("rarities.json")
     updateLoginStreak();
   });
 
-// Stats and history
+// Persistent storage
 let stats = JSON.parse(localStorage.getItem('novaRNGStats')) || {};
 let rollHistory = JSON.parse(localStorage.getItem('novaRNGHistory')) || [];
 let lastVisit = localStorage.getItem('novaRNGLastVisit') || null;
 let loginStreak = parseInt(localStorage.getItem('novaRNGStreak')) || 0;
 
-// Initialize odds panel
-function initOddsPanel() {
-  const panel = document.getElementById("odds-panel");
-  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
-  panel.innerHTML = "<h3>Current Odds</h3>";
-  rarities.forEach((r,i)=>{
-    const percent = ((1/r.number)/total*100).toFixed(2);
-    panel.innerHTML += `<div id="rarity-${i}">??? - ${percent}%</div>`;
-  });
-}
-
-// Weighted pick
-function pickRarity() {
-  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
-  let rand = Math.random() * total;
-  let cum = 0;
-  for(let i=0;i<rarities.length;i++){
-    cum += 1/rarities[i].number;
-    if(rand <= cum) return rarities[i].rarity;
-  }
-  return rarities[rarities.length-1].rarity;
-}
-
-// Roll button
+// --- Page 1: Roll Button ---
 document.getElementById("pick-btn").addEventListener("click", () => {
   const resultElem = document.getElementById("result");
   const button = document.getElementById("pick-btn");
-
   button.disabled = true;
+
   const result = pickRarity();
   rolledRarity = result;
 
-  // Result text
+  // Show result text
   const textEl = resultElem.querySelector(".result-text");
   textEl.textContent = `🎉 You got: ${result}!`;
 
@@ -65,13 +42,35 @@ document.getElementById("pick-btn").addEventListener("click", () => {
     setTimeout(() => { button.disabled = false; }, 500);
   }, 650);
 
-  // Update stats, odds, and history
+  // Update stats/history
   updateStats(result);
+  updateRollHistory(result);
   revealRarity(result);
-  addRollHistory(result);
 });
 
-// Reveal rarity
+// Weighted RNG
+function pickRarity() {
+  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
+  let rand = Math.random() * total;
+  let cum = 0;
+  for(let i=0;i<rarities.length;i++){
+    cum += 1/rarities[i].number;
+    if(rand <= cum) return rarities[i].rarity;
+  }
+  return rarities[rarities.length-1].rarity;
+}
+
+// --- Odds Page ---
+function initOddsPanel() {
+  const panel = document.getElementById("odds-panel");
+  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
+  panel.innerHTML = "<h3>Current Odds</h3>";
+  rarities.forEach((r,i)=>{
+    const percent = ((1/r.number)/total*100).toFixed(2);
+    panel.innerHTML += `<div id="rarity-${i}">??? - ${percent}%</div>`;
+  });
+}
+
 function revealRarity(rarityName){
   const total = rarities.reduce((s,x)=>s+1/x.number,0);
   rarities.forEach((r,i)=>{
@@ -83,23 +82,19 @@ function revealRarity(rarityName){
   });
 }
 
-// Mark owned on load
 function markOwnedRarities() {
+  const total = rarities.reduce((s,x)=>s+1/x.number,0);
   rarities.forEach((r,i)=>{
     const el = document.getElementById(`rarity-${i}`);
-    const total = rarities.reduce((s,x)=>s+1/x.number,0);
     const percent = ((1/r.number)/total*100).toFixed(2);
-    if(stats[r.rarity] && stats[r.rarity]>0){
-      el.classList.add("rarity-owned");
-      el.textContent = `${r.rarity} - ${percent}%`;
-    } else {
-      el.classList.remove("rarity-owned");
-      el.textContent = `??? - ${percent}%`;
-    }
+    if(stats[r.rarity]) el.classList.add("rarity-owned");
+    else el.classList.remove("rarity-owned");
+    if(stats[r.rarity]) el.textContent = `${r.rarity} - ${percent}%`;
+    else el.textContent = `??? - ${percent}%`;
   });
 }
 
-// Update stats
+// --- Stats Page ---
 function updateStats(rarityName){
   if(!stats[rarityName]) stats[rarityName]=0;
   stats[rarityName]++;
@@ -108,96 +103,96 @@ function updateStats(rarityName){
   markOwnedRarities();
 }
 
-// Roll history
-function addRollHistory(rarity){
-  rollHistory.unshift(rarity);
-  if(rollHistory.length>10) rollHistory.pop();
-  localStorage.setItem('novaRNGHistory', JSON.stringify(rollHistory));
-  renderRollHistory();
-}
-
-function renderRollHistory(){
-  let container = document.getElementById("roll-history");
-  if(!container){
-    container = document.createElement("div");
-    container.id = "roll-history";
-    document.getElementById("page1").appendChild(container);
-  }
-  container.innerHTML = "<strong>Roll History:</strong><br>" +
-    rollHistory.map(r=>colorRarity(r)).join(", ");
-}
-
-// Color-coded roll
-function colorRarity(r){
-  const colorMap = {
-    "Common":"#eee",
-    "Uncommon":"#ffdd55",
-    "Rare":"#ff8800",
-    "Legendary":"#ff5555"
-  };
-  return `<span style="color:${colorMap[r] || '#fff'}">${r}</span>`;
-}
-
-// Login streak
-function updateLoginStreak(){
-  const today = new Date().toDateString();
-  if(lastVisit){
-    const lastDate = new Date(lastVisit);
-    const diff = (new Date(today) - lastDate)/(1000*60*60*24);
-    if(diff===1) loginStreak++;
-    else if(diff>1) loginStreak=1;
-  } else loginStreak=1;
-  localStorage.setItem('novaRNGStreak', loginStreak);
-  localStorage.setItem('novaRNGLastVisit', today);
-  document.getElementById("login-streak").textContent = `Login Streak: ${loginStreak} day${loginStreak>1?"s":""}`;
-}
-
-// Render stats page
 function renderStats(){
   const panel = document.getElementById("stats-panel");
-  panel.innerHTML = '';
+  panel.innerHTML='';
   const totalRolls = Object.values(stats).reduce((a,b)=>a+b,0);
   panel.innerHTML += `<div>Total Rolls: ${totalRolls}</div>`;
   rarities.forEach(r=>{
     const count = stats[r.rarity]||0;
-    const percent = totalRolls>0 ? ((count/totalRolls)*100).toFixed(2) : "0.00";
-    panel.innerHTML += `<div>${r.rarity}: ${count} (${percent}%)</div>`;
+    const percent = totalRolls>0?((count/totalRolls)*100).toFixed(2):"0.00";
+    // Optional simple bar chart using inline div
+    const barLength = Math.min(100,(percent*2)); // scale for visual
+    panel.innerHTML += `<div>${r.rarity}: ${count} (${percent}%) <div style="background:#ffdd55;height:8px;width:${barLength}px;"></div></div>`;
   });
 }
 
-// Reset stats
 document.getElementById("reset-stats").addEventListener("click", ()=>{
   stats={};
   rollHistory=[];
   localStorage.removeItem('novaRNGStats');
   localStorage.removeItem('novaRNGHistory');
   renderStats();
+  renderRollHistory();
   initOddsPanel();
   markOwnedRarities();
+});
+
+// --- Roll History (last 5 rolls) ---
+function updateRollHistory(rarityName){
+  rollHistory.unshift(rarityName);
+  if(rollHistory.length>5) rollHistory.pop(); // only last 5
+  localStorage.setItem('novaRNGHistory', JSON.stringify(rollHistory));
   renderRollHistory();
-});
+}
 
-// Swipe pages
-let startX = 0;
-document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-document.addEventListener("touchend", e => {
+function renderRollHistory(){
+  const container = document.getElementById("roll-history");
+  if(!container) return;
+  container.innerHTML = "<strong>Roll History (last 5):</strong><br>";
+  rollHistory.forEach(r=>{
+    let color="";
+    if(r=="Legendary") color="#ff5555";
+    else if(r=="Rare") color="#ffdd55";
+    else if(r=="Uncommon") color="#55ffff";
+    else color="#ffffff";
+    container.innerHTML += `<div style="color:${color}">${r}</div>`;
+  });
+}
+
+// --- Login Streak ---
+function updateLoginStreak(){
+  const today = new Date().toDateString();
+  const streakElem = document.getElementById("login-streak");
+
+  if(lastVisit){
+    const last = new Date(lastVisit);
+    const diff = (new Date(today) - last)/(1000*60*60*24);
+    if(diff==1) loginStreak++;
+    else if(diff>1) loginStreak=1; // reset streak
+  } else loginStreak=1;
+
+  streakElem.textContent = `Login Streak: ${loginStreak}`;
+  localStorage.setItem('novaRNGStreak', loginStreak);
+  localStorage.setItem('novaRNGLastVisit', today);
+  lastVisit=today;
+}
+
+// --- Swipe Detection ---
+let startX=0;
+document.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
+document.addEventListener("touchend", e=>{
   const endX = e.changedTouches[0].clientX;
-  const pages = [document.getElementById("page1"),document.getElementById("page2"),document.getElementById("page3")];
-  let currentIndex = pages.findIndex(p => getComputedStyle(p).transform.includes('matrix(1, 0, 0, 1, 0, 0)'));
-  if(currentIndex===-1) currentIndex=0;
-  if(startX - endX > 50){
+  const pages=[document.getElementById("page1"),
+               document.getElementById("page2"),
+               document.getElementById("page3")];
+  let currentIndex = pages.findIndex(p=>{
+    const t=getComputedStyle(p).transform;
+    if(t=='none') return true;
+    return t.includes('matrix(1,0,0,1,0,0)');
+  });
+  if(currentIndex==-1) currentIndex=0;
+
+  if(startX-endX>50){ // swipe left
     const nextIndex = Math.min(currentIndex+1,pages.length-1);
-    pages.forEach((p,i)=> p.style.transform=`translateX(${100*(i-nextIndex)}%)`);
-  } else if(endX - startX >50){
+    pages.forEach((p,i)=>p.style.transform=`translateX(${100*(i-nextIndex)}%)`);
+  } else if(endX-startX>50){ // swipe right
     const prevIndex = Math.max(currentIndex-1,0);
-    pages.forEach((p,i)=> p.style.transform=`translateX(${100*(i-prevIndex)}%)`);
+    pages.forEach((p,i)=>p.style.transform=`translateX(${100*(i-prevIndex)}%)`);
   }
 });
 
-// Spacebar roll
+// --- Keyboard roll shortcut ---
 document.addEventListener("keydown", e=>{
-  if(e.code==="Space"){
-    e.preventDefault();
-    document.getElementById("pick-btn").click();
-  }
+  if(e.code=="Space") document.getElementById("pick-btn").click();
 });

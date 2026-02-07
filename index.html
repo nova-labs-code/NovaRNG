@@ -9,19 +9,21 @@
 <body>
 
 <div class="container">
-  <!-- Page 1: Main RNG -->
-  <div class="page" id="page1">
-    <h1>Nova RNG</h1>
-    <div id="probabilities" class="prob-panel"></div>
-    <button id="pick-btn">🎲 Roll</button>
-    <div id="result"></div>
-  </div>
+  <div class="pages">
 
-  <!-- Page 2: Extras -->
-  <div class="page" id="page2">
-    <h2>Extras</h2>
-    <p>History, stats, or fun info can go here.</p>
-    <button id="back-btn">← Back</button>
+    <!-- Page 1: Main RNG -->
+    <div class="page" id="page1">
+      <h1>Nova RNG</h1>
+      <button id="pick-btn">🎲 Roll</button>
+      <div id="result"></div>
+    </div>
+
+    <!-- Page 2: Odds page -->
+    <div class="page" id="page2">
+      <h2>Rarity Odds</h2>
+      <div id="odds-panel" class="prob-panel"></div>
+    </div>
+
   </div>
 </div>
 

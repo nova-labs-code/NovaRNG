@@ -27,7 +27,7 @@ body {
   transition: transform 0.5s ease;
 }
 
-/* Page initial positions and z-index */
+/* Page positions */
 #page1 { transform: translateX(0%); z-index:3; }
 #page2 { transform: translateX(100%); z-index:2; }
 #page3 { transform: translateX(100%); z-index:1; }
@@ -91,7 +91,7 @@ button:disabled {
   color: #ffdd55;
 }
 
-/* Result text container */
+/* Result container */
 #result {
   margin-top: 20px;
   font-size: 1.6rem;
@@ -102,25 +102,23 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Text pre-under frame */
 .result-text {
   position: relative;
   z-index: 1;
 }
 
-/* Semi-transparent wipe bar */
+/* Wipe bar */
 .wipe-bar {
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 157, 255, 0.96); /* updated transparency */
+  background: rgba(0, 157, 255, 0.96);
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
 
-/* Wipe animation */
 @keyframes wipeLeftToRight {
   0% { left: -100%; }
   50% { left: 0%; }
@@ -131,4 +129,22 @@ button:disabled {
 .rarity-owned {
   font-weight: bold;
   color: #55ff55;
+}
+
+/* Roll history styles */
+#roll-history {
+  margin-top: 20px;
+  font-size: 1rem;
+  max-height: 140px;
+  overflow-y: auto;
+  border-top: 1px solid #444;
+  padding-top: 10px;
+}
+
+/* Login streak */
+#login-streak {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ffdd55;
+  margin-bottom: 10px;
 }

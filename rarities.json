@@ -2,5 +2,6 @@
   { "rarity": "Common", "number": 2 },
   { "rarity": "Uncommon", "number": 4 },
   { "rarity": "Rare", "number": 7 },
-  { "rarity": "Legendary", "number": 11 }
+  { "rarity": "Legendary", "number": 11 },
+  { "rarity": "Mythical", "number": 15 }              
 ]

@@ -142,25 +142,23 @@ function updateStatsText(){
 
 // AUTO-ROLL BUTTONS WITH LOCKED TEXT
 function updateAutoRollButtons(){
-  autoRollBtn.disabled = totalRolls<100;
-  fastAutoRollBtn.disabled = totalRolls<1000;
-
-  // Add or remove locked text
-  let autoText = autoRollBtn.nextElementSibling;
-  if(!autoText || !autoText.classList.contains("locked-text")){
-    autoText = document.createElement("div");
-    autoText.className="locked-text";
-    autoRollBtn.parentNode.appendChild(autoText);
+  // Auto Roll
+  if(totalRolls >= 100){
+    autoRollBtn.disabled = false;
+    autoRollBtn.innerText = "🎲 Auto Roll";
+  } else {
+    autoRollBtn.disabled = true;
+    autoRollBtn.innerText = `Locked: get ${100-totalRolls} more rolls`;
   }
-  autoText.innerText = totalRolls<100 ? `Locked: get ${100-totalRolls} more rolls` : "";
 
-  let fastText = fastAutoRollBtn.nextElementSibling;
-  if(!fastText || !fastText.classList.contains("locked-text")){
-    fastText = document.createElement("div");
-    fastText.className="locked-text";
-    fastAutoRollBtn.parentNode.appendChild(fastText);
+  // Fast Auto Roll
+  if(totalRolls >= 1000){
+    fastAutoRollBtn.disabled = false;
+    fastAutoRollBtn.innerText = "🎲 Fast Auto Roll";
+  } else {
+    fastAutoRollBtn.disabled = true;
+    fastAutoRollBtn.innerText = `Locked: get ${1000-totalRolls} more rolls`;
   }
-  fastText.innerText = totalRolls<1000 ? `Locked: get ${1000-totalRolls} more rolls` : "";
 }
 
 // AUTO-ROLL

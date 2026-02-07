@@ -1,6 +1,4 @@
-/* ----------------------------- */
 /* GENERAL STYLES */
-/* ----------------------------- */
 body {
   margin: 0;
   padding: 0;
@@ -37,14 +35,19 @@ h1, h2 {
   margin-top: 0;
 }
 
-/* ----------------------------- */
 /* ROLL BUTTONS (PAGE 1) */
-/* ----------------------------- */
 #roll-buttons {
   display: flex;
   justify-content: center;
   gap: 10px;
   margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.roll-btn-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 button.roll-btn {
@@ -68,9 +71,15 @@ button.roll-btn:disabled {
   cursor: not-allowed;
 }
 
-/* ----------------------------- */
+/* Locked text below auto-roll buttons */
+.locked-text {
+  font-size: 0.8rem;
+  color: #ff5555;
+  margin-top: 2px;
+  text-align: center;
+}
+
 /* RESULT BOX WITH WIPE ANIMATION */
-/* ----------------------------- */
 #result {
   margin-top: 20px;
   font-size: 1.6rem;
@@ -92,7 +101,7 @@ button.roll-btn:disabled {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 157, 255, 0.96); /* semi-transparent blue */
+  background: rgba(0, 157, 255, 0.96);
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
@@ -103,9 +112,7 @@ button.roll-btn:disabled {
   100% { left: 100%; }
 }
 
-/* ----------------------------- */
-/* ROLL HISTORY & LOGIN STREAK */
-/* ----------------------------- */
+/* Roll history & login streak */
 #roll-history {
   margin-top: 20px;
   font-size: 1rem;
@@ -117,9 +124,7 @@ button.roll-btn:disabled {
   font-weight: bold;
 }
 
-/* ----------------------------- */
-/* ODDS PAGE STYLING */
-/* ----------------------------- */
+/* Odds Page Boxes */
 #odds-panel {
   display: flex;
   flex-direction: column;
@@ -148,8 +153,7 @@ button.roll-btn:disabled {
   border-color: #009dff;
 }
 
-/* ----------------------------- */
-/* STATS PAGE (TEXT STATS) */
+/* Stats page */
 #stats-panel {
   margin-top: 20px;
   font-size: 1rem;
@@ -174,8 +178,7 @@ button.roll-btn:disabled {
 #reset-stats:hover { background:#333; color:#ffdd55; }
 #reset-stats:active { transform: scale(0.97); }
 
-/* ----------------------------- */
-/* POPUP NOTIFICATIONS */
+/* Popup notifications */
 #popup {
   position: fixed;
   bottom: 10px;
@@ -192,12 +195,12 @@ button.roll-btn:disabled {
   pointer-events: none;
 }
 
-/* ----------------------------- */
-/* RESPONSIVE */
+/* Responsive */
 @media(max-width:480px){
   .page { padding:15px 10px; }
   .roll-btn { font-size:0.9rem; padding:8px 12px; }
   #result { font-size:1.3rem; }
   .odds-box { font-size:1rem; padding:10px 12px; margin:10px 10px; }
   #reset-stats { font-size:0.9rem; padding:8px 12px; margin:15px auto 0 auto; }
+  .locked-text { font-size:0.75rem; }
 }

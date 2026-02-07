@@ -7,8 +7,7 @@ fetch("rarities.json")
   .then(data => {
     rarities = data;
     initOddsPanel();
-  })
-  .catch(err => console.error("Failed to load rarities:", err));
+  });
 
 // Initialize odds panel with ??? %
 function initOddsPanel() {
@@ -41,7 +40,7 @@ document.getElementById("pick-btn").addEventListener("click", ()=>{
   revealRarity(result);
 });
 
-// Reveal rarity on page 2
+// Reveal rarity on odds page
 function revealRarity(rarityName){
   rarities.forEach((r,i)=>{
     if(r.rarity===rarityName){
@@ -57,10 +56,14 @@ let startX = 0;
 document.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
 document.addEventListener("touchend", e=>{
   const endX = e.changedTouches[0].clientX;
-  const pagesDiv = document.querySelector(".pages");
-  if(startX-endX>50){ // swipe left
-    pagesDiv.style.transform="translateX(-100vw)";
-  } else if(endX-startX>50){ // swipe right
-    pagesDiv.style.transform="translateX(0)";
+  const page1 = document.getElementById("page1");
+  const page2 = document.getElementById("page2");
+
+  if(startX-endX>50){ // swipe left → page2
+    page1.style.transform = "translateX(-100%)";
+    page2.style.transform = "translateX(0%)";
+  } else if(endX-startX>50){ // swipe right → page1
+    page1.style.transform = "translateX(0%)";
+    page2.style.transform = "translateX(100%)";
   }
 });

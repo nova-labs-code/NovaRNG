@@ -1,7 +1,3 @@
-/* ===============================
-   NOVA RNG — FULL CSS
-   =============================== */
-
 body {
   margin: 0;
   padding: 0;
@@ -12,190 +8,31 @@ body {
   touch-action: manipulation;
 }
 
-.container {
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  overflow: hidden;
-  font-size: 16px;
-}
+.container { width: 100vw; height: 100vh; position: relative; overflow: hidden; font-size:16px; }
+.page { position:absolute; top:0; left:0; width:100%; height:100%; padding:20px; box-sizing:border-box; background:#111; color:#eee; transition: transform 0.5s ease; }
+h1,h2 { text-align:center; color:#ffdd55; margin-top:0; }
 
-/* Pages */
-.page {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-  background: #111;
-  color: #eee;
-  transition: transform 0.5s ease;
-}
+#roll-buttons { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:10px; }
+button.roll-btn { flex:1 1 100px; min-width:80px; max-width:160px; padding:10px 20px; font-weight:bold; cursor:pointer; background:#222; color:#fff; border:2px solid #444; border-radius:8px; transition: all 0.3s ease; }
+button.roll-btn:hover:not(:disabled) { background:#333; color:#ffdd55; }
+button.roll-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-h1, h2 {
-  text-align: center;
-  color: #ffdd55;
-  margin-top: 0;
-}
+#result { margin-top:20px; font-size:1.6rem; text-align:center; color:#ffdd55; min-height:50px; position:relative; overflow:hidden; }
+.result-text { position:relative; z-index:1; }
 
-/* Roll buttons */
-#roll-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-}
+.wipe-bar { position:absolute; top:0; left:-100%; width:100%; height:100%; background: rgba(0,157,255,0.96); z-index:2; animation:wipeLeftToRight 0.65s ease forwards; }
+@keyframes wipeLeftToRight { 0%{left:-100%}50%{left:0%}100%{left:100%} }
 
-button.roll-btn {
-  flex: 1 1 100px;
-  min-width: 80px;
-  max-width: 160px;
-  padding: 10px 20px;
-  font-weight: bold;
-  cursor: pointer;
-  background: #222;
-  color: #fff;
-  border: 2px solid #444;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
+#roll-history { margin-top:20px; font-size:1rem; }
+#login-streak { text-align:center; margin-bottom:10px; font-weight:bold; }
 
-button.roll-btn:hover:not(:disabled) {
-  background: #333;
-  color: #ffdd55;
-}
+.odds-box { background:#1a1a1a; border:2px solid #444; border-radius:10px; padding:12px 20px; margin:10px 0; display:flex; justify-content:space-between; align-items:center; font-size:1.1rem; transition: all 0.3s ease; }
+.odds-box.owned {}
+.odds-box:hover { background:rgba(0,157,255,0.1); border-color:#009dff; }
 
-button.roll-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.prob-panel { margin-top:20px; font-size:1rem; text-align:left; border-top:1px solid #444; padding-top:12px; max-height:40vh; overflow-y:auto; }
+#stats-graph { width:100%; height:auto; margin-top:15px; border:1px solid #444; border-radius:8px; background:#111; }
 
-/* Result box */
-#result {
-  margin-top: 20px;
-  font-size: 1.6rem;
-  text-align: center;
-  color: #ffdd55;
-  min-height: 50px;
-  position: relative;
-  overflow: hidden;
-}
+#popup { position:fixed; bottom:10px; right:10px; background:#222; color:#fff; padding:8px 14px; border-radius:6px; font-size:0.9rem; opacity:0.95; display:none; z-index:100; box-shadow:0 0 10px rgba(0,0,0,0.7); pointer-events:none; }
 
-.result-text {
-  position: relative;
-  z-index: 1;
-}
-
-/* Wipe animation frame - blue */
-.wipe-bar {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 157, 255, 0.96);
-  z-index: 2;
-  animation: wipeLeftToRight 0.65s ease forwards;
-}
-
-@keyframes wipeLeftToRight {
-  0% { left: -100%; }
-  50% { left: 0%; }
-  100% { left: 100%; }
-}
-
-/* Roll history and streak */
-#roll-history {
-  margin-top: 20px;
-  font-size: 1rem;
-}
-
-#login-streak {
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-/* Odds page boxes */
-.odds-box {
-  background: #1a1a1a;
-  border: 2px solid #444;
-  border-radius: 10px;
-  padding: 12px 20px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-}
-
-.odds-box.owned {
-  /* border and background set dynamically in JS */
-}
-
-.odds-box:hover {
-  background: rgba(0, 157, 255, 0.1);
-  border-color: #009dff;
-}
-
-/* Stats page */
-.prob-panel {
-  margin-top: 20px;
-  font-size: 1rem;
-  text-align: left;
-  border-top: 1px solid #444;
-  padding-top: 12px;
-  max-height: 40vh;
-  overflow-y: auto;
-}
-
-#stats-graph {
-  width: 100%;
-  height: auto;
-  margin-top: 15px;
-  border: 1px solid #444;
-  border-radius: 8px;
-  background: #111;
-}
-
-/* Popup notifications */
-#popup {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: #222;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  opacity: 0.95;
-  display: none;
-  z-index: 100;
-  box-shadow: 0 0 10px rgba(0,0,0,0.7);
-  pointer-events: none;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .page {
-    padding: 15px 10px;
-  }
-
-  .roll-btn {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-
-  #result {
-    font-size: 1.3rem;
-  }
-
-  .odds-box {
-    font-size: 1rem;
-    padding: 10px 12px;
-  }
-}
+@media(max-width:480px){ .page{padding:15px 10px;} .roll-btn{font-size:0.9rem; padding:8px 12px;} #result{font-size:1.3rem;} .odds-box{font-size:1rem; padding:10px 12px;} }

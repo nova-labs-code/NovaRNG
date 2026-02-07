@@ -35,7 +35,7 @@ pages.forEach(page=>{
   page.addEventListener("touchend", e => {
     if (!touchStartX) return;
     let delta = e.changedTouches[0].clientX - touchStartX;
-    const SWIPE_THRESHOLD = 80; // reduced sensitivity
+    const SWIPE_THRESHOLD = 80;
     if(delta > SWIPE_THRESHOLD) showPage(Math.max(0,currentPage-1));
     if(delta < -SWIPE_THRESHOLD) showPage(Math.min(pages.length-1,currentPage+1));
     touchStartX = null;
@@ -107,19 +107,24 @@ function updateRollHistory(){ rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHis
 
 function updateOdds(){
   oddsPanel.innerHTML="";
+  const totalWeight = rarities.reduce((sum,r)=>sum+r.number,0);
+
   rarities.forEach(r=>{
-    const div=document.createElement("div");
+    const div = document.createElement("div");
     div.classList.add("odds-box");
-    const color=getRarityColor(r.number);
-    div.style.borderColor=color;
+    const color = getRarityColor(r.number);
+    div.style.borderColor = color;
 
-    div.innerHTML=`
-      <span>${owned[r.rarity]?r.rarity:"???"}</span>
-      <span>${r.number}</span>
-    `;
+    const chancePercent = ((r.number / totalWeight) * 100).toFixed(2);
+    const countOwned = rollHistory.filter(x=>x===r.rarity).length;
+    const displayName = owned[r.rarity] ? r.rarity : "???";
 
-    if(owned[r.rarity]){ div.classList.add("owned"); div.style.background=`${color}33`; }
-    else { div.style.background="#1a1a1a"; }
+    div.innerHTML = `<span>${displayName}</span><span>${countOwned} owned</span><span>${chancePercent}%</span>`;
+
+    if(owned[r.rarity]){
+      div.classList.add("owned");
+      div.style.background = `${color}33`;
+    } else { div.style.background="#1a1a1a"; }
 
     oddsPanel.appendChild(div);
   });

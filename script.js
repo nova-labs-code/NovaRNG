@@ -1,7 +1,3 @@
-// -----------------------------
-// NOVA RNG FULL JS (TEXT STATS VERSION)
-// -----------------------------
-
 let rarities = [];
 let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
@@ -24,9 +20,7 @@ let canRoll = true;
 let autoRollInterval = null;
 let fastAutoRollInterval = null;
 
-// -----------------------------
 // PAGE SWIPE
-// -----------------------------
 const pages = document.querySelectorAll(".page");
 let currentPage = 0;
 
@@ -49,9 +43,7 @@ pages.forEach(page=>{
   });
 });
 
-// -----------------------------
 // HELPERS
-// -----------------------------
 function getRarityColor(number){
   if(number>=1 && number<=100) return "#aaaaaa";
   if(number>=101 && number<=215) return "#55ff55";
@@ -74,9 +66,7 @@ function saveData(){
   localStorage.setItem("totalRolls",totalRolls);
 }
 
-// -----------------------------
 // ROLL
-// -----------------------------
 function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
@@ -91,7 +81,6 @@ function roll(){
     if(rand<=cumulative){ resultRarity=r; break; }
   }
 
-  // WIPE ANIMATION
   const wipe=document.createElement("div");
   wipe.className="wipe-bar";
   resultDiv.appendChild(wipe);
@@ -114,9 +103,7 @@ function roll(){
   },650);
 }
 
-// -----------------------------
 // UPDATES
-// -----------------------------
 function updateRollHistory(){
   rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>");
 }
@@ -144,9 +131,6 @@ function updateLoginStreak(){
   loginStreakDiv.innerText=`Login Streak: ${loginStreak}`;
 }
 
-// -----------------------------
-// STATS TEXT (NO GRAPH)
-// -----------------------------
 function updateStatsText(){
   let statsHTML=`Total Rolls: ${totalRolls}<br>Unique Rarities Owned: ${Object.keys(owned).length}<br><br>`;
   rarities.forEach(r=>{
@@ -156,9 +140,30 @@ function updateStatsText(){
   statsPanel.innerHTML=statsHTML;
 }
 
-// -----------------------------
+// AUTO-ROLL BUTTONS WITH LOCKED TEXT
+function updateAutoRollButtons(){
+  autoRollBtn.disabled = totalRolls<100;
+  fastAutoRollBtn.disabled = totalRolls<1000;
+
+  // Add or remove locked text
+  let autoText = autoRollBtn.nextElementSibling;
+  if(!autoText || !autoText.classList.contains("locked-text")){
+    autoText = document.createElement("div");
+    autoText.className="locked-text";
+    autoRollBtn.parentNode.appendChild(autoText);
+  }
+  autoText.innerText = totalRolls<100 ? `Locked: get ${100-totalRolls} more rolls` : "";
+
+  let fastText = fastAutoRollBtn.nextElementSibling;
+  if(!fastText || !fastText.classList.contains("locked-text")){
+    fastText = document.createElement("div");
+    fastText.className="locked-text";
+    fastAutoRollBtn.parentNode.appendChild(fastText);
+  }
+  fastText.innerText = totalRolls<1000 ? `Locked: get ${1000-totalRolls} more rolls` : "";
+}
+
 // AUTO-ROLL
-// -----------------------------
 function startAutoRoll(speed){
   if(autoRollInterval) clearInterval(autoRollInterval);
   if(fastAutoRollInterval) clearInterval(fastAutoRollInterval);
@@ -171,17 +176,9 @@ function stopAutoRoll(){
   if(fastAutoRollInterval) clearInterval(fastAutoRollInterval);
 }
 
-function updateAutoRollButtons(){
-  autoRollBtn.disabled = totalRolls<100;
-  fastAutoRollBtn.disabled = totalRolls<1000;
-}
-
-// -----------------------------
 // EVENT LISTENERS
-// -----------------------------
 pickBtn.addEventListener("click",roll);
 
-// Auto-roll clicks with popup if locked
 autoRollBtn.addEventListener("click", ()=>{
   if(totalRolls<100) showPopup(`Locked — get ${100-totalRolls} more rolls`);
   else startAutoRoll(1000);
@@ -192,7 +189,6 @@ fastAutoRollBtn.addEventListener("click", ()=>{
   else startAutoRoll(500);
 });
 
-// Reset stats
 resetStatsBtn.addEventListener("click", ()=>{
   rollHistory=[];
   owned={};
@@ -205,9 +201,7 @@ resetStatsBtn.addEventListener("click", ()=>{
   showPopup("Stats reset!");
 });
 
-// -----------------------------
 // INIT
-// -----------------------------
 function init(){
   fetch("rarities.json")
     .then(res=>res.json())

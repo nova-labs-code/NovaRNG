@@ -110,6 +110,7 @@ document.getElementById("reset-stats").addEventListener("click", ()=>{
 // Swipe detection for 3 pages
 let startX = 0;
 document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+
 document.addEventListener("touchend", e => {
   const endX = e.changedTouches[0].clientX;
   const pages = [
@@ -117,7 +118,14 @@ document.addEventListener("touchend", e => {
     document.getElementById("page2"),
     document.getElementById("page3")
   ];
-  let currentIndex = pages.findIndex(p => p.style.transform === "translateX(0%)" || p.style.transform === "");
+
+  // Determine current page (the one closest to 0%)
+  let currentIndex = pages.findIndex(p => {
+    const transform = getComputedStyle(p).transform;
+    if(transform === 'none') return true;
+    return transform.includes('matrix(1, 0, 0, 1, 0, 0)'); // translateX(0)
+  });
+  if(currentIndex === -1) currentIndex = 0;
 
   if(startX - endX > 50){ // swipe left
     const nextIndex = Math.min(currentIndex+1, pages.length-1);

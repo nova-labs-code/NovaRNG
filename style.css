@@ -27,16 +27,11 @@ body {
   transition: transform 0.5s ease;
 }
 
-/* Page positions */
 #page1 { transform: translateX(0%); z-index:3; }
 #page2 { transform: translateX(100%); z-index:2; }
 #page3 { transform: translateX(100%); z-index:1; }
 
-h1, h2 {
-  text-align: center;
-  color: #ffdd55;
-  margin-top: 0;
-}
+h1, h2 { text-align: center; color: #ffdd55; margin-top: 0; }
 
 button {
   padding: 10px 20px;
@@ -49,102 +44,29 @@ button {
   border: 2px solid #444;
 }
 
-button:hover:not(:disabled) {
-  background: #333;
-  color: #ffdd55;
-}
+button:hover:not(:disabled) { background: #333; color: #ffdd55; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.prob-panel { margin-top: 20px; font-size: 1rem; text-align: left; border-top:1px solid #444; padding-top:12px; opacity:0.9; }
+#stats-panel { margin-top: 20px; }
 
-.prob-panel {
-  margin-top: 20px;
-  font-size: 1rem;
-  text-align: left;
-  border-top: 1px solid #444;
-  padding-top: 12px;
-  opacity: 0.9;
-}
+#reset-stats { margin-top: 10px; padding: 8px 16px; cursor:pointer; background:#222; color:#fff; border:2px solid #444; }
+#reset-stats:hover { background:#333; color:#ffdd55; }
 
-#stats-panel {
-  margin-top: 20px;
-  font-size: 1rem;
-  text-align: left;
-  border-top: 1px solid #444;
-  padding-top: 12px;
-  opacity: 0.9;
-}
+#result { margin-top: 20px; font-size:1.6rem; text-align:center; color:#ffdd55; min-height:44px; position:relative; overflow:hidden; }
+.result-text { position:relative; z-index:1; }
 
-#reset-stats {
-  margin-top: 20px;
-  padding: 8px 16px;
-  cursor: pointer;
-  background: #222;
-  color: #fff;
-  border: 2px solid #444;
-}
-
-#reset-stats:hover {
-  background: #333;
-  color: #ffdd55;
-}
-
-/* Result container */
-#result {
-  margin-top: 20px;
-  font-size: 1.6rem;
-  text-align: center;
-  color: #ffdd55;
-  min-height: 44px;
-  position: relative;
-  overflow: hidden;
-}
-
-.result-text {
-  position: relative;
-  z-index: 1;
-}
-
-/* Wipe bar */
 .wipe-bar {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 157, 255, 0.96);
-  z-index: 2;
+  position:absolute; top:0; left:-100%; width:100%; height:100%;
+  background: rgba(0,157,255,0.96); z-index:2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
+@keyframes wipeLeftToRight { 0%{left:-100%;} 50%{left:0;} 100%{left:100%;} }
 
-@keyframes wipeLeftToRight {
-  0% { left: -100%; }
-  50% { left: 0%; }
-  100% { left: 100%; }
-}
+.rarity-owned { font-weight:bold; color:#55ff55; }
 
-/* Owned rarity highlight */
-.rarity-owned {
-  font-weight: bold;
-  color: #55ff55;
-}
+#roll-history { margin-top:20px; font-size:1rem; max-height:140px; overflow-y:auto; border-top:1px solid #444; padding-top:10px; }
 
-/* Roll history styles */
-#roll-history {
-  margin-top: 20px;
-  font-size: 1rem;
-  max-height: 140px;
-  overflow-y: auto;
-  border-top: 1px solid #444;
-  padding-top: 10px;
-}
+#login-streak { text-align:center; font-size:1.2rem; color:#ffdd55; margin-bottom:10px; }
 
-/* Login streak */
-#login-streak {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #ffdd55;
-  margin-bottom: 10px;
-}
+canvas { margin-top:10px; display:block; background:#222; border:1px solid #444; margin-left:auto; margin-right:auto; }

@@ -1,3 +1,13 @@
+/* BODY & CONTAINER */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Courier New", Courier, monospace;
+  background: #0a0a0a;
+  color: #eee;
+  overflow: hidden;
+}
+
 .container {
   position: relative;
   width: 100vw;
@@ -5,7 +15,7 @@
   overflow: hidden;
 }
 
-/* All pages positioned on top of each other */
+/* PAGES */
 .page {
   position: absolute;
   top: 0;
@@ -19,11 +29,49 @@
   transition: transform 0.5s ease;
 }
 
-/* Initially hide page 2 offscreen to the right */
-#page1 {
-  transform: translateX(0);
+/* INITIAL POSITIONS */
+#page1 { transform: translateX(0); }
+#page2 { transform: translateX(100%); }
+
+/* HEADERS */
+h1, h2 {
+  color: #ffdd55;
+  text-align: center;
+  margin-top: 0;
 }
 
-#page2 {
-  transform: translateX(100%);
+/* BUTTONS */
+button {
+  padding: 10px 20px;
+  margin: 10px auto;
+  display: block;
+  cursor: pointer;
+  font-weight: bold;
+  background: #222;
+  color: #fff;
+  border: 2px solid #444;
+}
+
+button:hover {
+  background: #333;
+  color: #ffdd55;
+}
+
+/* PROBABILITY PANEL */
+.prob-panel {
+  margin-top: 20px;
+  text-align: left;
+  font-size: 0.9rem;
+  border-top: 1px solid #444;
+  padding-top: 12px;
+  opacity: 0.8;
+}
+
+/* RESULT */
+#result {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  text-align: center;
+  color: #ffdd55;
+  min-height: 40px;
 }

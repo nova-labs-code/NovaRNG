@@ -1,17 +1,18 @@
 /* ===============================
-   NOVA RNG — MULTI PAGE SWIPE
+   NOVA RNG — FULL SYSTEM
    =============================== */
 
 let rarities = [];
 let stats = {};
 let history = [];
 let owned = {};
+let dailyStats = {};
 
 let autoRolling = false;
 let autoTimer = null;
 
 /* ---------- PAGE SYSTEM ---------- */
-const pages = Array.from(document.querySelectorAll(".page"));
+const pages = [...document.querySelectorAll(".page")];
 let currentPageIndex = 0;
 
 /* ---------- ELEMENTS ---------- */
@@ -25,8 +26,13 @@ const historyBox = document.getElementById("roll-history");
 const streakBox = document.getElementById("login-streak");
 const popup = document.getElementById("popup");
 
+const oddsList = document.getElementById("odds-list");
+const statsTotal = document.getElementById("stats-total");
+const statsList = document.getElementById("stats-list");
+const statsGraph = document.getElementById("stats-graph");
+
 /* ===============================
-   LOAD DATA
+   LOAD RARITIES
    =============================== */
 
 fetch("rarities.json")
@@ -35,7 +41,7 @@ fetch("rarities.json")
     rarities = data;
     loadSave();
     restorePages();
-    updateUI();
+    updateAll();
   });
 
 /* ===============================
@@ -46,6 +52,7 @@ function loadSave() {
   stats = JSON.parse(localStorage.getItem("nova_stats")) || {};
   history = JSON.parse(localStorage.getItem("nova_history")) || [];
   owned = JSON.parse(localStorage.getItem("nova_owned")) || {};
+  dailyStats = JSON.parse(localStorage.getItem("nova_daily")) || {};
   currentPageIndex = Number(localStorage.getItem("nova_pageIndex")) || 0;
   updateLoginStreak();
 }
@@ -54,49 +61,35 @@ function saveAll() {
   localStorage.setItem("nova_stats", JSON.stringify(stats));
   localStorage.setItem("nova_history", JSON.stringify(history));
   localStorage.setItem("nova_owned", JSON.stringify(owned));
+  localStorage.setItem("nova_daily", JSON.stringify(dailyStats));
   localStorage.setItem("nova_pageIndex", currentPageIndex);
 }
 
 /* ===============================
-   PAGE POSITIONING
+   PAGE SWIPE
    =============================== */
 
 function restorePages() {
-  pages.forEach((page, i) => {
-    page.style.transform = `translateX(${(i - currentPageIndex) * 100}%)`;
+  pages.forEach((p, i) => {
+    p.style.transform = `translateX(${(i - currentPageIndex) * 100}%)`;
   });
 }
 
-function goToPage(index) {
-  if (index < 0 || index >= pages.length) return;
-  currentPageIndex = index;
+function goToPage(i) {
+  if (i < 0 || i >= pages.length) return;
+  currentPageIndex = i;
   saveAll();
   restorePages();
 }
 
-/* ===============================
-   SWIPE HANDLING
-   =============================== */
-
+/* Touch swipe */
 let startX = 0;
-let dragging = false;
-
-document.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  dragging = true;
-});
-
+document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
 document.addEventListener("touchend", e => {
-  if (!dragging) return;
-  dragging = false;
-
-  const endX = e.changedTouches[0].clientX;
-  const delta = endX - startX;
-
-  if (Math.abs(delta) < 60) return;
-
-  if (delta < 0) goToPage(currentPageIndex + 1);
-  if (delta > 0) goToPage(currentPageIndex - 1);
+  const dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) < 60) return;
+  if (dx < 0) goToPage(currentPageIndex + 1);
+  if (dx > 0) goToPage(currentPageIndex - 1);
 });
 
 /* ===============================
@@ -116,11 +109,11 @@ function updateLoginStreak() {
 
   localStorage.setItem("nova_last", today);
   localStorage.setItem("nova_streak", streak);
-  streakBox.textContent = `Login Streak: ${streak}`;
+  if (streakBox) streakBox.textContent = `Login Streak: ${streak}`;
 }
 
 /* ===============================
-   RNG LOGIC
+   ROLL LOGIC
    =============================== */
 
 rollBtn?.addEventListener("click", roll);
@@ -130,16 +123,18 @@ function roll() {
   rollBtn.disabled = true;
 
   const rarity = weightedPick();
-
   resultText.textContent = rarity;
+
   owned[rarity] = true;
   stats[rarity] = (stats[rarity] || 0) + 1;
 
   history.unshift(rarity);
   if (history.length > 5) history.pop();
 
+  trackDaily(rarity);
+
   saveAll();
-  updateUI();
+  updateAll();
 
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
@@ -165,6 +160,22 @@ function weightedPick() {
     if (rand <= acc) return r.rarity;
   }
   return rarities[rarities.length - 1].rarity;
+}
+
+/* ===============================
+   DAILY STATS (7 DAYS)
+   =============================== */
+
+function trackDaily(rarity) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!dailyStats[today]) dailyStats[today] = 0;
+
+  const r = rarities.find(x => x.rarity === rarity);
+  dailyStats[today] += r.number;
+
+  // keep last 7 days only
+  const days = Object.keys(dailyStats).sort().slice(-7);
+  dailyStats = Object.fromEntries(days.map(d => [d, dailyStats[d]]));
 }
 
 /* ===============================
@@ -198,15 +209,58 @@ function autoLoop(cd) {
 }
 
 /* ===============================
-   UI
+   UI UPDATES (ALL PAGES)
    =============================== */
 
-function updateUI() {
-  if (historyBox) {
-    historyBox.innerHTML = "<b>Last 5 Rolls</b>";
-    history.forEach(r => historyBox.innerHTML += `<div>${r}</div>`);
-  }
+function updateAll() {
+  updateHistory();
+  updateOdds();
+  updateStats();
+  updateAutoButtons();
+}
 
+function updateHistory() {
+  if (!historyBox) return;
+  historyBox.innerHTML = "<b>Last 5 Rolls</b>";
+  history.forEach(r => historyBox.innerHTML += `<div>${r}</div>`);
+}
+
+function updateOdds() {
+  if (!oddsList) return;
+  oddsList.innerHTML = "";
+
+  rarities.forEach(r => {
+    const ownedIt = owned[r.rarity];
+    const div = document.createElement("div");
+
+    div.textContent = ownedIt
+      ? `${r.rarity} — 1 / ${r.number}`
+      : "??? Odds";
+
+    div.style.color = ownedIt ? "#55ff88" : "#aaa";
+    oddsList.appendChild(div);
+  });
+}
+
+function updateStats() {
+  if (!statsTotal || !statsList) return;
+
+  statsTotal.textContent = `Total Rolls: ${totalRolls()}`;
+  statsList.innerHTML = "";
+
+  Object.entries(stats).forEach(([k, v]) => {
+    statsList.innerHTML += `<div>${k}: ${v}</div>`;
+  });
+
+  if (statsGraph) {
+    statsGraph.innerHTML = "";
+    Object.entries(dailyStats).forEach(([d, v]) => {
+      statsGraph.innerHTML += `<div>${d}: ${v}</div>`;
+    });
+  }
+}
+
+function updateAutoButtons() {
   autoBtn.disabled = totalRolls() < 100;
   fastBtn.disabled = totalRolls() < 1000;
 }

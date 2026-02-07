@@ -25,21 +25,20 @@ const pages = document.querySelectorAll(".page");
 let currentPage = 0;
 
 function showPage(index){
-  pages.forEach((page,i)=>{
-    page.style.transform=`translateX(${(i-index)*100}%)`;
-  });
+  pages.forEach((page,i)=>{ page.style.transform=`translateX(${(i-index)*100}%)`; });
   currentPage=index;
 }
 
 let touchStartX=null;
 pages.forEach(page=>{
-  page.addEventListener("touchstart",e=>{ touchStartX=e.touches[0].clientX; });
-  page.addEventListener("touchend",e=>{
-    if(!touchStartX) return;
-    let delta=e.changedTouches[0].clientX - touchStartX;
-    if(delta>50) showPage(Math.max(0,currentPage-1));
-    if(delta<-50) showPage(Math.min(pages.length-1,currentPage+1));
-    touchStartX=null;
+  page.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; });
+  page.addEventListener("touchend", e => {
+    if (!touchStartX) return;
+    let delta = e.changedTouches[0].clientX - touchStartX;
+    const SWIPE_THRESHOLD = 80; // reduced sensitivity
+    if(delta > SWIPE_THRESHOLD) showPage(Math.max(0,currentPage-1));
+    if(delta < -SWIPE_THRESHOLD) showPage(Math.min(pages.length-1,currentPage+1));
+    touchStartX = null;
   });
 });
 
@@ -103,10 +102,8 @@ function roll(){
   },650);
 }
 
-// UPDATES
-function updateRollHistory(){
-  rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>");
-}
+// UPDATE FUNCTIONS
+function updateRollHistory(){ rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>"); }
 
 function updateOdds(){
   oddsPanel.innerHTML="";
@@ -115,58 +112,43 @@ function updateOdds(){
     div.classList.add("odds-box");
     const color=getRarityColor(r.number);
     div.style.borderColor=color;
-    if(owned[r.rarity]){
-      div.classList.add("owned");
-      div.style.background=`${color}33`;
-    } else { div.style.background="#1a1a1a"; }
+
     div.innerHTML=`
       <span>${owned[r.rarity]?r.rarity:"???"}</span>
-      <span>${owned[r.rarity]?`1 / ${r.number}`:"??? Odds"}</span>
+      <span>${r.number}</span>
     `;
+
+    if(owned[r.rarity]){ div.classList.add("owned"); div.style.background=`${color}33`; }
+    else { div.style.background="#1a1a1a"; }
+
     oddsPanel.appendChild(div);
   });
 }
 
-function updateLoginStreak(){
-  loginStreakDiv.innerText=`Login Streak: ${loginStreak}`;
-}
+function updateLoginStreak(){ loginStreakDiv.innerText=`Login Streak: ${loginStreak}`; }
 
 function updateStatsText(){
-  let statsHTML=`Total Rolls: ${totalRolls}<br>Unique Rarities Owned: ${Object.keys(owned).length}<br><br>`;
-  rarities.forEach(r=>{
-    const count = rollHistory.filter(x=>x===r.rarity).length;
-    statsHTML+=`${r.rarity}: ${count}<br>`;
-  });
-  statsPanel.innerHTML=statsHTML;
+  statsPanel.innerHTML = `
+    Total Rolls: ${totalRolls}<br>
+    Unique Rarities Owned: ${Object.keys(owned).length}<br>
+    Last 5 Rolls:<br>${rollHistory.join("<br>")}
+  `;
 }
 
-// AUTO-ROLL BUTTONS WITH LOCKED TEXT
+// AUTO-ROLL BUTTONS
 function updateAutoRollButtons(){
-  // Auto Roll
-  if(totalRolls >= 100){
-    autoRollBtn.disabled = false;
-    autoRollBtn.innerText = "🎲 Auto Roll";
-  } else {
-    autoRollBtn.disabled = true;
-    autoRollBtn.innerText = `Locked: get ${100-totalRolls} more rolls`;
-  }
+  autoRollBtn.disabled = totalRolls<100;
+  autoRollBtn.innerText = totalRolls<100 ? `Locked: get ${100-totalRolls} more rolls` : "🎲 Auto Roll";
 
-  // Fast Auto Roll
-  if(totalRolls >= 1000){
-    fastAutoRollBtn.disabled = false;
-    fastAutoRollBtn.innerText = "🎲 Fast Auto Roll";
-  } else {
-    fastAutoRollBtn.disabled = true;
-    fastAutoRollBtn.innerText = `Locked: get ${1000-totalRolls} more rolls`;
-  }
+  fastAutoRollBtn.disabled = totalRolls<1000;
+  fastAutoRollBtn.innerText = totalRolls<1000 ? `Locked: get ${1000-totalRolls} more rolls` : "🎲 Fast Auto Roll";
 }
 
-// AUTO-ROLL
 function startAutoRoll(speed){
   if(autoRollInterval) clearInterval(autoRollInterval);
   if(fastAutoRollInterval) clearInterval(fastAutoRollInterval);
-  if(speed===1000) autoRollInterval = setInterval(()=>{ if(canRoll) roll(); },1000);
-  else if(speed===500) fastAutoRollInterval = setInterval(()=>{ if(canRoll) roll(); },500);
+  if(speed===1000) autoRollInterval=setInterval(()=>{ if(canRoll) roll(); },1000);
+  if(speed===500) fastAutoRollInterval=setInterval(()=>{ if(canRoll) roll(); },500);
 }
 
 function stopAutoRoll(){
@@ -176,26 +158,12 @@ function stopAutoRoll(){
 
 // EVENT LISTENERS
 pickBtn.addEventListener("click",roll);
-
-autoRollBtn.addEventListener("click", ()=>{
-  if(totalRolls<100) showPopup(`Locked — get ${100-totalRolls} more rolls`);
-  else startAutoRoll(1000);
-});
-
-fastAutoRollBtn.addEventListener("click", ()=>{
-  if(totalRolls<1000) showPopup(`Locked — get ${1000-totalRolls} more rolls`);
-  else startAutoRoll(500);
-});
-
+autoRollBtn.addEventListener("click", ()=>{ totalRolls<100 ? showPopup(`Locked — get ${100-totalRolls} more rolls`) : startAutoRoll(1000); });
+fastAutoRollBtn.addEventListener("click", ()=>{ totalRolls<1000 ? showPopup(`Locked — get ${1000-totalRolls} more rolls`) : startAutoRoll(500); });
 resetStatsBtn.addEventListener("click", ()=>{
-  rollHistory=[];
-  owned={};
-  totalRolls=0;
+  rollHistory=[]; owned={}; totalRolls=0;
   saveData();
-  updateRollHistory();
-  updateOdds();
-  updateStatsText();
-  updateAutoRollButtons();
+  updateRollHistory(); updateOdds(); updateStatsText(); updateAutoRollButtons();
   showPopup("Stats reset!");
 });
 
@@ -203,12 +171,7 @@ resetStatsBtn.addEventListener("click", ()=>{
 function init(){
   fetch("rarities.json")
     .then(res=>res.json())
-    .then(data=>{
-      rarities=data;
-      updateOdds();
-      updateStatsText();
-      updateAutoRollButtons();
-    });
+    .then(data=>{ rarities=data; updateOdds(); updateStatsText(); updateAutoRollButtons(); });
 
   updateRollHistory();
   updateLoginStreak();

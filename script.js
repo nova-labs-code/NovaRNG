@@ -32,7 +32,7 @@ function pickRarity() {
   return rarities[rarities.length-1].rarity;
 }
 
-// Roll button with solid wipe animation + cooldown
+// Roll button with semi-transparent wipe + cooldown
 document.getElementById("pick-btn").addEventListener("click", () => {
   const resultElem = document.getElementById("result");
   const button = document.getElementById("pick-btn");
@@ -44,32 +44,28 @@ document.getElementById("pick-btn").addEventListener("click", () => {
   const result = pickRarity();
   rolledRarity = result;
 
-  // Clear previous result
-  resultElem.innerHTML = "";
+  // Clear previous wipe bars but keep text (pre-under frame)
+  if (!resultElem.querySelector(".result-text")) {
+    const text = document.createElement("div");
+    text.className = "result-text";
+    text.textContent = `🎉 You got: ${result}!`;
+    resultElem.appendChild(text);
+  } else {
+    resultElem.querySelector(".result-text").textContent = `🎉 You got: ${result}!`;
+  }
 
-  // Create text element (hidden initially)
-  const text = document.createElement("div");
-  text.className = "result-text";
-  text.textContent = `🎉 You got: ${result}!`;
-  resultElem.appendChild(text);
-
-  // Create solid wipe bar
+  // Create semi-transparent wipe bar
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
   resultElem.appendChild(wipe);
-
-  // Reveal text after wipe passes
-  setTimeout(() => {
-    text.classList.add("reveal-text");
-  }, 450);
 
   // Remove wipe bar and apply 0.5s cooldown after animation
   setTimeout(() => {
     wipe.remove();
     setTimeout(() => {
       button.disabled = false;
-    }, 500); // cooldown
-  }, 700);
+    }, 500); // 0.5s cooldown
+  }, 650); // matches animation duration
 
   // Update odds page
   revealRarity(result);

@@ -1,14 +1,15 @@
 let rarities = [];
 
-// Load rarities
+// Load rarities from JSON
 fetch("rarities.json")
   .then((res) => res.json())
   .then((data) => {
     rarities = data;
     showProbabilities();
-  });
+  })
+  .catch((err) => console.error("Failed to load rarities:", err));
 
-// Calculate normalized probabilities
+// Calculate normalized probabilities (1/number)
 function getNormalizedProbabilities() {
   const total = rarities.reduce((sum, r) => sum + 1 / r.number, 0);
   return rarities.map((r) => ({
@@ -17,7 +18,7 @@ function getNormalizedProbabilities() {
   }));
 }
 
-// Display probabilities
+// Display probabilities in the panel
 function showProbabilities() {
   const panel = document.getElementById("probabilities");
   const probs = getNormalizedProbabilities();
@@ -28,20 +29,30 @@ function showProbabilities() {
   });
 }
 
-// Pick weighted rarity
+// Pick a rarity based on weighted probabilities
 function pickRarity() {
   const probs = getNormalizedProbabilities();
   let rand = Math.random();
-  let cum = 0;
+  let cumulative = 0;
   for (let p of probs) {
-    cum += p.probability;
-    if (rand < cum) return p.rarity;
+    cumulative += p.probability;
+    if (rand < cumulative) return p.rarity;
   }
-  return probs[probs.length - 1]?.rarity;
+  return probs[probs.length - 1]?.rarity; // fallback
 }
 
-// Button handler
+// Button click handler with roll animation
 document.getElementById("pick-btn").addEventListener("click", () => {
-  const res = pickRarity();
-  document.getElementById("result").textContent = `🎉 You got: ${res}!`;
+  const resultElem = document.getElementById("result");
+
+  // Start rolling animation
+  resultElem.textContent = "";
+  resultElem.classList.add("rolling");
+
+  // Wait 700ms to simulate roll
+  setTimeout(() => {
+    const rarity = pickRarity();
+    resultElem.classList.remove("rolling");
+    resultElem.textContent = `🎉 You got: ${rarity}!`;
+  }, 700);
 });

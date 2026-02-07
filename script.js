@@ -1,35 +1,44 @@
 let rarities = [];
+let currentPage = 0; // 0 = main RNG, 1 = extras
 
-// Load rarities
+// Load rarities from JSON
 fetch("rarities.json")
   .then(res => res.json())
   .then(data => {
     rarities = data;
     showProbabilities();
-  });
+  })
+  .catch(err => console.error("Failed to load rarities:", err));
 
-// Show only percentages
+// Calculate normalized probabilities
+function getNormalizedProbabilities() {
+  const total = rarities.reduce((sum, r) => sum + 1 / r.number, 0);
+  return rarities.map(r => ({
+    rarity: r.rarity,
+    probability: (1 / r.number) / total
+  }));
+}
+
+// Display percentages only (no names)
 function showProbabilities() {
   const panel = document.getElementById("probabilities");
-  const probs = rarities.map(r => ({ prob: 1/r.number }));
-  const total = probs.reduce((s, p) => s + p.prob, 0);
+  const probs = getNormalizedProbabilities();
   panel.innerHTML = "<h3>Current Odds</h3>";
-  probs.forEach((p) => {
-    panel.innerHTML += `<div>${((p.prob/total)*100).toFixed(2)}%</div>`;
+  probs.forEach(p => {
+    panel.innerHTML += `<div>${(p.probability*100).toFixed(2)}%</div>`;
   });
 }
 
-// Pick weighted rarity
+// Pick a rarity using weighted probability
 function pickRarity() {
-  const probs = rarities.map(r => ({ rarity: r.rarity, weight: 1/r.number }));
-  const total = probs.reduce((s, p) => s + p.weight, 0);
-  let rand = Math.random()*total;
-  let cum = 0;
-  for (let p of probs) {
-    cum += p.weight;
-    if (rand <= cum) return p.rarity;
+  const probs = getNormalizedProbabilities();
+  let rand = Math.random();
+  let cumulative = 0;
+  for (const p of probs) {
+    cumulative += p.probability;
+    if (rand <= cumulative) return p.rarity;
   }
-  return probs[probs.length-1].rarity;
+  return probs[probs.length-1].rarity; // fallback
 }
 
 // Roll button
@@ -38,25 +47,30 @@ document.getElementById("pick-btn").addEventListener("click", () => {
   document.getElementById("result").textContent = `🎉 You got: ${rarity}!`;
 });
 
-// Page navigation
-function goToPage(page) {
-  if(page===0){
-    document.getElementById("page1").style.transform = "translateX(0)";
-    document.getElementById("page2").style.transform = "translateX(100%)";
-  } else {
-    document.getElementById("page1").style.transform = "translateX(-100%)";
-    document.getElementById("page2").style.transform = "translateX(0)";
-  }
-}
-
 // Back button
 document.getElementById("back-btn").addEventListener("click", ()=>goToPage(0));
 
-// Optional swipe detection
+// Page switching function
+function goToPage(page) {
+  const page1 = document.getElementById("page1");
+  const page2 = document.getElementById("page2");
+
+  if(page === 0) {
+    page1.style.transform = "translateX(0)";
+    page2.style.transform = "translateX(100%)";
+  } else {
+    page1.style.transform = "translateX(-100%)";
+    page2.style.transform = "translateX(0)";
+  }
+
+  currentPage = page;
+}
+
+// Swipe detection for mobile
 let startX = 0;
-document.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
-document.addEventListener("touchend", e=>{
+document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+document.addEventListener("touchend", e => {
   let endX = e.changedTouches[0].clientX;
-  if(startX-endX>50) goToPage(1);
-  if(endX-startX>50) goToPage(0);
+  if(startX - endX > 50) goToPage(1);   // swipe left
+  else if(endX - startX > 50) goToPage(0); // swipe right
 });

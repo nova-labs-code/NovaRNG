@@ -1,21 +1,20 @@
 /* ===============================
-   NOVA RNG — FULL SCRIPT
+   NOVA RNG — MULTI PAGE SWIPE
    =============================== */
 
-/* ---------- GLOBAL STATE ---------- */
 let rarities = [];
 let stats = {};
 let history = [];
 let owned = {};
+
 let autoRolling = false;
 let autoTimer = null;
 
-let currentPage = "page1";
+/* ---------- PAGE SYSTEM ---------- */
+const pages = Array.from(document.querySelectorAll(".page"));
+let currentPageIndex = 0;
 
 /* ---------- ELEMENTS ---------- */
-const page1 = document.getElementById("page1");
-const page2 = document.getElementById("page2");
-
 const rollBtn = document.getElementById("pick-btn");
 const autoBtn = document.getElementById("auto-roll-btn");
 const fastBtn = document.getElementById("fast-auto-roll-btn");
@@ -26,13 +25,16 @@ const historyBox = document.getElementById("roll-history");
 const streakBox = document.getElementById("login-streak");
 const popup = document.getElementById("popup");
 
-/* ---------- LOAD JSON ---------- */
+/* ===============================
+   LOAD DATA
+   =============================== */
+
 fetch("rarities.json")
   .then(r => r.json())
   .then(data => {
     rarities = data;
     loadSave();
-    restorePage();
+    restorePages();
     updateUI();
   });
 
@@ -44,7 +46,7 @@ function loadSave() {
   stats = JSON.parse(localStorage.getItem("nova_stats")) || {};
   history = JSON.parse(localStorage.getItem("nova_history")) || [];
   owned = JSON.parse(localStorage.getItem("nova_owned")) || {};
-  currentPage = localStorage.getItem("nova_page") || "page1";
+  currentPageIndex = Number(localStorage.getItem("nova_pageIndex")) || 0;
   updateLoginStreak();
 }
 
@@ -52,51 +54,49 @@ function saveAll() {
   localStorage.setItem("nova_stats", JSON.stringify(stats));
   localStorage.setItem("nova_history", JSON.stringify(history));
   localStorage.setItem("nova_owned", JSON.stringify(owned));
-  localStorage.setItem("nova_page", currentPage);
+  localStorage.setItem("nova_pageIndex", currentPageIndex);
 }
 
 /* ===============================
-   PAGE SWIPE SYSTEM
+   PAGE POSITIONING
    =============================== */
 
-function restorePage() {
-  if (currentPage === "page2") {
-    page1.style.transform = "translateX(-100%)";
-    page2.style.transform = "translateX(0%)";
-  } else {
-    page1.style.transform = "translateX(0%)";
-    page2.style.transform = "translateX(100%)";
-  }
+function restorePages() {
+  pages.forEach((page, i) => {
+    page.style.transform = `translateX(${(i - currentPageIndex) * 100}%)`;
+  });
 }
 
-function goTo(page) {
-  currentPage = page;
+function goToPage(index) {
+  if (index < 0 || index >= pages.length) return;
+  currentPageIndex = index;
   saveAll();
-
-  if (page === "page2") {
-    page1.style.transform = "translateX(-100%)";
-    page2.style.transform = "translateX(0%)";
-  } else {
-    page1.style.transform = "translateX(0%)";
-    page2.style.transform = "translateX(100%)";
-  }
+  restorePages();
 }
 
-/* --- Touch swipe --- */
+/* ===============================
+   SWIPE HANDLING
+   =============================== */
+
 let startX = 0;
+let dragging = false;
 
 document.addEventListener("touchstart", e => {
   startX = e.touches[0].clientX;
+  dragging = true;
 });
 
 document.addEventListener("touchend", e => {
+  if (!dragging) return;
+  dragging = false;
+
   const endX = e.changedTouches[0].clientX;
   const delta = endX - startX;
 
-  if (Math.abs(delta) < 50) return;
+  if (Math.abs(delta) < 60) return;
 
-  if (delta < 0 && currentPage === "page1") goTo("page2");
-  if (delta > 0 && currentPage === "page2") goTo("page1");
+  if (delta < 0) goToPage(currentPageIndex + 1);
+  if (delta > 0) goToPage(currentPageIndex - 1);
 });
 
 /* ===============================
@@ -109,9 +109,7 @@ function updateLoginStreak() {
   let streak = Number(localStorage.getItem("nova_streak")) || 0;
 
   if (last) {
-    const diff =
-      (new Date(today) - new Date(last)) / 86400000;
-
+    const diff = (new Date(today) - new Date(last)) / 86400000;
     if (diff === 1) streak++;
     else if (diff > 1) streak = 1;
   } else streak = 1;
@@ -122,10 +120,10 @@ function updateLoginStreak() {
 }
 
 /* ===============================
-   ROLL SYSTEM
+   RNG LOGIC
    =============================== */
 
-rollBtn.onclick = roll;
+rollBtn?.addEventListener("click", roll);
 
 function roll() {
   if (rollBtn.disabled) return;
@@ -173,8 +171,8 @@ function weightedPick() {
    AUTO ROLL
    =============================== */
 
-autoBtn.onclick = () => toggleAuto(100, 1000);
-fastBtn.onclick = () => toggleAuto(1000, 500);
+autoBtn?.addEventListener("click", () => toggleAuto(100, 1000));
+fastBtn?.addEventListener("click", () => toggleAuto(1000, 500));
 
 function toggleAuto(req, cd) {
   if (totalRolls() < req) {
@@ -183,7 +181,6 @@ function toggleAuto(req, cd) {
   }
 
   autoRolling = !autoRolling;
-
   if (!autoRolling) {
     clearTimeout(autoTimer);
     showPopup("Auto Roll stopped");
@@ -201,12 +198,14 @@ function autoLoop(cd) {
 }
 
 /* ===============================
-   UI UPDATES
+   UI
    =============================== */
 
 function updateUI() {
-  historyBox.innerHTML = "<b>Last 5 Rolls</b>";
-  history.forEach(r => historyBox.innerHTML += `<div>${r}</div>`);
+  if (historyBox) {
+    historyBox.innerHTML = "<b>Last 5 Rolls</b>";
+    history.forEach(r => historyBox.innerHTML += `<div>${r}</div>`);
+  }
 
   autoBtn.disabled = totalRolls() < 100;
   fastBtn.disabled = totalRolls() < 1000;
@@ -217,7 +216,7 @@ function totalRolls() {
 }
 
 /* ===============================
-   POPUP (BOTTOM RIGHT)
+   POPUP
    =============================== */
 
 function showPopup(text) {

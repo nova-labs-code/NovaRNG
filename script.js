@@ -20,7 +20,7 @@ let canRoll = true;
 let autoRollInterval = null;
 let fastAutoRollInterval = null;
 
-// PAGE SWIPE
+// -------------------- PAGE SWIPE --------------------
 const pages = document.querySelectorAll(".page");
 let currentPage = 0;
 
@@ -29,20 +29,20 @@ function showPage(index){
   currentPage=index;
 }
 
-let touchStartX=null;
+let touchStartX = null;
 pages.forEach(page=>{
   page.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; });
   page.addEventListener("touchend", e => {
     if (!touchStartX) return;
     let delta = e.changedTouches[0].clientX - touchStartX;
-    const SWIPE_THRESHOLD = 80;
+    const SWIPE_THRESHOLD = 80; // lower sensitivity
     if(delta > SWIPE_THRESHOLD) showPage(Math.max(0,currentPage-1));
     if(delta < -SWIPE_THRESHOLD) showPage(Math.min(pages.length-1,currentPage+1));
     touchStartX = null;
   });
 });
 
-// HELPERS
+// -------------------- HELPERS --------------------
 function getRarityColor(number){
   if(number>=1 && number<=100) return "#aaaaaa";
   if(number>=101 && number<=215) return "#55ff55";
@@ -53,31 +53,32 @@ function getRarityColor(number){
 }
 
 function showPopup(msg){
-  popup.innerText=msg;
-  popup.style.display="block";
+  popup.innerText = msg;
+  popup.style.display = "block";
   setTimeout(()=>{ popup.style.display="none"; },3000);
 }
 
 function saveData(){
-  localStorage.setItem("owned",JSON.stringify(owned));
-  localStorage.setItem("rollHistory",JSON.stringify(rollHistory.slice(-5)));
-  localStorage.setItem("loginStreak",loginStreak);
-  localStorage.setItem("totalRolls",totalRolls);
+  localStorage.setItem("owned", JSON.stringify(owned));
+  localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
+  localStorage.setItem("loginStreak", loginStreak);
+  localStorage.setItem("totalRolls", totalRolls);
 }
 
-// ROLL
+// -------------------- ROLL --------------------
 function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
   totalRolls++;
 
-  const totalWeight = rarities.reduce((sum,r)=>sum+r.number,0);
-  let rand = Math.floor(Math.random()*totalWeight)+1;
+  // Inverse probability: smaller number = higher chance
+  const totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
+  let rand = Math.random()*totalInverse;
   let cumulative=0;
   let resultRarity;
   for(let r of rarities){
-    cumulative+=r.number;
-    if(rand<=cumulative){ resultRarity=r; break; }
+    cumulative += 1/r.number;
+    if(rand <= cumulative){ resultRarity=r; break; }
   }
 
   const wipe=document.createElement("div");
@@ -102,12 +103,14 @@ function roll(){
   },650);
 }
 
-// UPDATE FUNCTIONS
-function updateRollHistory(){ rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>"); }
+// -------------------- UPDATE FUNCTIONS --------------------
+function updateRollHistory(){
+  rollHistoryDiv.innerHTML = "Last Rolls:<br>" + rollHistory.join("<br>");
+}
 
 function updateOdds(){
-  oddsPanel.innerHTML="";
-  const totalWeight = rarities.reduce((sum,r)=>sum+r.number,0);
+  oddsPanel.innerHTML = "";
+  const totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
 
   rarities.forEach(r=>{
     const div = document.createElement("div");
@@ -115,7 +118,7 @@ function updateOdds(){
     const color = getRarityColor(r.number);
     div.style.borderColor = color;
 
-    const chancePercent = ((r.number / totalWeight) * 100).toFixed(2);
+    const chancePercent = ((1/r.number)/totalInverse*100).toFixed(2);
     const countOwned = rollHistory.filter(x=>x===r.rarity).length;
     const displayName = owned[r.rarity] ? r.rarity : "???";
 
@@ -124,7 +127,9 @@ function updateOdds(){
     if(owned[r.rarity]){
       div.classList.add("owned");
       div.style.background = `${color}33`;
-    } else { div.style.background="#1a1a1a"; }
+    } else {
+      div.style.background="#1a1a1a";
+    }
 
     oddsPanel.appendChild(div);
   });
@@ -140,18 +145,17 @@ function updateStatsText(){
   `;
 }
 
-// AUTO-ROLL BUTTONS
+// -------------------- AUTO-ROLL --------------------
 function updateAutoRollButtons(){
-  autoRollBtn.disabled = totalRolls<100;
-  autoRollBtn.innerText = totalRolls<100 ? `Locked: get ${100-totalRolls} more rolls` : "🎲 Auto Roll";
+  autoRollBtn.disabled = totalRolls < 100;
+  autoRollBtn.innerText = totalRolls < 100 ? `Locked: get ${100-totalRolls} more rolls` : "🎲 Auto Roll";
 
-  fastAutoRollBtn.disabled = totalRolls<1000;
-  fastAutoRollBtn.innerText = totalRolls<1000 ? `Locked: get ${1000-totalRolls} more rolls` : "🎲 Fast Auto Roll";
+  fastAutoRollBtn.disabled = totalRolls < 1000;
+  fastAutoRollBtn.innerText = totalRolls < 1000 ? `Locked: get ${1000-totalRolls} more rolls` : "🎲 Fast Auto Roll";
 }
 
 function startAutoRoll(speed){
-  if(autoRollInterval) clearInterval(autoRollInterval);
-  if(fastAutoRollInterval) clearInterval(fastAutoRollInterval);
+  stopAutoRoll();
   if(speed===1000) autoRollInterval=setInterval(()=>{ if(canRoll) roll(); },1000);
   if(speed===500) fastAutoRollInterval=setInterval(()=>{ if(canRoll) roll(); },500);
 }
@@ -161,10 +165,14 @@ function stopAutoRoll(){
   if(fastAutoRollInterval) clearInterval(fastAutoRollInterval);
 }
 
-// EVENT LISTENERS
-pickBtn.addEventListener("click",roll);
-autoRollBtn.addEventListener("click", ()=>{ totalRolls<100 ? showPopup(`Locked — get ${100-totalRolls} more rolls`) : startAutoRoll(1000); });
-fastAutoRollBtn.addEventListener("click", ()=>{ totalRolls<1000 ? showPopup(`Locked — get ${1000-totalRolls} more rolls`) : startAutoRoll(500); });
+// -------------------- EVENTS --------------------
+pickBtn.addEventListener("click", roll);
+autoRollBtn.addEventListener("click", ()=>{ 
+  totalRolls<100 ? showPopup(`Locked — get ${100-totalRolls} more rolls`) : startAutoRoll(1000); 
+});
+fastAutoRollBtn.addEventListener("click", ()=>{ 
+  totalRolls<1000 ? showPopup(`Locked — get ${1000-totalRolls} more rolls`) : startAutoRoll(500); 
+});
 resetStatsBtn.addEventListener("click", ()=>{
   rollHistory=[]; owned={}; totalRolls=0;
   saveData();
@@ -172,7 +180,7 @@ resetStatsBtn.addEventListener("click", ()=>{
   showPopup("Stats reset!");
 });
 
-// INIT
+// -------------------- INIT --------------------
 function init(){
   fetch("rarities.json")
     .then(res=>res.json())

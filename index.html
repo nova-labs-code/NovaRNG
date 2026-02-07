@@ -14,15 +14,14 @@
     <h1>Nova RNG</h1>
     <div id="login-streak">Login Streak: 0</div>
 
-    <button id="pick-btn">🎲 Roll</button>
+    <div id="roll-buttons" style="text-align:center; margin-top:10px;">
+      <button id="pick-btn" class="roll-btn">🎲 Roll</button>
+      <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
+      <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+    </div>
+
     <div id="result"><div class="result-text">🎉 Ready to roll!</div></div>
     <div id="roll-history"></div>
-
-    <div style="text-align:center; margin-top:10px;">
-      <button id="auto-roll-btn" class="auto-roll-btn">Auto Roll</button>
-      <button id="fast-auto-roll-btn" class="auto-roll-btn">Fast Auto Roll</button>
-    </div>
-    <div id="auto-roll-tooltip" style="color:#ffdd55; text-align:center; margin-top:4px; font-size:0.9rem;"></div>
   </div>
 
   <!-- Page 2: Odds -->
@@ -38,6 +37,9 @@
     <canvas id="stats-graph" width="350" height="150"></canvas>
     <button id="reset-stats">Reset Stats</button>
   </div>
+
+  <!-- Notification popup -->
+  <div id="popup" class="popup"></div>
 </div>
 
 <script src="script.js"></script>

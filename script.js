@@ -3,6 +3,17 @@ let rolledRarity = null;
 let currentPage = 0;
 const pages = [];
 
+// Persistent storage
+let stats = {};
+let rollHistory = [];
+let dailyRolls = {};
+let lastVisit = null;
+let loginStreak = 0;
+
+// --- Auto-roll variables ---
+let autoRolling = false;
+let autoInterval = null;
+
 fetch("rarities.json")
   .then(res=>res.json())
   .then(data=>{
@@ -10,23 +21,18 @@ fetch("rarities.json")
     pages.push(document.getElementById("page1"));
     pages.push(document.getElementById("page2"));
     pages.push(document.getElementById("page3"));
-    initOddsPanel();
+
     loadStorage();
+    initOddsPanel();
     markOwnedRarities();
     renderRollHistory();
     renderStats();
     drawGraph();
     updateLoginStreak();
+    updateAutoRollButtons();
   });
 
-// Persistent storage
-let stats = {};         // total per rarity
-let rollHistory = [];   // last 5 rolls
-let dailyRolls = {};    // key=date, value=[rarity counts]
-let lastVisit = null;
-let loginStreak = 0;
-
-// --- Utilities ---
+// --- Load storage ---
 function loadStorage(){
   stats = JSON.parse(localStorage.getItem('novaRNGStats'))||{};
   rollHistory = JSON.parse(localStorage.getItem('novaRNGHistory'))||[];
@@ -36,11 +42,8 @@ function loadStorage(){
 }
 
 // --- Roll ---
-document.getElementById("pick-btn").addEventListener("click",()=>{ roll(); });
-
-document.addEventListener("keydown", e=>{
-  if(e.code=="Space") roll();
-});
+document.getElementById("pick-btn").addEventListener("click", ()=>roll());
+document.addEventListener("keydown", e=>{ if(e.code=="Space") roll(); });
 
 function roll(){
   const btn = document.getElementById("pick-btn");
@@ -50,7 +53,7 @@ function roll(){
   const result = pickRarity();
   rolledRarity=result;
 
-  // Wipe animation
+  // Result animation
   const resElem = document.getElementById("result");
   const textEl = resElem.querySelector(".result-text");
   textEl.textContent = `🎉 You got: ${result}!`;
@@ -64,15 +67,15 @@ function roll(){
     setTimeout(()=>btn.disabled=false,500);
   },650);
 
-  // Update stats/history/daily
   updateStats(result);
   updateRollHistory(result);
   updateDaily(result);
   revealRarity(result);
   drawGraph();
+  updateAutoRollButtons();
 }
 
-// Weighted RNG
+// --- Weighted RNG ---
 function pickRarity(){
   const total = rarities.reduce((s,r)=>s+1/r.number,0);
   let rand=Math.random()*total;
@@ -84,7 +87,7 @@ function pickRarity(){
   return rarities[rarities.length-1].rarity;
 }
 
-// --- Odds page ---
+// --- Odds ---
 function initOddsPanel(){
   const panel=document.getElementById("odds-panel");
   const total=rarities.reduce((s,r)=>s+1/r.number,0);
@@ -116,14 +119,8 @@ function markOwnedRarities(){
   });
 }
 
-// --- Stats Page ---
-function updateStats(name){
-  if(!stats[name]) stats[name]=0;
-  stats[name]++;
-  localStorage.setItem('novaRNGStats',JSON.stringify(stats));
-  renderStats();
-}
-
+// --- Stats ---
+function updateStats(name){ if(!stats[name]) stats[name]=0; stats[name]++; localStorage.setItem('novaRNGStats',JSON.stringify(stats)); renderStats();}
 function renderStats(){
   const panel=document.getElementById("stats-panel");
   panel.innerHTML='';
@@ -137,16 +134,10 @@ function renderStats(){
   });
 }
 
-// --- Roll history ---
-function updateRollHistory(name){
-  rollHistory.unshift(name);
-  if(rollHistory.length>5) rollHistory.pop();
-  localStorage.setItem('novaRNGHistory',JSON.stringify(rollHistory));
-  renderRollHistory();
-}
-
+// --- Roll History ---
+function updateRollHistory(name){ rollHistory.unshift(name); if(rollHistory.length>5) rollHistory.pop(); localStorage.setItem('novaRNGHistory',JSON.stringify(rollHistory)); renderRollHistory();}
 function renderRollHistory(){
-  let container=document.getElementById("roll-history");
+  const container=document.getElementById("roll-history");
   container.innerHTML="<strong>Roll History (last 5):</strong><br>";
   rollHistory.forEach(r=>{
     let color="";
@@ -158,7 +149,7 @@ function renderRollHistory(){
   });
 }
 
-// --- Daily / Graph ---
+// --- Daily graph ---
 function updateDaily(name){
   const today=(new Date()).toISOString().slice(0,10);
   if(!dailyRolls[today]) dailyRolls[today]={};
@@ -172,19 +163,12 @@ function drawGraph(){
   const canvas=document.getElementById("stats-graph");
   const ctx=canvas.getContext("2d");
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   const dates=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();
-    d.setDate(d.getDate()-i);
-    dates.push(d.toISOString().slice(0,10));
-  }
-
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); dates.push(d.toISOString().slice(0,10)); }
   const maxValue=Math.max(...dates.map(date=>{
     const day=dailyRolls[date]||{};
     return Object.values(day).reduce((a,b)=>a+b,0);
   }),1);
-
   const barWidth=canvas.width/dates.length-5;
   dates.forEach((date,i)=>{
     const day=dailyRolls[date]||{};
@@ -222,6 +206,47 @@ document.getElementById("reset-stats").addEventListener("click",()=>{
   localStorage.removeItem('novaRNGDaily');
   renderStats(); renderRollHistory(); drawGraph(); initOddsPanel(); markOwnedRarities();
 });
+
+// --- Auto-roll buttons ---
+autoBtn.addEventListener("click", ()=>toggleAutoRoll(autoBtn));
+fastBtn.addEventListener("click", ()=>toggleAutoRoll(fastBtn));
+
+autoBtn.onmouseover = ()=>{
+  if(autoBtn.disabled){
+    tooltip.textContent=`Need ${Math.max(100-getTotalRolls(),0)} more rolls to unlock Auto Roll`;
+  } else tooltip.textContent="";
+};
+fastBtn.onmouseover = ()=>{
+  if(fastBtn.disabled){
+    tooltip.textContent=`Need ${Math.max(1000-getTotalRolls(),0)} more rolls to unlock Fast Auto Roll`;
+  } else tooltip.textContent="";
+};
+
+autoBtn.onclick = ()=>{ if(autoBtn.disabled) tooltip.textContent=`Need ${Math.max(100-getTotalRolls(),0)} more rolls to unlock Auto Roll`; };
+fastBtn.onclick = ()=>{ if(fastBtn.disabled) tooltip.textContent=`Need ${Math.max(1000-getTotalRolls(),0)} more rolls to unlock Fast Auto Roll`; };
+
+function toggleAutoRoll(btn){
+  if(btn.disabled) return;
+  if(autoRolling){
+    autoRolling=false;
+    clearTimeout(autoInterval);
+    tooltip.textContent="Auto Roll stopped";
+  } else {
+    autoRolling=true;
+    tooltip.textContent="Auto Roll started";
+    autoRollLoop(btn);
+  }
+}
+
+function autoRollLoop(btn){
+  if(!autoRolling) return;
+  const cooldown=parseInt(btn.dataset.cooldown || 1000);
+  document.getElementById("pick-btn").click();
+  autoInterval=setTimeout(()=>autoRollLoop(btn), cooldown+650);
+}
+
+// --- Total rolls ---
+function getTotalRolls(){ return Object.values(stats).reduce((a,b)=>a+b,0); }
 
 // --- Swipe pages ---
 let startX=0;

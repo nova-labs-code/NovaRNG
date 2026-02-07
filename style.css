@@ -22,7 +22,7 @@ body {
 }
 
 .page {
-  width: 50%; /* half of container = full viewport for each page */
+  width: 50%; /* full viewport per page */
   padding: 40px;
   box-sizing: border-box;
 }

@@ -1,5 +1,5 @@
 /* ===============================
-   NOVA RNG — FULL STYLING
+   NOVA RNG — FULL CSS
    =============================== */
 
 /* -------------------------
@@ -99,14 +99,14 @@ button.roll-btn:disabled {
   z-index: 1;
 }
 
-/* Semi-transparent wipe bar */
+/* Semi-transparent wipe bar (blue) */
 .wipe-bar {
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(255, 221, 85, 0.96); /* semi-transparent yellow */
+  background: rgba(0, 157, 255, 0.96); /* semi-transparent blue */
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
@@ -149,14 +149,12 @@ button.roll-btn:disabled {
 }
 
 .odds-box.owned {
-  border-color: #55ff88;
-  background: rgba(85, 255, 136, 0.1);
-  color: #55ff88;
+  /* color will be set dynamically by JS based on rarity range */
 }
 
 .odds-box:hover {
-  background: rgba(255, 221, 85, 0.1);
-  border-color: #ffdd55;
+  background: rgba(0, 157, 255, 0.1);
+  border-color: #009dff;
 }
 
 /* -------------------------

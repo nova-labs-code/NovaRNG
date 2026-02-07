@@ -1,7 +1,3 @@
-/* ==============================
-   NOVA RNG FULL CSS
-   ============================== */
-
 body {
   margin: 0;
   padding: 0;
@@ -9,7 +5,7 @@ body {
   background: #0a0a0a;
   color: #eee;
   overflow: hidden;
-  touch-action: manipulation; /* prevents pinch/zoom */
+  touch-action: manipulation;
 }
 
 .container {
@@ -17,17 +13,15 @@ body {
   height: 100vh;
   position: relative;
   overflow: hidden;
-  font-size: 16px;
 }
 
-/* Pages */
 .page {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 20px;
+  padding: 40px;
   box-sizing: border-box;
   background: #111;
   color: #eee;
@@ -40,19 +34,14 @@ h1, h2 {
   margin-top: 0;
 }
 
-/* Roll Buttons */
 #roll-buttons {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
   margin-top: 10px;
 }
 
 button.roll-btn {
-  flex: 1 1 100px;
-  min-width: 80px;
-  max-width: 160px;
   padding: 10px 20px;
   font-weight: bold;
   cursor: pointer;
@@ -73,7 +62,7 @@ button.roll-btn:disabled {
   cursor: not-allowed;
 }
 
-/* Result Box */
+/* Result box */
 #result {
   margin-top: 20px;
   font-size: 1.6rem;
@@ -107,7 +96,7 @@ button.roll-btn:disabled {
   100% { left: 100%; }
 }
 
-/* Roll History */
+/* Roll history */
 #roll-history {
   margin-top: 20px;
   font-size: 1rem;
@@ -119,7 +108,7 @@ button.roll-btn:disabled {
   font-weight: bold;
 }
 
-/* Odds Page Boxes */
+/* Odds page boxes */
 .odds-box {
   background: #1a1a1a;
   border: 2px solid #444;
@@ -134,7 +123,7 @@ button.roll-btn:disabled {
 }
 
 .odds-box.owned {
-  /* background + border set dynamically by JS */
+  /* background + border set dynamically in JS */
 }
 
 .odds-box:hover {
@@ -142,7 +131,7 @@ button.roll-btn:disabled {
   border-color: #009dff;
 }
 
-/* Stats Page */
+/* Stats page */
 .prob-panel {
   margin-top: 20px;
   font-size: 1rem;
@@ -162,7 +151,7 @@ button.roll-btn:disabled {
   background: #111;
 }
 
-/* Popup Notifications */
+/* Popup notifications */
 #popup {
   position: fixed;
   bottom: 10px;
@@ -180,22 +169,9 @@ button.roll-btn:disabled {
 }
 
 /* Responsive */
-@media (max-width: 480px) {
-  .page {
-    padding: 15px 10px;
-  }
-
-  .roll-btn {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-
-  #result {
-    font-size: 1.3rem;
-  }
-
-  .odds-box {
-    font-size: 1rem;
-    padding: 10px 12px;
-  }
+@media(max-width:480px){
+  .page{padding:15px 10px;}
+  .roll-btn{font-size:0.9rem; padding:8px 12px;}
+  #result{font-size:1.3rem;}
+  .odds-box{font-size:1rem; padding:10px 12px;}
 }

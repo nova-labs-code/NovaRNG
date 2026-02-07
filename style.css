@@ -10,26 +10,25 @@ body {
 .container {
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
   position: relative;
-}
-
-.pages {
-  display: flex;
-  width: 200vw; /* two pages, full viewport each */
-  height: 100%;
-  transition: transform 0.4s ease;
+  overflow: hidden;
 }
 
 .page {
-  width: 100vw; /* full viewport width */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
   padding: 40px;
   box-sizing: border-box;
   background: #111;
   color: #eee;
-  flex-shrink: 0;
+  transition: transform 0.4s ease;
 }
+
+#page1 { transform: translateX(0%); }
+#page2 { transform: translateX(100%); }
 
 h1, h2 {
   text-align: center;

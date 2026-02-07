@@ -8,6 +8,7 @@ fetch("rarities.json")
     rarities = data;
     initOddsPanel();
     renderStats();
+    markOwnedRarities(); // mark owned on load
   });
 
 // Stats saved in localStorage
@@ -60,14 +61,14 @@ document.getElementById("pick-btn").addEventListener("click", () => {
     setTimeout(() => { button.disabled = false; }, 500);
   }, 650);
 
-  // Reveal odds & mark owned
-  revealRarity(result);
-
   // Update stats & save
   updateStats(result);
+
+  // Reveal odds & mark owned
+  revealRarity(result);
 });
 
-// Reveal rarity on odds page and mark owned
+// Reveal rarity on odds page and mark owned dynamically
 function revealRarity(rarityName){
   const total = rarities.reduce((s,x)=>s+1/x.number,0);
   rarities.forEach((r,i)=>{
@@ -84,12 +85,25 @@ function revealRarity(rarityName){
   });
 }
 
+// Mark owned rarities on site load
+function markOwnedRarities() {
+  rarities.forEach((r,i)=>{
+    const el = document.getElementById(`rarity-${i}`);
+    if(stats[r.rarity]){
+      el.classList.add("rarity-owned");
+    } else {
+      el.classList.remove("rarity-owned");
+    }
+  });
+}
+
 // Update stats and save
 function updateStats(rarityName){
   if(!stats[rarityName]) stats[rarityName] = 0;
   stats[rarityName]++;
   localStorage.setItem('novaRNGStats', JSON.stringify(stats));
   renderStats();
+  markOwnedRarities();
 }
 
 // Render stats page
@@ -110,7 +124,8 @@ document.getElementById("reset-stats").addEventListener("click", ()=>{
   stats = {};
   localStorage.removeItem('novaRNGStats');
   renderStats();
-  initOddsPanel(); // reset odds highlights
+  initOddsPanel();
+  markOwnedRarities();
 });
 
 // Swipe detection for 3 pages

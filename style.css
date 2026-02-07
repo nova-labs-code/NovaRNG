@@ -77,21 +77,20 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Text initially hidden */
+/* Result text pre-under frame */
 .result-text {
-  opacity: 0;
   position: relative;
   z-index: 1;
 }
 
-/* Solid wipe bar */
+/* Semi-transparent wipe bar */
 .wipe-bar {
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: #ffdd55; /* solid yellow */
+  background: rgba(255, 221, 85, 0.9); /* semi-transparent yellow */
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
@@ -101,15 +100,4 @@ button:disabled {
   0% { left: -100%; }
   50% { left: 0%; }
   100% { left: 100%; }
-}
-
-/* Reveal text after wipe passes */
-.reveal-text {
-  animation: textReveal 0.15s ease forwards;
-  animation-delay: 0.45s;
-}
-
-@keyframes textReveal {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }

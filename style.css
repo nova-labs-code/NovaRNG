@@ -1,0 +1,49 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 40px;
+  background: #f0f0f0;
+  text-align: center;
+}
+
+h1 {
+  color: #333;
+  font-size: 36px;
+}
+
+button {
+  padding: 12px 24px;
+  margin: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  background-color: #2a9d8f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #21867a;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #e76f51;
+}
+
+#probabilities {
+  margin-top: 20px;
+  text-align: left;
+  display: inline-block;
+  background: #fff;
+  padding: 15px 25px;
+  border-radius: 12px;
+}
+
+footer {
+  margin-top: 40px;
+  font-size: 14px;
+  color: #555;
+}

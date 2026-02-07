@@ -32,9 +32,13 @@ function pickRarity() {
   return rarities[rarities.length-1].rarity;
 }
 
-// Roll button with solid wipe animation
+// Roll button with solid wipe animation + cooldown
 document.getElementById("pick-btn").addEventListener("click", () => {
   const resultElem = document.getElementById("result");
+  const button = document.getElementById("pick-btn");
+
+  // Disable button until animation + cooldown finishes
+  button.disabled = true;
 
   // Pick rarity immediately
   const result = pickRarity();
@@ -59,9 +63,12 @@ document.getElementById("pick-btn").addEventListener("click", () => {
     text.classList.add("reveal-text");
   }, 450);
 
-  // Remove wipe bar after animation
+  // Remove wipe bar and apply 0.5s cooldown after animation
   setTimeout(() => {
     wipe.remove();
+    setTimeout(() => {
+      button.disabled = false;
+    }, 500); // cooldown
   }, 700);
 
   // Update odds page

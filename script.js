@@ -7,7 +7,11 @@ fetch("rarities.json")
   .then(data => {
     rarities = data;
     initOddsPanel();
+    renderStats(); // initial stats render
   });
+
+// Stats saved in localStorage
+let stats = JSON.parse(localStorage.getItem('novaRNGStats')) || {};
 
 // Initialize odds panel with ??? %
 function initOddsPanel() {
@@ -20,7 +24,7 @@ function initOddsPanel() {
   });
 }
 
-// Pick weighted rarity
+// Weighted RNG pick
 function pickRarity() {
   const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
   let rand = Math.random() * total;
@@ -32,43 +36,36 @@ function pickRarity() {
   return rarities[rarities.length-1].rarity;
 }
 
-// Roll button with semi-transparent wipe + cooldown
+// Roll button
 document.getElementById("pick-btn").addEventListener("click", () => {
   const resultElem = document.getElementById("result");
   const button = document.getElementById("pick-btn");
 
-  // Disable button until animation + cooldown finishes
   button.disabled = true;
 
-  // Pick rarity immediately
   const result = pickRarity();
   rolledRarity = result;
 
-  // Clear previous wipe bars but keep text (pre-under frame)
-  if (!resultElem.querySelector(".result-text")) {
-    const text = document.createElement("div");
-    text.className = "result-text";
-    text.textContent = `🎉 You got: ${result}!`;
-    resultElem.appendChild(text);
-  } else {
-    resultElem.querySelector(".result-text").textContent = `🎉 You got: ${result}!`;
-  }
+  // Update text under frame
+  const textEl = resultElem.querySelector(".result-text");
+  textEl.textContent = `🎉 You got: ${result}!`;
 
-  // Create semi-transparent wipe bar
+  // Add semi-transparent wipe bar
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
   resultElem.appendChild(wipe);
 
-  // Remove wipe bar and apply 0.5s cooldown after animation
+  // Remove wipe bar after animation + 0.5s cooldown
   setTimeout(() => {
     wipe.remove();
-    setTimeout(() => {
-      button.disabled = false;
-    }, 500); // 0.5s cooldown
-  }, 650); // matches animation duration
+    setTimeout(() => { button.disabled = false; }, 500);
+  }, 650);
 
-  // Update odds page
+  // Reveal odds
   revealRarity(result);
+
+  // Update stats
+  updateStats(result);
 });
 
 // Reveal rarity on odds page
@@ -82,19 +79,51 @@ function revealRarity(rarityName){
   });
 }
 
-// Swipe detection
+// Update stats and save
+function updateStats(rarityName){
+  if(!stats[rarityName]) stats[rarityName] = 0;
+  stats[rarityName]++;
+  localStorage.setItem('novaRNGStats', JSON.stringify(stats));
+  renderStats();
+}
+
+// Render stats page
+function renderStats(){
+  const panel = document.getElementById("stats-panel");
+  panel.innerHTML = '';
+  const totalRolls = Object.values(stats).reduce((a,b)=>a+b,0);
+  panel.innerHTML += `<div>Total Rolls: ${totalRolls}</div>`;
+  rarities.forEach(r=>{
+    const count = stats[r.rarity] || 0;
+    const percent = totalRolls>0 ? ((count/totalRolls)*100).toFixed(2) : "0.00";
+    panel.innerHTML += `<div>${r.rarity}: ${count} (${percent}%)</div>`;
+  });
+}
+
+// Reset stats button
+document.getElementById("reset-stats").addEventListener("click", ()=>{
+  stats = {};
+  localStorage.removeItem('novaRNGStats');
+  renderStats();
+});
+
+// Swipe detection for 3 pages
 let startX = 0;
 document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
 document.addEventListener("touchend", e => {
   const endX = e.changedTouches[0].clientX;
-  const page1 = document.getElementById("page1");
-  const page2 = document.getElementById("page2");
+  const pages = [
+    document.getElementById("page1"),
+    document.getElementById("page2"),
+    document.getElementById("page3")
+  ];
+  let currentIndex = pages.findIndex(p => p.style.transform === "translateX(0%)" || p.style.transform === "");
 
-  if(startX - endX > 50){ // swipe left → page2
-    page1.style.transform = "translateX(-100%)";
-    page2.style.transform = "translateX(0%)";
-  } else if(endX - startX > 50){ // swipe right → page1
-    page1.style.transform = "translateX(0%)";
-    page2.style.transform = "translateX(100%)";
+  if(startX - endX > 50){ // swipe left
+    const nextIndex = Math.min(currentIndex+1, pages.length-1);
+    pages.forEach((p,i)=> p.style.transform = `translateX(${100*(i-nextIndex)}%)`);
+  } else if(endX - startX > 50){ // swipe right
+    const prevIndex = Math.max(currentIndex-1,0);
+    pages.forEach((p,i)=> p.style.transform = `translateX(${100*(i-prevIndex)}%)`);
   }
 });

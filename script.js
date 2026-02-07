@@ -312,3 +312,13 @@ function showPopup(text) {
   clearTimeout(popup._t);
   popup._t = setTimeout(() => popup.style.display = "none", 3000);
 }
+/* disable zooming */
+let lastTouch = 0;
+
+document.addEventListener("touchend", function (e) {
+  const now = new Date().getTime();
+  if (now - lastTouch <= 300) { // double-tap threshold
+    e.preventDefault();
+  }
+  lastTouch = now;
+}, { passive: false });

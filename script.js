@@ -6,7 +6,6 @@ let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
 let loginStreak = parseInt(localStorage.getItem("loginStreak")) || 0;
 
-// DOM Elements
 const resultDiv = document.getElementById("result");
 const oddsPanel = document.getElementById("odds-panel");
 const rollHistoryDiv = document.getElementById("roll-history");
@@ -17,14 +16,41 @@ const pickBtn = document.getElementById("pick-btn");
 let canRoll = true;
 
 // -----------------------------
+// Page Swiping
+// -----------------------------
+const pages = document.querySelectorAll(".page");
+let currentPage = 0;
+
+function showPage(index) {
+  pages.forEach((page, i) => {
+    page.style.transform = `translateX(${(i - index) * 100}%)`;
+  });
+  currentPage = index;
+}
+
+let touchStartX = null;
+pages.forEach(page => {
+  page.addEventListener("touchstart", e => {
+    touchStartX = e.touches[0].clientX;
+  });
+  page.addEventListener("touchend", e => {
+    if (!touchStartX) return;
+    let delta = e.changedTouches[0].clientX - touchStartX;
+    if (delta > 50) showPage(Math.max(0, currentPage - 1));
+    if (delta < -50) showPage(Math.min(pages.length - 1, currentPage + 1));
+    touchStartX = null;
+  });
+});
+
+// -----------------------------
 // Helper Functions
 // -----------------------------
 function getRarityColor(number) {
-  if (number >= 1 && number <= 100) return "#aaaaaa";       // Common
-  if (number >= 101 && number <= 215) return "#55ff55";    // Uncommon
-  if (number >= 216 && number <= 330) return "#55aaff";    // Rare
-  if (number >= 331 && number <= 400) return "#ffdd55";    // Legendary
-  if (number > 400) return "#aa55ff";                      // Mythical
+  if (number >= 1 && number <= 100) return "#aaaaaa";
+  if (number >= 101 && number <= 215) return "#55ff55";
+  if (number >= 216 && number <= 330) return "#55aaff";
+  if (number >= 331 && number <= 400) return "#ffdd55";
+  if (number > 400) return "#aa55ff";
   return "#ccc";
 }
 
@@ -48,7 +74,7 @@ function roll() {
 
   canRoll = false;
 
-  // Weighted roll based on 'number'
+  // Weighted roll
   const totalWeight = rarities.reduce((sum, r) => sum + r.number, 0);
   let rand = Math.floor(Math.random() * totalWeight) + 1;
   let cumulative = 0;
@@ -62,28 +88,23 @@ function roll() {
     }
   }
 
-  // Animate roll
+  // Animate
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
   resultDiv.appendChild(wipe);
 
   setTimeout(() => {
-    // Show result text
     resultDiv.querySelector(".result-text").innerText = resultRarity.rarity;
-
-    // Mark as owned
     owned[resultRarity.rarity] = true;
 
-    // Update roll history
+    // Update history
     rollHistory.push(resultRarity.rarity);
     if (rollHistory.length > 5) rollHistory.shift();
 
-    // Update UI
     updateRollHistory();
     updateOdds();
     saveData();
 
-    // Cooldown after animation
     setTimeout(() => { canRoll = true; }, 500);
     resultDiv.removeChild(wipe);
   }, 650);
@@ -98,21 +119,19 @@ function updateRollHistory() {
 
 function updateOdds() {
   oddsPanel.innerHTML = "";
-
   rarities.forEach(r => {
     const div = document.createElement("div");
     div.classList.add("odds-box");
 
     const color = getRarityColor(r.number);
 
-    // Owned rarities have semi-transparent background + name
+    // Border for all
+    div.style.borderColor = color;
+
     if (owned[r.rarity]) {
       div.classList.add("owned");
-      div.style.borderColor = color;
-      div.style.background = `${color}33`;
+      div.style.background = `${color}33`; // semi-transparent
     } else {
-      // Locked rarities still show colored border based on their range
-      div.style.borderColor = color;
       div.style.background = "#1a1a1a";
     }
 
@@ -138,16 +157,17 @@ pickBtn.addEventListener("click", roll);
 // Initialize
 // -----------------------------
 function init() {
-  // Load rarities from JSON
+  // Load rarities
   fetch("rarities.json")
     .then(res => res.json())
     .then(data => {
       rarities = data;
-      updateOdds();        // Generate all boxes at startup
+      updateOdds();
     });
 
   updateRollHistory();
   updateLoginStreak();
+  showPage(0); // start on first page
 }
 
 init();

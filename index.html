@@ -12,11 +12,10 @@
   <!-- Page 1: Roll -->
   <div class="page" id="page1">
     <h1>Nova RNG</h1>
-    <div id="login-streak">Login Streak: 0 days</div>
+    <div id="login-streak">Login Streak: 0</div>
     <button id="pick-btn">🎲 Roll</button>
-    <div id="result">
-      <div class="result-text">🎉 Ready to roll!</div>
-    </div>
+    <div id="result"><div class="result-text">🎉 Ready to roll!</div></div>
+    <div id="roll-history"></div>
   </div>
 
   <!-- Page 2: Odds -->
@@ -29,6 +28,7 @@
   <div class="page" id="page3">
     <h2>Your Stats</h2>
     <div id="stats-panel" class="prob-panel"></div>
+    <canvas id="stats-graph" width="350" height="150"></canvas>
     <button id="reset-stats">Reset Stats</button>
   </div>
 </div>

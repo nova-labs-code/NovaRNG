@@ -1,5 +1,5 @@
 /* ===============================
-   NOVA RNG — MATCHES YOUR HTML
+   NOVA RNG — FULL RESPONSIVE
    =============================== */
 
 let rarities = [];
@@ -83,9 +83,7 @@ function goToPage(i) {
 }
 
 let startX = 0;
-document.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-});
+document.addEventListener("touchstart", e => startX = e.touches[0].clientX);
 document.addEventListener("touchend", e => {
   const dx = e.changedTouches[0].clientX - startX;
   if (Math.abs(dx) < 60) return;
@@ -246,8 +244,23 @@ function updateStats() {
 }
 
 function updateAutoButtons() {
-  autoBtn.disabled = totalRolls() < 100;
-  fastBtn.disabled = totalRolls() < 1000;
+  // Auto Roll
+  if (totalRolls() < 100) {
+    autoBtn.disabled = true;
+    autoBtn.textContent = `🎲 Locked — ${100 - totalRolls()} rolls away`;
+  } else {
+    autoBtn.disabled = false;
+    autoBtn.textContent = "🎲 Auto Roll";
+  }
+
+  // Fast Auto Roll
+  if (totalRolls() < 1000) {
+    fastBtn.disabled = true;
+    fastBtn.textContent = `🎲 Locked — ${1000 - totalRolls()} rolls away`;
+  } else {
+    fastBtn.disabled = false;
+    fastBtn.textContent = "🎲 Fast Auto Roll";
+  }
 }
 
 function totalRolls() {

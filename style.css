@@ -90,7 +90,7 @@ button:disabled {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(255, 221, 85, 0.9); /* semi-transparent yellow */
+  background: rgba(0, 157, 255, 0.97); /* semi-transparent yellow */
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }

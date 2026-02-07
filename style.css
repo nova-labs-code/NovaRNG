@@ -27,6 +27,7 @@ body {
   background: #111;
   color: #eee;
   transition: transform 0.5s ease;
+  touch-action: pan-y;
 }
 
 h1, h2 {
@@ -35,7 +36,7 @@ h1, h2 {
   margin-top: 0;
 }
 
-/* ROLL BUTTONS (PAGE 1) */
+/* ROLL BUTTONS */
 #roll-buttons {
   display: flex;
   justify-content: center;
@@ -71,15 +72,7 @@ button.roll-btn:disabled {
   cursor: not-allowed;
 }
 
-/* Locked text below auto-roll buttons */
-.locked-text {
-  font-size: 0.8rem;
-  color: #ff5555;
-  margin-top: 2px;
-  text-align: center;
-}
-
-/* RESULT BOX WITH WIPE ANIMATION */
+/* RESULT BOX */
 #result {
   margin-top: 20px;
   font-size: 1.6rem;
@@ -90,10 +83,7 @@ button.roll-btn:disabled {
   overflow: hidden;
 }
 
-.result-text {
-  position: relative;
-  z-index: 1;
-}
+.result-text { position: relative; z-index: 1; }
 
 .wipe-bar {
   position: absolute;
@@ -113,23 +103,16 @@ button.roll-btn:disabled {
 }
 
 /* Roll history & login streak */
-#roll-history {
-  margin-top: 20px;
-  font-size: 1rem;
-}
+#roll-history { margin-top: 20px; font-size: 1rem; }
+#login-streak { text-align: center; margin-bottom: 10px; font-weight: bold; }
 
-#login-streak {
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-/* Odds Page Boxes */
+/* Odds page */
 #odds-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100% - 20px);
   overflow-y: auto;
+  scroll-behavior: smooth;
   margin-top: 10px;
   padding: 10px 0;
 }
@@ -147,11 +130,8 @@ button.roll-btn:disabled {
   transition: all 0.3s ease;
 }
 
-.odds-box.owned {}
-.odds-box:hover {
-  background: rgba(0, 157, 255, 0.1);
-  border-color: #009dff;
-}
+.odds-box.owned { }
+.odds-box:hover { background: rgba(0, 157, 255, 0.1); border-color: #009dff; }
 
 /* Stats page */
 #stats-panel {
@@ -161,7 +141,6 @@ button.roll-btn:disabled {
   padding-top: 12px;
 }
 
-/* Reset Stats button */
 #reset-stats {
   display: block;
   margin: 20px auto 0 auto;
@@ -202,5 +181,4 @@ button.roll-btn:disabled {
   #result { font-size:1.3rem; }
   .odds-box { font-size:1rem; padding:10px 12px; margin:10px 10px; }
   #reset-stats { font-size:0.9rem; padding:8px 12px; margin:15px auto 0 auto; }
-  .locked-text { font-size:0.75rem; }
 }

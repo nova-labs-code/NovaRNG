@@ -85,18 +85,23 @@ function revealRarity(rarityName){
   });
 }
 
-// Mark owned rarities on site load
+// Mark owned rarities on site load and reveal their name
 function markOwnedRarities() {
+  const total = rarities.reduce((s,x)=>s+1/x.number,0);
   rarities.forEach((r,i)=>{
     const el = document.getElementById(`rarity-${i}`);
-    if(stats[r.rarity]){
+    const percent = ((1/r.number)/total*100).toFixed(2);
+
+    if(stats[r.rarity] && stats[r.rarity] > 0){
       el.classList.add("rarity-owned");
+      // Show the actual rarity name instead of ???
+      el.textContent = `${r.rarity} - ${percent}%`;
     } else {
       el.classList.remove("rarity-owned");
+      el.textContent = `??? - ${percent}%`;
     }
   });
 }
-
 // Update stats and save
 function updateStats(rarityName){
   if(!stats[rarityName]) stats[rarityName] = 0;

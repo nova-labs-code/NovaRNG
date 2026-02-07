@@ -1,198 +1,234 @@
 let rarities = [];
 let rolledRarity = null;
+let currentPage = 0;
+const pages = [];
 
-// Load rarities
 fetch("rarities.json")
-  .then(res => res.json())
-  .then(data => {
+  .then(res=>res.json())
+  .then(data=>{
     rarities = data;
+    pages.push(document.getElementById("page1"));
+    pages.push(document.getElementById("page2"));
+    pages.push(document.getElementById("page3"));
     initOddsPanel();
-    renderStats();
+    loadStorage();
     markOwnedRarities();
     renderRollHistory();
+    renderStats();
+    drawGraph();
     updateLoginStreak();
   });
 
 // Persistent storage
-let stats = JSON.parse(localStorage.getItem('novaRNGStats')) || {};
-let rollHistory = JSON.parse(localStorage.getItem('novaRNGHistory')) || [];
-let lastVisit = localStorage.getItem('novaRNGLastVisit') || null;
-let loginStreak = parseInt(localStorage.getItem('novaRNGStreak')) || 0;
+let stats = {};         // total per rarity
+let rollHistory = [];   // last 5 rolls
+let dailyRolls = {};    // key=date, value=[rarity counts]
+let lastVisit = null;
+let loginStreak = 0;
 
-// --- Page 1: Roll Button ---
-document.getElementById("pick-btn").addEventListener("click", () => {
-  const resultElem = document.getElementById("result");
-  const button = document.getElementById("pick-btn");
-  button.disabled = true;
+// --- Utilities ---
+function loadStorage(){
+  stats = JSON.parse(localStorage.getItem('novaRNGStats'))||{};
+  rollHistory = JSON.parse(localStorage.getItem('novaRNGHistory'))||[];
+  dailyRolls = JSON.parse(localStorage.getItem('novaRNGDaily'))||{};
+  lastVisit = localStorage.getItem('novaRNGLastVisit')||null;
+  loginStreak = parseInt(localStorage.getItem('novaRNGStreak'))||0;
+}
 
-  const result = pickRarity();
-  rolledRarity = result;
+// --- Roll ---
+document.getElementById("pick-btn").addEventListener("click",()=>{ roll(); });
 
-  // Show result text
-  const textEl = resultElem.querySelector(".result-text");
-  textEl.textContent = `🎉 You got: ${result}!`;
-
-  // Wipe animation
-  const wipe = document.createElement("div");
-  wipe.className = "wipe-bar";
-  resultElem.appendChild(wipe);
-
-  setTimeout(() => {
-    wipe.remove();
-    setTimeout(() => { button.disabled = false; }, 500);
-  }, 650);
-
-  // Update stats/history
-  updateStats(result);
-  updateRollHistory(result);
-  revealRarity(result);
+document.addEventListener("keydown", e=>{
+  if(e.code=="Space") roll();
 });
 
+function roll(){
+  const btn = document.getElementById("pick-btn");
+  if(btn.disabled) return;
+  btn.disabled=true;
+
+  const result = pickRarity();
+  rolledRarity=result;
+
+  // Wipe animation
+  const resElem = document.getElementById("result");
+  const textEl = resElem.querySelector(".result-text");
+  textEl.textContent = `🎉 You got: ${result}!`;
+
+  const wipe = document.createElement("div");
+  wipe.className="wipe-bar";
+  resElem.appendChild(wipe);
+
+  setTimeout(()=>{
+    wipe.remove();
+    setTimeout(()=>btn.disabled=false,500);
+  },650);
+
+  // Update stats/history/daily
+  updateStats(result);
+  updateRollHistory(result);
+  updateDaily(result);
+  revealRarity(result);
+  drawGraph();
+}
+
 // Weighted RNG
-function pickRarity() {
-  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
-  let rand = Math.random() * total;
-  let cum = 0;
-  for(let i=0;i<rarities.length;i++){
-    cum += 1/rarities[i].number;
-    if(rand <= cum) return rarities[i].rarity;
+function pickRarity(){
+  const total = rarities.reduce((s,r)=>s+1/r.number,0);
+  let rand=Math.random()*total;
+  let cum=0;
+  for(let r of rarities){
+    cum+=1/r.number;
+    if(rand<=cum) return r.rarity;
   }
   return rarities[rarities.length-1].rarity;
 }
 
-// --- Odds Page ---
-function initOddsPanel() {
-  const panel = document.getElementById("odds-panel");
-  const total = rarities.reduce((sum,r)=>sum+1/r.number,0);
-  panel.innerHTML = "<h3>Current Odds</h3>";
+// --- Odds page ---
+function initOddsPanel(){
+  const panel=document.getElementById("odds-panel");
+  const total=rarities.reduce((s,r)=>s+1/r.number,0);
+  panel.innerHTML="<h3>Current Odds</h3>";
   rarities.forEach((r,i)=>{
-    const percent = ((1/r.number)/total*100).toFixed(2);
-    panel.innerHTML += `<div id="rarity-${i}">??? - ${percent}%</div>`;
+    const percent=((1/r.number)/total*100).toFixed(2);
+    panel.innerHTML+=`<div id="rarity-${i}">??? - ${percent}%</div>`;
   });
 }
 
-function revealRarity(rarityName){
-  const total = rarities.reduce((s,x)=>s+1/x.number,0);
+function revealRarity(name){
   rarities.forEach((r,i)=>{
-    const el = document.getElementById(`rarity-${i}`);
-    const percent = ((1/r.number)/total*100).toFixed(2);
+    const el=document.getElementById(`rarity-${i}`);
+    const total=rarities.reduce((s,x)=>s+1/x.number,0);
+    const percent=((1/r.number)/total*100).toFixed(2);
     if(stats[r.rarity]) el.classList.add("rarity-owned");
     else el.classList.remove("rarity-owned");
-    if(r.rarity === rarityName) el.textContent = `${r.rarity} - ${percent}%`;
+    if(r.rarity===name) el.textContent=`${r.rarity} - ${percent}%`;
   });
 }
 
-function markOwnedRarities() {
-  const total = rarities.reduce((s,x)=>s+1/x.number,0);
+function markOwnedRarities(){
   rarities.forEach((r,i)=>{
-    const el = document.getElementById(`rarity-${i}`);
-    const percent = ((1/r.number)/total*100).toFixed(2);
-    if(stats[r.rarity]) el.classList.add("rarity-owned");
-    else el.classList.remove("rarity-owned");
-    if(stats[r.rarity]) el.textContent = `${r.rarity} - ${percent}%`;
-    else el.textContent = `??? - ${percent}%`;
+    const el=document.getElementById(`rarity-${i}`);
+    const total=rarities.reduce((s,x)=>s+1/x.number,0);
+    const percent=((1/r.number)/total*100).toFixed(2);
+    if(stats[r.rarity]) { el.classList.add("rarity-owned"); el.textContent=`${r.rarity} - ${percent}%`; }
+    else { el.classList.remove("rarity-owned"); el.textContent=`??? - ${percent}%`; }
   });
 }
 
 // --- Stats Page ---
-function updateStats(rarityName){
-  if(!stats[rarityName]) stats[rarityName]=0;
-  stats[rarityName]++;
-  localStorage.setItem('novaRNGStats', JSON.stringify(stats));
+function updateStats(name){
+  if(!stats[name]) stats[name]=0;
+  stats[name]++;
+  localStorage.setItem('novaRNGStats',JSON.stringify(stats));
   renderStats();
-  markOwnedRarities();
 }
 
 function renderStats(){
-  const panel = document.getElementById("stats-panel");
+  const panel=document.getElementById("stats-panel");
   panel.innerHTML='';
-  const totalRolls = Object.values(stats).reduce((a,b)=>a+b,0);
-  panel.innerHTML += `<div>Total Rolls: ${totalRolls}</div>`;
+  const totalRolls=Object.values(stats).reduce((a,b)=>a+b,0);
+  panel.innerHTML+=`<div>Total Rolls: ${totalRolls}</div>`;
   rarities.forEach(r=>{
-    const count = stats[r.rarity]||0;
-    const percent = totalRolls>0?((count/totalRolls)*100).toFixed(2):"0.00";
-    // Optional simple bar chart using inline div
-    const barLength = Math.min(100,(percent*2)); // scale for visual
-    panel.innerHTML += `<div>${r.rarity}: ${count} (${percent}%) <div style="background:#ffdd55;height:8px;width:${barLength}px;"></div></div>`;
+    const count=stats[r.rarity]||0;
+    const percent=totalRolls>0?((count/totalRolls)*100).toFixed(2):"0.00";
+    const barLength=Math.min(100,(percent*2));
+    panel.innerHTML+=`<div>${r.rarity}: ${count} (${percent}%) <div style="background:#ffdd55;height:8px;width:${barLength}px;"></div></div>`;
   });
 }
 
-document.getElementById("reset-stats").addEventListener("click", ()=>{
-  stats={};
-  rollHistory=[];
-  localStorage.removeItem('novaRNGStats');
-  localStorage.removeItem('novaRNGHistory');
-  renderStats();
-  renderRollHistory();
-  initOddsPanel();
-  markOwnedRarities();
-});
-
-// --- Roll History (last 5 rolls) ---
-function updateRollHistory(rarityName){
-  rollHistory.unshift(rarityName);
-  if(rollHistory.length>5) rollHistory.pop(); // only last 5
-  localStorage.setItem('novaRNGHistory', JSON.stringify(rollHistory));
+// --- Roll history ---
+function updateRollHistory(name){
+  rollHistory.unshift(name);
+  if(rollHistory.length>5) rollHistory.pop();
+  localStorage.setItem('novaRNGHistory',JSON.stringify(rollHistory));
   renderRollHistory();
 }
 
 function renderRollHistory(){
-  const container = document.getElementById("roll-history");
-  if(!container) return;
-  container.innerHTML = "<strong>Roll History (last 5):</strong><br>";
+  let container=document.getElementById("roll-history");
+  container.innerHTML="<strong>Roll History (last 5):</strong><br>";
   rollHistory.forEach(r=>{
     let color="";
     if(r=="Legendary") color="#ff5555";
     else if(r=="Rare") color="#ffdd55";
     else if(r=="Uncommon") color="#55ffff";
     else color="#ffffff";
-    container.innerHTML += `<div style="color:${color}">${r}</div>`;
+    container.innerHTML+=`<div style="color:${color}">${r}</div>`;
   });
 }
 
-// --- Login Streak ---
+// --- Daily / Graph ---
+function updateDaily(name){
+  const today=(new Date()).toISOString().slice(0,10);
+  if(!dailyRolls[today]) dailyRolls[today]={};
+  if(!dailyRolls[today][name]) dailyRolls[today][name]=0;
+  const rarityNum = rarities.find(r=>r.rarity===name).number;
+  dailyRolls[today][name]+=rarityNum;
+  localStorage.setItem('novaRNGDaily',JSON.stringify(dailyRolls));
+}
+
+function drawGraph(){
+  const canvas=document.getElementById("stats-graph");
+  const ctx=canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const dates=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();
+    d.setDate(d.getDate()-i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+
+  const maxValue=Math.max(...dates.map(date=>{
+    const day=dailyRolls[date]||{};
+    return Object.values(day).reduce((a,b)=>a+b,0);
+  }),1);
+
+  const barWidth=canvas.width/dates.length-5;
+  dates.forEach((date,i)=>{
+    const day=dailyRolls[date]||{};
+    const value=Object.values(day).reduce((a,b)=>a+b,0);
+    const height=(value/maxValue)*canvas.height;
+    ctx.fillStyle="#ffdd55";
+    ctx.fillRect(i*(barWidth+5),canvas.height-height,barWidth,height);
+    ctx.fillStyle="#eee";
+    ctx.font="10px monospace";
+    ctx.fillText(date.slice(5), i*(barWidth+5), canvas.height-2);
+  });
+}
+
+// --- Login streak ---
 function updateLoginStreak(){
-  const today = new Date().toDateString();
-  const streakElem = document.getElementById("login-streak");
-
+  const today=(new Date()).toDateString();
+  const streakElem=document.getElementById("login-streak");
   if(lastVisit){
-    const last = new Date(lastVisit);
-    const diff = (new Date(today) - last)/(1000*60*60*24);
+    const last=new Date(lastVisit);
+    const diff=(new Date(today)-last)/(1000*60*60*24);
     if(diff==1) loginStreak++;
-    else if(diff>1) loginStreak=1; // reset streak
+    else if(diff>1) loginStreak=1;
   } else loginStreak=1;
-
-  streakElem.textContent = `Login Streak: ${loginStreak}`;
-  localStorage.setItem('novaRNGStreak', loginStreak);
-  localStorage.setItem('novaRNGLastVisit', today);
+  streakElem.textContent=`Login Streak: ${loginStreak}`;
+  localStorage.setItem('novaRNGStreak',loginStreak);
+  localStorage.setItem('novaRNGLastVisit',today);
   lastVisit=today;
 }
 
-// --- Swipe Detection ---
+// --- Reset button ---
+document.getElementById("reset-stats").addEventListener("click",()=>{
+  stats={}; rollHistory=[]; dailyRolls={};
+  localStorage.removeItem('novaRNGStats');
+  localStorage.removeItem('novaRNGHistory');
+  localStorage.removeItem('novaRNGDaily');
+  renderStats(); renderRollHistory(); drawGraph(); initOddsPanel(); markOwnedRarities();
+});
+
+// --- Swipe pages ---
 let startX=0;
 document.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
 document.addEventListener("touchend", e=>{
-  const endX = e.changedTouches[0].clientX;
-  const pages=[document.getElementById("page1"),
-               document.getElementById("page2"),
-               document.getElementById("page3")];
-  let currentIndex = pages.findIndex(p=>{
-    const t=getComputedStyle(p).transform;
-    if(t=='none') return true;
-    return t.includes('matrix(1,0,0,1,0,0)');
-  });
-  if(currentIndex==-1) currentIndex=0;
-
-  if(startX-endX>50){ // swipe left
-    const nextIndex = Math.min(currentIndex+1,pages.length-1);
-    pages.forEach((p,i)=>p.style.transform=`translateX(${100*(i-nextIndex)}%)`);
-  } else if(endX-startX>50){ // swipe right
-    const prevIndex = Math.max(currentIndex-1,0);
-    pages.forEach((p,i)=>p.style.transform=`translateX(${100*(i-prevIndex)}%)`);
-  }
+  const endX=e.changedTouches[0].clientX;
+  if(startX-endX>50) goToPage(Math.min(currentPage+1,pages.length-1));
+  else if(endX-startX>50) goToPage(Math.max(currentPage-1,0));
 });
-
-// --- Keyboard roll shortcut ---
-document.addEventListener("keydown", e=>{
-  if(e.code=="Space") document.getElementById("pick-btn").click();
-});
+function goToPage(idx){ currentPage=idx; pages.forEach((p,i)=>p.style.transform=`translateX(${100*(i-currentPage)}%)`);}

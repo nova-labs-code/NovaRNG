@@ -115,7 +115,7 @@ button:disabled {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 157, 255, 0.9);
+  background: rgba(0, 157, 255, 0.96); /* updated transparency */
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
@@ -125,4 +125,10 @@ button:disabled {
   0% { left: -100%; }
   50% { left: 0%; }
   100% { left: 100%; }
+}
+
+/* Owned rarity highlight */
+.rarity-owned {
+  font-weight: bold;
+  color: #55ff55;
 }

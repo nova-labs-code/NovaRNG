@@ -1,50 +1,47 @@
 let rarities = [];
 
-// Load rarities from JSON
-fetch('rarities.json')
-  .then(response => response.json())
-  .then(data => {
+// Load rarities
+fetch("rarities.json")
+  .then((res) => res.json())
+  .then((data) => {
     rarities = data;
-    displayProbabilities();
-  })
-  .catch(err => console.error("Failed to load rarities:", err));
+    showProbabilities();
+  });
 
 // Calculate normalized probabilities
 function getNormalizedProbabilities() {
-  const totalWeight = rarities.reduce((sum, r) => sum + 1 / r.number, 0);
-  return rarities.map(r => ({
+  const total = rarities.reduce((sum, r) => sum + 1 / r.number, 0);
+  return rarities.map((r) => ({
     rarity: r.rarity,
-    probability: (1 / r.number) / totalWeight
+    probability: (1 / r.number) / total,
   }));
 }
 
 // Display probabilities
-function displayProbabilities() {
-  const container = document.getElementById('probabilities');
+function showProbabilities() {
+  const panel = document.getElementById("probabilities");
   const probs = getNormalizedProbabilities();
-  container.innerHTML = "<h3>Probabilities:</h3>";
-  probs.forEach(p => {
-    container.innerHTML += `<div>${p.rarity}: ${(p.probability*100).toFixed(2)}%</div>`;
+  panel.innerHTML = `<h3>Current Odds</h3>`;
+  probs.forEach((p) => {
+    const percent = (p.probability * 100).toFixed(2);
+    panel.innerHTML += `<div>${p.rarity}: ${percent}%</div>`;
   });
 }
 
-// Pick a random rarity based on probabilities
+// Pick weighted rarity
 function pickRarity() {
   const probs = getNormalizedProbabilities();
   let rand = Math.random();
-  let cumulative = 0;
-
-  for (const p of probs) {
-    cumulative += p.probability;
-    if (rand < cumulative) {
-      return p.rarity;
-    }
+  let cum = 0;
+  for (let p of probs) {
+    cum += p.probability;
+    if (rand < cum) return p.rarity;
   }
-  return probs[probs.length - 1].rarity; // fallback
+  return probs[probs.length - 1]?.rarity;
 }
 
-// Button click
-document.getElementById('pick-btn').addEventListener('click', () => {
-  const result = pickRarity();
-  document.getElementById('result').innerText = `🎉 You got: ${result}!`;
+// Button handler
+document.getElementById("pick-btn").addEventListener("click", () => {
+  const res = pickRarity();
+  document.getElementById("result").textContent = `🎉 You got: ${res}!`;
 });

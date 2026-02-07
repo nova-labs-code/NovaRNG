@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nova RNG</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova RNG</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="rng-card">
-    <h1>Nova RNG</h1>
+<div class="container">
+  <div class="pages">
 
-    <button id="pick-btn">🎲 Roll</button>
+    <!-- Page 1: Main RNG -->
+    <div class="page" id="page1">
+      <h1>Nova RNG</h1>
+      <div id="probabilities" class="prob-panel"></div>
+      <button id="pick-btn">🎲 Roll</button>
+      <div id="result"></div>
+      <p class="swipe-hint">Swipe left → for more</p>
+    </div>
 
-    <div id="result"></div>
+    <!-- Page 2: Extra Content / History / Info -->
+    <div class="page" id="page2">
+      <h2>Extras</h2>
+      <p>Here you can put a history log, fun info, or additional odds visualization!</p>
+      <button id="back-btn">← Back</button>
+    </div>
 
-    <div id="probabilities" class="prob-panel"></div>
-
-    <footer>
-      <p>By Nova Labs Code</p>
-    </footer>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

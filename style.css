@@ -1,4 +1,3 @@
-/* BODY & CONTAINER */
 body {
   margin: 0;
   padding: 0;
@@ -15,32 +14,28 @@ body {
   overflow: hidden;
 }
 
-/* PAGES */
-.page {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+.pages {
+  display: flex;
+  width: 200%;
   height: 100%;
+  transition: transform 0.5s ease;
+}
+
+.page {
+  width: 50%;
   padding: 40px;
   box-sizing: border-box;
   background: #111;
   color: #eee;
-  transition: transform 0.5s ease;
+  flex-shrink: 0;
 }
 
-/* INITIAL POSITIONS */
-#page1 { transform: translateX(0); }
-#page2 { transform: translateX(100%); }
-
-/* HEADERS */
 h1, h2 {
-  color: #ffdd55;
   text-align: center;
+  color: #ffdd55;
   margin-top: 0;
 }
 
-/* BUTTONS */
 button {
   padding: 10px 20px;
   margin: 10px auto;
@@ -57,17 +52,15 @@ button:hover {
   color: #ffdd55;
 }
 
-/* PROBABILITY PANEL */
 .prob-panel {
   margin-top: 20px;
+  font-size: 1rem;
   text-align: left;
-  font-size: 0.9rem;
   border-top: 1px solid #444;
   padding-top: 12px;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
-/* RESULT */
 #result {
   margin-top: 20px;
   font-size: 1.5rem;

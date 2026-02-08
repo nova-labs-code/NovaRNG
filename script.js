@@ -67,6 +67,18 @@ function saveData(){
   localStorage.setItem("totalRolls", totalRolls);
 }
 
+// -------------------- LOGIN STREAK --------------------
+function updateLoginStreak(){
+  loginStreakDiv.innerText=`Login Streak: ${loginStreak}`;
+}
+
+function incrementLoginStreak(){
+  // Optional: reset logic can be added if user skips a day
+  loginStreak++;
+  updateLoginStreak();
+  saveData();
+}
+
 // -------------------- ROLL --------------------
 function roll(){
   if(!canRoll || rarities.length===0) return;
@@ -90,9 +102,10 @@ function roll(){
   setTimeout(()=>{
     resultDiv.querySelector(".result-text").innerText=resultRarity.rarity;
 
-    // Fix: count owned properly
+    // Increment owned count
     owned[resultRarity.rarity] = (owned[resultRarity.rarity] || 0) + 1;
 
+    // Update last 5 rolls
     rollHistory.push(resultRarity.rarity);
     if(rollHistory.length>5) rollHistory.shift();
 
@@ -124,20 +137,20 @@ function updateOdds(){
 
     const chancePercent = ((1/r.number)/totalInverse*100).toFixed(2);
     const countOwned = owned[r.rarity] || 0;
-const displayName = countOwned > 0 ? r.rarity : "???";
+    const displayName = countOwned > 0 ? r.rarity : "???";
 
-if(countOwned > 0){
-  div.classList.add("owned");
-  div.style.background = `${color}33`;
-} else {
-  div.style.background="#1a1a1a";
-}
+    div.innerHTML = `<span>${displayName}</span><span>${countOwned} owned</span><span>${chancePercent}%</span>`;
+
+    if(countOwned > 0){
+      div.classList.add("owned");
+      div.style.background = `${color}33`;
+    } else {
+      div.style.background="#1a1a1a";
+    }
 
     oddsPanel.appendChild(div);
   });
 }
-
-function updateLoginStreak(){ loginStreakDiv.innerText=`Login Streak: ${loginStreak}`; }
 
 function updateStatsText(){
   statsPanel.innerHTML = `
@@ -216,11 +229,13 @@ resetStatsBtn.addEventListener("click", ()=>{
   rollHistory=[];
   owned={};
   totalRolls=0;
+  loginStreak=0;
   saveData();
   updateRollHistory();
   updateOdds();
   updateStatsText();
   updateAutoRollButtons();
+  updateLoginStreak();
   showPopup("Stats reset!");
 });
 

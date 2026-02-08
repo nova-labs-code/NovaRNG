@@ -3,6 +3,7 @@ let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
 let loginStreak = parseInt(localStorage.getItem("loginStreak")) || 0;
 let totalRolls = parseInt(localStorage.getItem("totalRolls")) || 0;
+let lastLogin = localStorage.getItem("lastLogin"); // stored as "YYYY-MM-DD"
 
 const resultDiv = document.getElementById("result");
 const oddsPanel = document.getElementById("odds-panel");
@@ -65,18 +66,40 @@ function saveData(){
   localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
   localStorage.setItem("loginStreak", loginStreak);
   localStorage.setItem("totalRolls", totalRolls);
+  localStorage.setItem("lastLogin", lastLogin);
 }
 
 // -------------------- LOGIN STREAK --------------------
 function updateLoginStreak(){
-  loginStreakDiv.innerText=`Login Streak: ${loginStreak}`;
+  loginStreakDiv.innerText = `Login Streak: ${loginStreak}`;
 }
 
-function incrementLoginStreak(){
-  // Optional: reset logic can be added if user skips a day
-  loginStreak++;
-  updateLoginStreak();
+function checkLoginStreak() {
+  const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+  
+  if(lastLogin === today){
+    // Already logged in today, do nothing
+    updateLoginStreak();
+    return;
+  }
+
+  if(lastLogin){
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+    if(lastLogin === yesterdayStr){
+      loginStreak++; // consecutive day
+    } else {
+      loginStreak = 1; // missed a day
+    }
+  } else {
+    loginStreak = 1; // first time ever
+  }
+
+  lastLogin = today;
   saveData();
+  updateLoginStreak();
 }
 
 // -------------------- ROLL --------------------
@@ -85,7 +108,6 @@ function roll(){
   canRoll=false;
   totalRolls++;
 
-  // Inverse probability: smaller number = higher chance
   const totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
   let rand = Math.random()*totalInverse;
   let cumulative=0;
@@ -230,6 +252,7 @@ resetStatsBtn.addEventListener("click", ()=>{
   owned={};
   totalRolls=0;
   loginStreak=0;
+  lastLogin = null;
   saveData();
   updateRollHistory();
   updateOdds();
@@ -251,7 +274,7 @@ function init(){
     });
 
   updateRollHistory();
-  updateLoginStreak();
+  checkLoginStreak(); // ✅ fixed login streak
   showPage(0);
 }
 

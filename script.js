@@ -124,16 +124,14 @@ function updateOdds(){
 
     const chancePercent = ((1/r.number)/totalInverse*100).toFixed(2);
     const countOwned = owned[r.rarity] || 0;
-    const displayName = countOwned > 0 ? r.rarity : "???";
+const displayName = countOwned > 0 ? r.rarity : "???";
 
-    div.innerHTML = `<span>${displayName}</span><span>${countOwned} owned</span><span>${chancePercent}%</span>`;
-
-    if(countOwned > 0){
-      div.classList.add("owned");
-      div.style.background = `${color}33`;
-    } else {
-      div.style.background="#1a1a1a";
-    }
+if(countOwned > 0){
+  div.classList.add("owned");
+  div.style.background = `${color}33`;
+} else {
+  div.style.background="#1a1a1a";
+}
 
     oddsPanel.appendChild(div);
   });

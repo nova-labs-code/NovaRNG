@@ -362,3 +362,31 @@ function init(){
 }
 
 init();
+// -------------------- BACKGROUND MUSIC --------------------
+
+// List of royalty-free music tracks
+const musicTracks = [
+  "https://pixabay.com/uploads/game-music-loop-6-144641.mp3",
+  "https://assets.mixkit.co/preview/mixkit-dance-with-me-112.mp3",
+  "https://assets.mixkit.co/preview/mixkit-summer-fun-115.mp3",
+  "https://assets.mixkit.co/preview/mixkit-its-a-cool-thing-110.mp3",
+  "https://assets.mixkit.co/preview/mixkit-fun-at-the-farm-104.mp3",
+  "https://assets.mixkit.co/preview/mixkit-serene-view-112.mp3"
+];
+
+// Create audio element in JS
+const bgMusic = new Audio();
+bgMusic.loop = true;
+bgMusic.volume = 0.25; // adjust volume
+
+// Choose a random track
+const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
+bgMusic.src = randomTrack;
+
+// Try to play automatically
+bgMusic.play().catch(() => {
+  console.log("Music will start on first user interaction due to browser autoplay rules");
+  // Optional: start music on first click if blocked
+  const startMusic = () => { bgMusic.play(); document.removeEventListener("click", startMusic); };
+  document.addEventListener("click", startMusic);
+});

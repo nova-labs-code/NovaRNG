@@ -325,8 +325,6 @@ resetStatsBtn.addEventListener("click", ()=>{
   owned = {};
   points = 0;
   totalRolls = 0;
-  loginStreak = 1;
-  lastLogin = null;
 
   upgrades.forEach(u => {
     u.level = 0;

@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Courier New", Courier, monospace;
-  background: #0a0a0a;
+  background: radial-gradient(circle at top, #111, #050505);
   color: #eee;
   overflow: hidden;
   touch-action: manipulation;
@@ -16,261 +16,139 @@ body {
   overflow: hidden;
 }
 
+/* ---------------- PAGES ---------------- */
 .page {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   padding: 40px;
   box-sizing: border-box;
-  background: #111;
-  color: #eee;
-  transition: transform 0.5s ease;
+  background: linear-gradient(180deg, #111, #0a0a0a);
+  transition: transform 0.45s ease;
   touch-action: pan-y;
 }
 
 h1, h2 {
   text-align: center;
   color: #ffdd55;
-  margin-top: 0;
+  text-shadow: 0 0 10px rgba(255,221,85,0.4);
 }
 
-/* ---------------- ROLL BUTTONS ---------------- */
+/* ---------------- BUTTONS ---------------- */
 #roll-buttons {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.roll-btn-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 button.roll-btn {
-  padding: 10px 20px;
+  padding: 10px 22px;
   font-weight: bold;
   cursor: pointer;
-  background: #222;
+  background: linear-gradient(180deg, #222, #111);
   color: #fff;
   border: 2px solid #444;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  border-radius: 10px;
+  transition: all 0.25s ease;
 }
 
-button.roll-btn:hover:not(:disabled) { 
-  background: #333; 
-  color: #ffdd55; 
+button.roll-btn:hover:not(:disabled) {
+  color: #ffdd55;
+  border-color: #ffdd55;
+  box-shadow: 0 0 12px rgba(255,221,85,0.4);
 }
 
-button.roll-btn:disabled { 
-  opacity: 0.5; 
-  cursor: not-allowed; 
+button.roll-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ---------------- RESULT ---------------- */
 #result {
   margin-top: 20px;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   text-align: center;
   color: #ffdd55;
-  min-height: 50px;
+  min-height: 60px;
   position: relative;
   overflow: hidden;
+  text-shadow: 0 0 12px rgba(255,221,85,0.6);
 }
 
-.result-text { 
-  position: relative; 
-  z-index: 1; 
+.result-text {
+  position: relative;
+  z-index: 1;
+  animation: popIn 0.25s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0.5; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .wipe-bar {
   position: absolute;
-  top: 0; 
-  left: -100%; 
-  width: 100%; 
-  height: 100%;
-  background: rgba(0,157,255,0.96);
-  z-index: 2;
-  animation: wipeLeftToRight 0.65s ease forwards;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, #009dff, transparent);
+  animation: wipe 0.65s ease forwards;
 }
 
-@keyframes wipeLeftToRight {
-  0% { left: -100%; }
-  50% { left: 0%; }
-  100% { left: 100%; }
+@keyframes wipe {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
-/* ---------------- ROLL HISTORY ---------------- */
-#roll-history { 
-  margin-top: 20px; 
-  font-size: 1rem; 
-}
-
-#login-streak { 
-  text-align: center; 
-  margin-bottom: 10px; 
-  font-weight: bold; 
-}
-
-/* ---------------- ODDS PANEL ---------------- */
-#odds-panel {
-  display: flex;
-  flex-direction: column;
-  height: calc(100% - 20px);
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  margin-top: 10px;
-  padding: 10px 0;
-}
-
-.odds-box {
-  background: #1a1a1a;
-  border: 2px solid #444;
-  border-radius: 10px;
-  padding: 12px 20px;
-  margin: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-}
-
-.odds-box:hover { 
-  background: rgba(0,157,255,0.1); 
-  border-color: #009dff; 
-}
-
-/* ---------------- STATS PANEL ---------------- */
+/* ---------------- PANELS ---------------- */
+#roll-history,
 #stats-panel {
   margin-top: 20px;
-  font-size: 1rem;
-  border-top: 2px solid #444;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  font-size: 0.95rem;
 }
 
+#odds-panel,
+#upgrades-panel {
+  margin-top: 10px;
+  overflow-y: auto;
+  height: calc(100% - 60px);
+}
+
+.odds-box,
+.upgrade-box {
+  background: #151515;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin: 10px;
+  transition: all 0.25s ease;
+}
+
+.odds-box:hover,
+.upgrade-box:hover {
+  border-color: #009dff;
+  background: rgba(0,157,255,0.08);
+}
+
+/* ---------------- STATS ---------------- */
 .stats-box {
   background: #111;
   border: 2px solid #444;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 8px 12px;
+  margin: 8px 0;
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
   color: #ffdd55;
 }
-
-/* ---------------- RESET BUTTON ---------------- */
-#reset-stats {
-  display: block;
-  margin: 20px auto 0 auto;
-  padding: 10px 16px;
-  background: #222;
-  color: #fff;
-  border: 2px solid #444;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-#reset-stats:hover { background: #333; color: #ffdd55; }
-#reset-stats:active { transform: scale(0.97); }
 
 /* ---------------- POPUP ---------------- */
 #popup {
   position: fixed;
-  bottom: 10px;
-  right: 10px;
+  bottom: 12px;
+  right: 12px;
   background: #222;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  opacity: 0.95;
+  padding: 10px 16px;
+  border-radius: 8px;
   display: none;
   z-index: 100;
-  box-shadow: 0 0 10px rgba(0,0,0,0.7);
-  pointer-events: none;
-}
-
-/* ---------------- UPGRADES ---------------- */
-#upgrades-panel {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  height: calc(100% - 20px);
-  overflow-y: auto;
-}
-
-.upgrade-box {
-  background: #222;
-  border: 2px solid #444;
-  border-radius: 10px;
-  padding: 12px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.upgrade-box:hover {
-  background: rgba(0,157,255,0.1);
-  border-color: #009dff;
-}
-
-.upgrade-box strong { 
-  font-size: 1.1rem; 
-  color: #ffdd55; 
-}
-
-.upgrade-box p { 
-  margin: 0; 
-  font-size: 0.9rem; 
-  color: #ccc; 
-}
-
-.upgrade-box span { 
-  align-self: flex-end; 
-  font-weight: bold; 
-  font-size: 0.85rem; 
-  color: #fff; 
-}
-
-/* ---------------- UPGRADE LEVEL BAR ---------------- */
-.upgrade-level {
-  background: #333;
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.upgrade-level-fill {
-  background: #55ff55;
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
-}
-
-/* ---------------- RESPONSIVE ---------------- */
-@media(max-width:480px){
-  .page { padding: 15px 10px; }
-  .roll-btn { font-size: 0.9rem; padding: 8px 12px; }
-  #result { font-size: 1.3rem; }
-  .odds-box { font-size: 1rem; padding: 10px 12px; margin: 10px 10px; }
-  #reset-stats { font-size: 0.9rem; padding: 8px 12px; margin: 15px auto 0 auto; }
-  .upgrade-box { padding: 10px 14px; font-size: 0.95rem; }
-  .upgrade-level { height: 6px; }
+  box-shadow: 0 0 14px rgba(0,0,0,0.8);
 }

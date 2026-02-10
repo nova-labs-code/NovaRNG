@@ -161,11 +161,32 @@ button.roll-btn:disabled { opacity:0.5; cursor:not-allowed; }
 /* ---------------- UPGRADES ---------------- */
 #upgrades-panel {
   margin-top:20px;
-  font-size:1rem;
-  border-top:1px solid #444;
-  padding-top:12px;
-  text-align:center;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:10px;
 }
+
+.upgrade-box {
+  background:#222;
+  border:2px solid #444;
+  border-radius:10px;
+  padding:12px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  font-size:1rem;
+  transition: all 0.3s ease;
+}
+
+.upgrade-box:hover {
+  background: rgba(0,157,255,0.1);
+  border-color:#009dff;
+}
+
+.upgrade-box strong { font-size:1.1rem; color:#ffdd55; }
+.upgrade-box p { margin:0; font-size:0.9rem; color:#ccc; }
+.upgrade-box span { align-self:flex-end; font-weight:bold; font-size:0.9rem; }
 
 @media(max-width:480px){
   .page { padding:15px 10px; }

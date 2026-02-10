@@ -1,3 +1,4 @@
+// ---------------- VARIABLES ----------------
 let rarities = [];
 let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
@@ -24,7 +25,7 @@ let fastAutoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
 
-// -------------------- PAGE SWIPE --------------------
+// ---------------- PAGE SWIPE ----------------
 const pages = document.querySelectorAll(".page");
 let currentPage = 0;
 
@@ -46,7 +47,7 @@ pages.forEach(page=>{
   });
 });
 
-// -------------------- HELPERS --------------------
+// ---------------- HELPERS ----------------
 function getRarityColor(number){
   if(number>=1 && number<=100) return "#aaaaaa";
   if(number>=101 && number<=215) return "#55ff55";
@@ -68,10 +69,13 @@ function saveData(){
   localStorage.setItem("loginStreak", loginStreak);
   localStorage.setItem("totalRolls", totalRolls);
   localStorage.setItem("lastLogin", lastLogin);
-  localStorage.setItem("upgrades", JSON.stringify(upgrades.reduce((acc,u)=>{ acc[u.id]=u.unlocked; return acc; },{})));
+  localStorage.setItem("upgrades", JSON.stringify(upgrades.reduce((acc,u)=>{ 
+    acc[u.id]={level:u.level, cost:u.cost, unlocked:u.unlocked}; 
+    return acc; 
+  },{})));
 }
 
-// -------------------- LOGIN STREAK --------------------
+// ---------------- LOGIN STREAK ----------------
 function updateLoginStreak(){ loginStreakDiv.innerText = `Login Streak: ${loginStreak}`; }
 
 function checkLoginStreak() {
@@ -88,7 +92,7 @@ function checkLoginStreak() {
   updateLoginStreak();
 }
 
-// -------------------- ROLL --------------------
+// ---------------- ROLL ----------------
 function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
@@ -123,7 +127,7 @@ function roll(){
   },650);
 }
 
-// -------------------- UPDATE FUNCTIONS --------------------
+// ---------------- UPDATE FUNCTIONS ----------------
 function updateRollHistory(){ rollHistoryDiv.innerHTML = "Last Rolls:<br>" + rollHistory.join("<br>"); }
 
 function updateOdds(){
@@ -152,43 +156,80 @@ function updateStatsText(){
   `;
 }
 
-// -------------------- UPGRADES --------------------
-let upgrades=[
-  {id:"speed1", name:"Roll Speed +1", description:"Roll faster automatically.", cost:50, unlocked:false},
-  {id:"speed2", name:"Roll Speed +2", description:"Even faster auto rolls.", cost:200, unlocked:false},
-  {id:"luck1", name:"Luck +5%", description:"Better chance for rare rolls.", cost:100, unlocked:false},
-  {id:"luck2", name:"Luck +10%", description:"Maximize rare chances.", cost:500, unlocked:false},
-  {id:"extra1", name:"Extra Roll", description:"Gain 1 free roll.", cost:30, unlocked:false},
-  {id:"autoUnlock", name:"Auto Roll Unlock", description:"Unlock Auto Roll feature.", cost:0, unlocked: totalRolls>=100},
-  {id:"fastAutoUnlock", name:"Fast Auto Roll Unlock", description:"Unlock Fast Auto Roll feature.", cost:0, unlocked: totalRolls>=1000},
+// ---------------- UPGRADES ----------------
+let upgrades = [
+  {id:"speed", name:"Roll Speed", description:"Increases auto-roll speed.", cost:100, level:0, maxLevel:100},
+  {id:"luck", name:"Luck", description:"Improves chance for rare rolls.", cost:100, level:0, maxLevel:100},
+  {id:"extraRoll", name:"Extra Roll", description:"Grants 1 free roll per click.", cost:50, level:0, maxLevel:100},
+  {id:"autoUnlock", name:"Auto Roll Unlock", description:"Unlock auto-roll feature.", cost:0, level:0, maxLevel:1, unlocked: totalRolls>=100},
+  {id:"fastAutoUnlock", name:"Fast Auto Roll Unlock", description:"Unlock fast auto-roll feature.", cost:0, level:0, maxLevel:1, unlocked: totalRolls>=1000},
 ];
 
-let savedUpgrades=JSON.parse(localStorage.getItem("upgrades"))||{};
-upgrades.forEach(u=>{ if(savedUpgrades[u.id]!==undefined) u.unlocked=savedUpgrades[u.id]; });
+let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
+upgrades.forEach(u=>{
+  if(savedUpgrades[u.id] !== undefined) {
+    u.level = savedUpgrades[u.id].level || 0;
+    u.cost = savedUpgrades[u.id].cost || u.cost;
+    u.unlocked = savedUpgrades[u.id].unlocked || false;
+  } else {
+    u.unlocked = u.unlocked || false;
+  }
+});
 
 function updateUpgrades(){
-  upgradesPanel.innerHTML="";
+  upgradesPanel.innerHTML = "";
   upgrades.forEach(u=>{
-    const div=document.createElement("div");
-    div.className="upgrade-box";
-    div.style.background=u.unlocked?"#55aa55":"#222";
-    div.style.border=u.unlocked?"2px solid #55ff55":"2px solid #444";
-    div.innerHTML=`<strong>${u.name}</strong><p>${u.description}</p><span>${u.unlocked?"✅ Unlocked":"Cost: "+u.cost+" rolls"}</span>`;
-    if(!u.unlocked && totalRolls>=u.cost){
-      div.style.cursor="pointer";
-      div.addEventListener("click",()=>{
-        u.unlocked=true;
-        savedUpgrades[u.id]=true;
-        localStorage.setItem("upgrades",JSON.stringify(savedUpgrades));
-        showPopup(`${u.name} unlocked!`);
+    const div = document.createElement("div");
+    div.className = "upgrade-box";
+    div.style.border = u.unlocked ? "2px solid #55ff55" : "2px solid #444";
+
+    const name = document.createElement("strong");
+    name.innerText = u.name;
+    div.appendChild(name);
+
+    const desc = document.createElement("p");
+    desc.innerText = u.description;
+    div.appendChild(desc);
+
+    const levelContainer = document.createElement("div");
+    levelContainer.className = "upgrade-level";
+    const levelFill = document.createElement("div");
+    levelFill.className = "upgrade-level-fill";
+    levelFill.style.width = `${(u.level / u.maxLevel) * 100}%`;
+    levelContainer.appendChild(levelFill);
+    div.appendChild(levelContainer);
+
+    const status = document.createElement("span");
+    if(u.unlocked) {
+      status.innerText = `✅ Unlocked | Level: ${u.level}/${u.maxLevel}`;
+    } else {
+      status.innerText = `Cost: ${Math.floor(u.cost)} rolls | Level: ${u.level}/${u.maxLevel}`;
+    }
+    div.appendChild(status);
+
+    // Click to upgrade with scaling cost
+    if(!u.unlocked && totalRolls >= Math.floor(u.cost) && u.level < u.maxLevel){
+      div.style.cursor = "pointer";
+      div.addEventListener("click", ()=>{
+        totalRolls -= Math.floor(u.cost);
+        u.level++;
+        u.cost *= 1.5; // increase cost 1.5x each level
+        if(u.level >= u.maxLevel) u.unlocked = true;
+        savedUpgrades[u.id] = {level: u.level, cost: u.cost, unlocked: u.unlocked};
+        localStorage.setItem("upgrades", JSON.stringify(savedUpgrades));
+        saveData();
+        showPopup(`${u.name} upgraded to level ${u.level}! Next level cost: ${Math.floor(u.cost)} rolls`);
         updateUpgrades();
+        updateStatsText();
+        updateAutoRollButtons();
       });
     }
+
     upgradesPanel.appendChild(div);
   });
 }
 
-// -------------------- AUTO-ROLL --------------------
+// ---------------- AUTO-ROLL ----------------
 function startAutoRoll(speed){
   stopAutoRoll();
   if(speed===1000){ isAutoRolling=true; autoRollInterval=setInterval(()=>{ if(canRoll) roll(); },1000);}
@@ -211,7 +252,7 @@ function updateAutoRollButtons(){
   fastAutoRollBtn.innerText=totalRolls<1000?`Locked: get ${1000-totalRolls} more rolls`:(isFastAutoRolling?"⏹ Stop Fast Auto Roll":"🎲 Fast Auto Roll");
 }
 
-// -------------------- EVENTS --------------------
+// ---------------- EVENTS ----------------
 pickBtn.addEventListener("click", roll);
 
 autoRollBtn.addEventListener("click",()=>{
@@ -226,14 +267,15 @@ fastAutoRollBtn.addEventListener("click",()=>{
 
 resetStatsBtn.addEventListener("click",()=>{
   rollHistory=[]; owned={}; totalRolls=0; loginStreak=0; lastLogin=null;
-  upgrades.forEach(u=>{ if(!["autoUnlock","fastAutoUnlock"].includes(u.id)) u.unlocked=false; });
+  upgrades.forEach(u=>{ u.level=0; u.cost=u.id==="speed"||u.id==="luck"?100:50; u.unlocked=false; });
   savedUpgrades={};
+  stopAutoRoll();
   saveData();
   updateRollHistory(); updateOdds(); updateStatsText(); updateUpgrades(); updateAutoRollButtons(); updateLoginStreak();
   showPopup("Stats reset!");
 });
 
-// -------------------- INIT --------------------
+// ---------------- INIT ----------------
 function init(){
   fetch("rarities.json")
     .then(res=>res.json())

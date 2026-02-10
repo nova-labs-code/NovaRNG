@@ -26,6 +26,14 @@ let fastAutoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
 
+// ---------------- BASE COSTS ----------------
+const baseUpgradeCosts = {
+  speed: 300, luck: 500, extraRoll: 700, rarityBoost: 800,
+  bonusXP: 500, autoUnlock: 1000, fastAutoUnlock: 2500,
+  megaLuck: 3000, speedBoost: 2500, superExtra: 4000,
+  ultraLuck: 5000, hyperSpeed: 4500
+};
+
 // ---------------- PAGE SWIPE ----------------
 const pages = document.querySelectorAll(".page");
 let currentPage = 0;
@@ -34,20 +42,7 @@ function showPage(index){
   pages.forEach((page,i)=>{ page.style.transform=`translateX(${(i-index)*100}%)`; });
   currentPage=index;
 }
-const baseUpgradeCosts = {
-  speed: 300,
-  luck: 500,
-  extraRoll: 700,
-  rarityBoost: 800,
-  bonusXP: 500,
-  autoUnlock: 1000,
-  fastAutoUnlock: 2500,
-  megaLuck: 3000,
-  speedBoost: 2500,
-  superExtra: 4000,
-  ultraLuck: 5000,
-  hyperSpeed: 4500
-};
+
 let touchStartX = null;
 pages.forEach(page=>{
   page.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; });
@@ -112,14 +107,17 @@ function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
 
-  // Determine how many rolls to do (base 1 + extraRoll levels)
+  // Get upgrades affecting rolls
   const extraRollUpg = upgrades.find(u => u.id === "extraRoll");
+  const bonusXPUpg = upgrades.find(u => u.id === "bonusXP");
+  const speedUpg = upgrades.find(u => u.id === "speed");
+
   const rollsToDo = 1 + (extraRollUpg ? extraRollUpg.level : 0);
 
   let results = [];
 
   for(let i=0; i<rollsToDo; i++){
-    totalRolls++; // <-- increment per actual roll
+    totalRolls++;
 
     let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
     let rand = Math.random() * totalInverse;
@@ -130,10 +128,12 @@ function roll(){
       if(rand <= cumulative){ resultRarity=r; break; }
     }
 
-    // Award points for each roll
-    points += resultRarity.number / 2;
+    // Points per roll
+    let rollPoints = resultRarity.number / 2;
+    if(bonusXPUpg) rollPoints *= 1 + 0.05 * bonusXPUpg.level; // 5% extra per level
+    points += rollPoints;
 
-    // Add to owned and history
+    // Owned & history
     owned[resultRarity.rarity] = (owned[resultRarity.rarity] || 0) + 1;
     results.push(resultRarity.rarity);
     rollHistory.push(resultRarity.rarity);
@@ -141,9 +141,12 @@ function roll(){
 
   if(rollHistory.length>5) rollHistory = rollHistory.slice(-5);
 
-  // Visual wipe animation
+  // ------------------ Visual ------------------
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
+  let baseAnim = 650;
+  if(speedUpg) baseAnim = baseAnim / (1 + 0.2 * speedUpg.level);
+  wipe.style.animation = `wipeLeftToRight ${baseAnim}ms ease forwards`;
   resultDiv.appendChild(wipe);
 
   setTimeout(()=>{
@@ -154,9 +157,9 @@ function roll(){
     updateUpgrades();
     updateAutoRollButtons();
     saveData();
-    setTimeout(()=>{ canRoll=true; },650);
+    setTimeout(()=>{ canRoll=true; }, baseAnim);
     resultDiv.removeChild(wipe);
-  }, 650);
+  }, baseAnim);
 }
 
 // ---------------- UPDATE FUNCTIONS ----------------
@@ -191,7 +194,7 @@ function updateStatsText(){
 
 // ---------------- UPGRADES ----------------
 let upgrades = [
-  {id:"speed", name:"Roll Speed", description:"Increase auto-roll speed", cost:300, level:0, maxLevel:5, unlocked:false},
+  {id:"speed", name:"Roll Speed", description:"Increase auto-roll speed and animation", cost:300, level:0, maxLevel:5, unlocked:false},
   {id:"luck", name:"Luck", description:"Increase chance for rare rolls", cost:500, level:0, maxLevel:10, unlocked:false},
   {id:"extraRoll", name:"Extra Roll", description:"Gain extra roll per click", cost:700, level:0, maxLevel:3, unlocked:false},
   {id:"rarityBoost", name:"Rarity Boost", description:"Increase chance for high-tier rarities", cost:800, level:0, maxLevel:5, unlocked:false},
@@ -266,8 +269,20 @@ function updateUpgrades(){
 // ---------------- AUTO-ROLL ----------------
 function startAutoRoll(speed){
   stopAutoRoll();
-  if(speed===1000){ isAutoRolling=true; autoRollInterval=setInterval(()=>{ if(canRoll) roll(); },1000);}
-  if(speed===500){ isFastAutoRolling=true; fastAutoRollInterval=setInterval(()=>{ if(canRoll) roll(); },500);}
+
+  const speedUpg = upgrades.find(u => u.id === "speed");
+  let interval = speed;
+  if(speedUpg) interval = interval / (1 + 0.2 * speedUpg.level);
+
+  if(speed === 1000){ 
+    isAutoRolling = true; 
+    autoRollInterval = setInterval(()=>{ if(canRoll) roll(); }, interval);
+  }
+  if(speed === 500){ 
+    isFastAutoRolling = true; 
+    fastAutoRollInterval = setInterval(()=>{ if(canRoll) roll(); }, interval);
+  }
+
   updateAutoRollButtons();
 }
 
@@ -306,7 +321,6 @@ fastAutoRollBtn.addEventListener("click", ()=>{
 });
 
 resetStatsBtn.addEventListener("click", ()=>{
-  // Reset core stats
   rollHistory = [];
   owned = {};
   points = 0;
@@ -314,25 +328,15 @@ resetStatsBtn.addEventListener("click", ()=>{
   loginStreak = 0;
   lastLogin = null;
 
-  // Reset upgrades
   upgrades.forEach(u => {
     u.level = 0;
     u.unlocked = false;
-    // Reset cost to original base value
     u.cost = baseUpgradeCosts[u.id] || u.cost;
   });
 
-  // Clear saved upgrades
   savedUpgrades = {};
-
-  // Save and update UI
   saveData();
-  updateRollHistory();
-  updateOdds();
-  updateStatsText();
-  updateUpgrades();
-  updateAutoRollButtons();
-  updateLoginStreak();
+  updateRollHistory(); updateOdds(); updateStatsText(); updateUpgrades(); updateAutoRollButtons(); updateLoginStreak();
   showPopup("Stats reset!");
 });
 

@@ -278,15 +278,30 @@ pickBtn.addEventListener("click", ()=>roll(getExtraRolls()));
 autoRollBtn.addEventListener("click",()=> isAutoRolling?stopAutoRoll():startAutoRoll(1000));
 fastAutoRollBtn.addEventListener("click",()=> isFastAutoRolling?stopAutoRoll():startAutoRoll(500));
 
-resetStatsBtn.addEventListener("click", ()=>{
-  rollHistory=[]; owned={}; totalRolls=0; lastLogin=null; points=0; rebirths=0; prestiges=0;
-  upgrades={};
-  loadUpgrades();
+resetStatsBtn.addEventListener("click", async () => {
+  rollHistory = [];
+  owned = {};
+  totalRolls = 0;
+  lastLogin = null;
+  points = 0;
+  rebirths = 0;
+  prestiges = 0;
+  savedUpgrades = {};
+
+  // Reload upgrades from JSON to reset original prices and styling
+  rarities = rarities || []; // keep rarities intact
+  const res = await fetch("upgrades.json");
+  upgrades = await res.json();
+
   saveData();
-  updateRollHistory(); updateOdds(); updateStatsText(); updateAutoRollButtons(); updateLoginStreak();
+  updateRollHistory();
+  updateOdds();
+  updateStatsText();
+  updateUpgrades();
+  updateAutoRollButtons();
+  updateLoginStreak();
   showPopup("Stats reset!");
 });
-
 // ===================== INIT =====================
 function init(){
   fetch("rarities.json")

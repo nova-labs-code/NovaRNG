@@ -3,6 +3,7 @@ let rarities = [];
 let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
 let loginStreak = parseInt(localStorage.getItem("loginStreak")) || 0;
+let totalRolls = parseInt(localStorage.getItem("totalRolls")) || 0;
 let points = parseFloat(localStorage.getItem("points")) || 0;
 let lastLogin = localStorage.getItem("lastLogin");
 
@@ -68,6 +69,7 @@ function saveData(){
   localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
   localStorage.setItem("loginStreak", loginStreak);
   localStorage.setItem("points", points);
+  localStorage.setItem("totalRolls", totalRolls);
   localStorage.setItem("lastLogin", lastLogin);
   localStorage.setItem("upgrades", JSON.stringify(upgrades.reduce((acc,u)=>{
     acc[u.id] = {level:u.level, cost:u.cost, unlocked:u.unlocked};
@@ -96,6 +98,8 @@ function checkLoginStreak() {
 function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
+
+  totalRolls++; // keep total rolls
 
   let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
   let rand=Math.random()*totalInverse;
@@ -152,6 +156,7 @@ function updateOdds(){
 
 function updateStatsText(){
   statsPanel.innerHTML=`
+    Total Rolls: ${totalRolls}<br>
     Points: ${Math.floor(points)}<br>
     Unique Rarities Owned: ${Object.values(owned).filter(v=>v>0).length}<br>
     Last 5 Rolls:<br>${rollHistory.join("<br>")}
@@ -275,7 +280,7 @@ fastAutoRollBtn.addEventListener("click", ()=>{
 });
 
 resetStatsBtn.addEventListener("click", ()=>{
-  rollHistory=[]; owned={}; points=0; loginStreak=0; lastLogin=null;
+  rollHistory=[]; owned={}; points=0; totalRolls=0; loginStreak=0; lastLogin=null;
   upgrades.forEach(u=>{ u.level=0; u.unlocked=false; u.cost = upgrades.find(orig=>orig.id===u.id).cost; });
   savedUpgrades={};
   saveData();

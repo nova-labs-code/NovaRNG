@@ -363,8 +363,6 @@ function init(){
 
 init();
 // -------------------- BACKGROUND MUSIC --------------------
-
-// List of royalty-free music tracks
 const musicTracks = [
   "https://pixabay.com/uploads/game-music-loop-6-144641.mp3",
   "https://assets.mixkit.co/preview/mixkit-dance-with-me-112.mp3",
@@ -374,19 +372,23 @@ const musicTracks = [
   "https://assets.mixkit.co/preview/mixkit-serene-view-112.mp3"
 ];
 
-// Create audio element in JS
 const bgMusic = new Audio();
 bgMusic.loop = true;
-bgMusic.volume = 0.25; // adjust volume
+bgMusic.volume = 0.25;
 
-// Choose a random track
 const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
 bgMusic.src = randomTrack;
 
-// Try to play automatically
-bgMusic.play().catch(() => {
-  console.log("Music will start on first user interaction due to browser autoplay rules");
-  // Optional: start music on first click if blocked
-  const startMusic = () => { bgMusic.play(); document.removeEventListener("click", startMusic); };
-  document.addEventListener("click", startMusic);
-});
+// Start music on any first interaction
+function startMusic() {
+  bgMusic.play().catch(err => console.log("Music play blocked:", err));
+  // Remove the event listeners so it only triggers once
+  document.removeEventListener("click", startMusic);
+  document.removeEventListener("touchstart", startMusic);
+  document.removeEventListener("keydown", startMusic);
+}
+
+// Listen for any interaction
+document.addEventListener("click", startMusic);
+document.addEventListener("touchstart", startMusic);
+document.addEventListener("keydown", startMusic);

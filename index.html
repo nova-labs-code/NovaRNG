@@ -9,18 +9,28 @@
 <body>
 
 <div class="container">
+
   <!-- Page 1: Roll -->
   <div class="page" id="page1">
     <h1>Nova RNG</h1>
     <div id="login-streak">Login Streak: 0</div>
 
     <div id="roll-buttons">
-      <div class="roll-btn-container"><button id="pick-btn" class="roll-btn">🎲 Roll</button></div>
-      <div class="roll-btn-container"><button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button></div>
-      <div class="roll-btn-container"><button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button></div>
+      <div class="roll-btn-container">
+        <button id="pick-btn" class="roll-btn">🎲 Roll</button>
+      </div>
+      <div class="roll-btn-container">
+        <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
+      </div>
+      <div class="roll-btn-container">
+        <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+      </div>
     </div>
 
-    <div id="result"><div class="result-text">🎉 Ready to roll!</div></div>
+    <div id="result">
+      <div class="result-text">🎉 Ready to roll!</div>
+    </div>
+
     <div id="roll-history"></div>
   </div>
 
@@ -33,9 +43,7 @@
   <!-- Page 3: Upgrades -->
   <div class="page" id="page3">
     <h2>Upgrades</h2>
-    <div id="upgrades-panel">
-      <p>No upgrades unlocked yet!</p>
-    </div>
+    <div id="upgrades-panel"></div>
   </div>
 
   <!-- Page 4: Stats -->
@@ -45,8 +53,37 @@
     <button id="reset-stats">Reset Stats</button>
   </div>
 
-  <!-- Notification popup -->
+  <!-- Page 5: Rebirth & Prestige -->
+  <div class="page" id="page5">
+    <h2>Rebirth & Prestige</h2>
+
+    <div class="stats-box">
+      <span>Rebirths</span>
+      <span id="rebirth-count">0</span>
+    </div>
+
+    <div class="stats-box">
+      <span>Prestige</span>
+      <span id="prestige-count">0</span>
+    </div>
+
+    <div class="stats-box">
+      <span>Point Multiplier</span>
+      <span id="multiplier-display">1.00×</span>
+    </div>
+
+    <button id="rebirth-btn" class="roll-btn" style="margin-top:15px;">
+      🔁 Rebirth (500,000 points)
+    </button>
+
+    <button id="prestige-btn" class="roll-btn" style="margin-top:10px;">
+      ⭐ Prestige (1000 rebirths)
+    </button>
+  </div>
+
+  <!-- Popup -->
   <div id="popup"></div>
+
 </div>
 
 <script src="script.js"></script>

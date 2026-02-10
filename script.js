@@ -10,6 +10,7 @@ const oddsPanel = document.getElementById("odds-panel");
 const rollHistoryDiv = document.getElementById("roll-history");
 const loginStreakDiv = document.getElementById("login-streak");
 const statsPanel = document.getElementById("stats-panel");
+const upgradesPanel = document.getElementById("upgrades-panel");
 const popup = document.getElementById("popup");
 
 const pickBtn = document.getElementById("pick-btn");
@@ -78,7 +79,6 @@ function checkLoginStreak() {
   const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
   
   if(lastLogin === today){
-    // Already logged in today, do nothing
     updateLoginStreak();
     return;
   }
@@ -134,6 +134,7 @@ function roll(){
     updateRollHistory();
     updateOdds();
     updateStatsText();
+    updateUpgrades(); // NEW
     updateAutoRollButtons();
     saveData();
 
@@ -179,6 +180,14 @@ function updateStatsText(){
     Total Rolls: ${totalRolls}<br>
     Unique Rarities Owned: ${Object.values(owned).filter(v=>v>0).length}<br>
     Last 5 Rolls:<br>${rollHistory.join("<br>")}
+  `;
+}
+
+function updateUpgrades() {
+  upgradesPanel.innerHTML = `
+    <p>Auto Roll Unlock: ${totalRolls >= 100 ? "✅" : "❌"}</p>
+    <p>Fast Auto Roll Unlock: ${totalRolls >= 1000 ? "✅" : "❌"}</p>
+    <p>More upgrades coming soon!</p>
   `;
 }
 
@@ -257,6 +266,7 @@ resetStatsBtn.addEventListener("click", ()=>{
   updateRollHistory();
   updateOdds();
   updateStatsText();
+  updateUpgrades(); // NEW
   updateAutoRollButtons();
   updateLoginStreak();
   showPopup("Stats reset!");
@@ -271,6 +281,7 @@ function init(){
       updateOdds();
       updateStatsText();
       updateAutoRollButtons();
+      updateUpgrades(); // NEW
     });
 
   updateRollHistory();

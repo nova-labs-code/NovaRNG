@@ -99,38 +99,52 @@ function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
 
-  totalRolls++; // keep total rolls
+  totalRolls++; // increment total rolls
 
-  let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
-  let rand=Math.random()*totalInverse;
-  let cumulative=0;
-  let resultRarity;
-  for(let r of rarities){
-    cumulative+=1/r.number;
-    if(rand<=cumulative){ resultRarity=r; break; }
+  // Determine how many rolls to do (base 1 + extraRoll levels)
+  const extraRollUpg = upgrades.find(u => u.id === "extraRoll");
+  const rollsToDo = 1 + (extraRollUpg ? extraRollUpg.level : 0);
+
+  let results = [];
+
+  for(let i=0; i<rollsToDo; i++){
+    let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
+    let rand = Math.random() * totalInverse;
+    let cumulative=0;
+    let resultRarity;
+    for(let r of rarities){
+      cumulative += 1/r.number;
+      if(rand <= cumulative){ resultRarity=r; break; }
+    }
+
+    // Award points for each roll
+    points += resultRarity.number / 2;
+
+    // Add to owned and history
+    owned[resultRarity.rarity] = (owned[resultRarity.rarity] || 0) + 1;
+    results.push(resultRarity.rarity);
+    rollHistory.push(resultRarity.rarity);
   }
 
-  // Award points
-  points += resultRarity.number/2;
+  if(rollHistory.length>5) rollHistory = rollHistory.slice(-5);
 
-  const wipe=document.createElement("div");
-  wipe.className="wipe-bar";
+  // ------------------ Visual ------------------
+  const wipe = document.createElement("div");
+  wipe.className = "wipe-bar";
   resultDiv.appendChild(wipe);
 
   setTimeout(()=>{
-    resultDiv.querySelector(".result-text").innerText=resultRarity.rarity;
-    owned[resultRarity.rarity]=(owned[resultRarity.rarity]||0)+1;
-    rollHistory.push(resultRarity.rarity);
-    if(rollHistory.length>5) rollHistory.shift();
+    // Show all results, separated by commas
+    resultDiv.querySelector(".result-text").innerText = results.join(", ");
     updateRollHistory();
     updateOdds();
     updateStatsText();
     updateUpgrades();
     updateAutoRollButtons();
     saveData();
-    setTimeout(()=>{ canRoll=true; },500);
+    setTimeout(()=>{ canRoll=true; },650); // prevent double-click
     resultDiv.removeChild(wipe);
-  },650);
+  }, 650);
 }
 
 // ---------------- UPDATE FUNCTIONS ----------------

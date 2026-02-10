@@ -109,12 +109,15 @@ function roll(extra=0){
       if(rand<=cumulative){ resultRarity=r; break; }
     }
 
+    // Animate roll
     const wipe=document.createElement("div");
     wipe.className="wipe-bar";
     resultDiv.appendChild(wipe);
 
     setTimeout(()=>{
-      resultDiv.querySelector(".result-text").innerText=resultRarity.rarity;
+      const resultText = resultDiv.querySelector(".result-text");
+      if(resultText) resultText.innerText=resultRarity.rarity;
+
       owned[resultRarity.rarity]=(owned[resultRarity.rarity]||0)+1;
       rollHistory.push(resultRarity.rarity);
       if(rollHistory.length>5) rollHistory.shift();
@@ -135,9 +138,10 @@ function roll(extra=0){
       saveData();
 
       resultDiv.removeChild(wipe);
+
       i++;
       if(i<rollsToDo) setTimeout(singleRoll, 200);
-      else canRoll=true;
+      else canRoll=true; // properly reset
     }, 650);
   }
   singleRoll();
@@ -174,11 +178,14 @@ function updateOdds(){
 }
 
 function updateStatsText(){
+  let rebirthMulti = Math.pow(1.5, rebirths).toFixed(2);
+  let prestigeMulti = Math.pow(1.2, prestiges).toFixed(2);
+
   statsPanel.innerHTML=`
     Total Rolls: ${totalRolls}<br>
     Points: ${points.toFixed(1)}<br>
-    Rebirths: ${rebirths}<br>
-    Prestiges: ${prestiges}<br>
+    Rebirths: ${rebirths} (×${rebirthMulti})<br>
+    Prestiges: ${prestiges} (×${prestigeMulti})<br>
     Unique Rarities Owned: ${Object.values(owned).filter(v=>v>0).length}<br>
     Last 5 Rolls:<br>${rollHistory.join("<br>")}
   `;
@@ -312,7 +319,7 @@ function rebirthAction(){
   let max = 1 + (upgrades.rebirthLimit?.purchases||0);
   rebirths += max;
   points=0;
-  showPopup(`Rebirthed x${max}`);
+  showPopup(`Rebirthed x${max} (Points ×1.5 each)`);
   saveData(); updateStatsText();
 }
 function prestigeAction(){
@@ -320,6 +327,6 @@ function prestigeAction(){
   let max = 1 + (upgrades.prestigeLimit?.purchases||0);
   prestiges += max;
   rebirths=0;
-  showPopup(`Prestiged x${max}`);
+  showPopup(`Prestiged x${max} (Points ×1.2 each)`);
   saveData(); updateStatsText();
 }

@@ -31,7 +31,8 @@ const baseUpgradeCosts = {
   speed: 300, luck: 500, extraRoll: 700, rarityBoost: 800,
   bonusXP: 500, autoUnlock: 1000, fastAutoUnlock: 2500,
   megaLuck: 3000, speedBoost: 2500, superExtra: 4000,
-  ultraLuck: 5000, hyperSpeed: 4500, cooldownReduce: 2000
+  ultraLuck: 5000, hyperSpeed: 4500, cooldownReduce1: 1500,
+  cooldownReduce2: 2000, cooldownReduce3: 3000
 };
 
 // ---------------- PAGE SWIPE ----------------
@@ -109,7 +110,7 @@ function roll(){
   const extraRollUpg = upgrades.find(u => u.id === "extraRoll");
   const bonusXPUpg = upgrades.find(u => u.id === "bonusXP");
   const speedUpg = upgrades.find(u => u.id === "speed");
-  const cooldownUpg = upgrades.find(u => u.id === "cooldownReduce");
+  const cooldownUpgs = upgrades.filter(u => u.id.includes("cooldownReduce"));
 
   const rollsToDo = 1 + (extraRollUpg ? extraRollUpg.level : 0);
 
@@ -145,7 +146,7 @@ function roll(){
 
   let baseAnim = 650;
   if(speedUpg) baseAnim /= 1 + 0.2 * speedUpg.level;
-  if(cooldownUpg) baseAnim /= 1 + 0.1 * cooldownUpg.level;
+  cooldownUpgs.forEach(u=>{ baseAnim /= 1 + 0.05 * u.level; });
 
   wipe.style.animation = `wipeLeftToRight ${baseAnim}ms ease forwards`;
   resultDiv.appendChild(wipe);
@@ -186,10 +187,10 @@ function updateOdds(){
 
 function updateStatsText(){
   statsPanel.innerHTML=`
-    Total Rolls: ${totalRolls}<br>
-    Points: ${Math.floor(points)}<br>
-    Unique Rarities Owned: ${Object.values(owned).filter(v=>v>0).length}<br>
-    Last 5 Rolls:<br>${rollHistory.join("<br>")}
+    <div class="stats-box"><strong>Total Rolls:</strong> ${totalRolls}</div>
+    <div class="stats-box"><strong>Points:</strong> ${Math.floor(points)}</div>
+    <div class="stats-box"><strong>Unique Rarities:</strong> ${Object.values(owned).filter(v=>v>0).length}</div>
+    <div class="stats-box"><strong>Last 5 Rolls:</strong><br>${rollHistory.join(", ")}</div>
   `;
 }
 
@@ -207,9 +208,12 @@ let upgrades = [
   {id:"superExtra", name:"Super Extra Roll", description:"Gain 2 extra rolls per click", cost:4000, level:0, maxLevel:2, unlocked:false},
   {id:"ultraLuck", name:"Ultra Luck", description:"Huge rare chance boost", cost:5000, level:0, maxLevel:2, unlocked:false},
   {id:"hyperSpeed", name:"Hyper Speed", description:"Massively reduce auto-roll delay", cost:4500, level:0, maxLevel:3, unlocked:false},
-  {id:"cooldownReduce", name:"Cooldown Reduction", description:"Reduce roll animation and auto-roll delay", cost:2000, level:0, maxLevel:5, unlocked:false}
+  {id:"cooldownReduce1", name:"Cooldown Reduction I", description:"Reduce roll animation and auto-roll delay", cost:1500, level:0, maxLevel:3, unlocked:false},
+  {id:"cooldownReduce2", name:"Cooldown Reduction II", description:"Reduce roll animation and auto-roll delay further", cost:2000, level:0, maxLevel:2, unlocked:false},
+  {id:"cooldownReduce3", name:"Cooldown Reduction III", description:"Maximum cooldown reduction", cost:3000, level:0, maxLevel:1, unlocked:false}
 ];
 
+// Restore saved upgrades
 let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
 upgrades.forEach(u=>{
   if(savedUpgrades[u.id] !== undefined){
@@ -273,11 +277,11 @@ function startAutoRoll(speed){
   stopAutoRoll();
 
   const speedUpg = upgrades.find(u => u.id === "speed");
-  const cooldownUpg = upgrades.find(u => u.id === "cooldownReduce");
+  const cooldownUpgs = upgrades.filter(u => u.id.includes("cooldownReduce"));
 
   let interval = speed;
   if(speedUpg) interval /= 1 + 0.2 * speedUpg.level;
-  if(cooldownUpg) interval /= 1 + 0.1 * cooldownUpg.level;
+  cooldownUpgs.forEach(u=>{ interval /= 1 + 0.05 * u.level; });
 
   if(speed === 1000){ 
     isAutoRolling = true; 
@@ -330,7 +334,7 @@ resetStatsBtn.addEventListener("click", ()=>{
   owned = {};
   points = 0;
   totalRolls = 0;
-  lastLogin = lastLogin; // keep login streak intact
+  // keep login streak intact
 
   upgrades.forEach(u => {
     u.level = 0;

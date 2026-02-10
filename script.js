@@ -34,7 +34,20 @@ function showPage(index){
   pages.forEach((page,i)=>{ page.style.transform=`translateX(${(i-index)*100}%)`; });
   currentPage=index;
 }
-
+const baseUpgradeCosts = {
+  speed: 300,
+  luck: 500,
+  extraRoll: 700,
+  rarityBoost: 800,
+  bonusXP: 500,
+  autoUnlock: 1000,
+  fastAutoUnlock: 2500,
+  megaLuck: 3000,
+  speedBoost: 2500,
+  superExtra: 4000,
+  ultraLuck: 5000,
+  hyperSpeed: 4500
+};
 let touchStartX = null;
 pages.forEach(page=>{
   page.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; });
@@ -293,11 +306,33 @@ fastAutoRollBtn.addEventListener("click", ()=>{
 });
 
 resetStatsBtn.addEventListener("click", ()=>{
-  rollHistory=[]; owned={}; points=0; totalRolls=0; loginStreak=0; lastLogin=null;
-  upgrades.forEach(u=>{ u.level=0; u.unlocked=false; u.cost = upgrades.find(orig=>orig.id===u.id).cost; });
-  savedUpgrades={};
+  // Reset core stats
+  rollHistory = [];
+  owned = {};
+  points = 0;
+  totalRolls = 0;
+  loginStreak = 0;
+  lastLogin = null;
+
+  // Reset upgrades
+  upgrades.forEach(u => {
+    u.level = 0;
+    u.unlocked = false;
+    // Reset cost to original base value
+    u.cost = baseUpgradeCosts[u.id] || u.cost;
+  });
+
+  // Clear saved upgrades
+  savedUpgrades = {};
+
+  // Save and update UI
   saveData();
-  updateRollHistory(); updateOdds(); updateStatsText(); updateUpgrades(); updateAutoRollButtons(); updateLoginStreak();
+  updateRollHistory();
+  updateOdds();
+  updateStatsText();
+  updateUpgrades();
+  updateAutoRollButtons();
+  updateLoginStreak();
   showPopup("Stats reset!");
 });
 

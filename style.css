@@ -158,6 +158,15 @@ button.roll-btn:disabled { opacity:0.5; cursor:not-allowed; }
   pointer-events:none;
 }
 
+/* ---------------- UPGRADES ---------------- */
+#upgrades-panel {
+  margin-top:20px;
+  font-size:1rem;
+  border-top:1px solid #444;
+  padding-top:12px;
+  text-align:center;
+}
+
 @media(max-width:480px){
   .page { padding:15px 10px; }
   .roll-btn { font-size:0.9rem; padding:8px 12px; }

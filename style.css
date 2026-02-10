@@ -1,3 +1,4 @@
+/* ---------------- BASE ---------------- */
 body {
   margin: 0;
   padding: 0;
@@ -163,8 +164,12 @@ button.roll-btn:disabled { opacity:0.5; cursor:not-allowed; }
   margin-top:20px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:12px;
   padding:10px;
+  max-height: calc(100% - 20px);
+  overflow-y:auto;
+  scroll-behavior: smooth;
+  border-top: 1px solid #444;
 }
 
 .upgrade-box {
@@ -174,9 +179,10 @@ button.roll-btn:disabled { opacity:0.5; cursor:not-allowed; }
   padding:12px 20px;
   display:flex;
   flex-direction:column;
-  gap:4px;
+  gap:6px;
   font-size:1rem;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .upgrade-box:hover {
@@ -186,8 +192,24 @@ button.roll-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
 .upgrade-box strong { font-size:1.1rem; color:#ffdd55; }
 .upgrade-box p { margin:0; font-size:0.9rem; color:#ccc; }
-.upgrade-box span { align-self:flex-end; font-weight:bold; font-size:0.9rem; }
+.upgrade-box span { font-weight:bold; font-size:0.9rem; }
 
+.upgrade-level {
+  height: 8px;
+  width: 100%;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.upgrade-level-fill {
+  height: 100%;
+  background: #55ff55;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
 @media(max-width:480px){
   .page { padding:15px 10px; }
   .roll-btn { font-size:0.9rem; padding:8px 12px; }

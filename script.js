@@ -99,8 +99,6 @@ function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
 
-  totalRolls++; // increment total rolls
-
   // Determine how many rolls to do (base 1 + extraRoll levels)
   const extraRollUpg = upgrades.find(u => u.id === "extraRoll");
   const rollsToDo = 1 + (extraRollUpg ? extraRollUpg.level : 0);
@@ -108,6 +106,8 @@ function roll(){
   let results = [];
 
   for(let i=0; i<rollsToDo; i++){
+    totalRolls++; // <-- increment per actual roll
+
     let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
     let rand = Math.random() * totalInverse;
     let cumulative=0;
@@ -128,13 +128,12 @@ function roll(){
 
   if(rollHistory.length>5) rollHistory = rollHistory.slice(-5);
 
-  // ------------------ Visual ------------------
+  // Visual wipe animation
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
   resultDiv.appendChild(wipe);
 
   setTimeout(()=>{
-    // Show all results, separated by commas
     resultDiv.querySelector(".result-text").innerText = results.join(", ");
     updateRollHistory();
     updateOdds();
@@ -142,7 +141,7 @@ function roll(){
     updateUpgrades();
     updateAutoRollButtons();
     saveData();
-    setTimeout(()=>{ canRoll=true; },650); // prevent double-click
+    setTimeout(()=>{ canRoll=true; },650);
     resultDiv.removeChild(wipe);
   }, 650);
 }

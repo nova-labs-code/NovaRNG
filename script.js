@@ -69,10 +69,10 @@ function saveData(){
   localStorage.setItem("upgrades", JSON.stringify(upgrades));
 }
 function getExtraRolls(){
-  return upgrades.extra1?.unlocked?1:0;
+  return upgrades.extra1?.purchases||0;
 }
 function getOfflineMultiplier(){
-  return upgrades.offline?.unlocked ? 0.25 : 0;
+  return upgrades.offline?.purchases?0.25:0;
 }
 
 // ===================== LOGIN STREAK =====================
@@ -95,7 +95,6 @@ function checkLoginStreak() {
 function roll(extra=0){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
-
   let rollsToDo = 1 + extra;
   let i=0;
 
@@ -123,9 +122,11 @@ function roll(extra=0){
       if(rollHistory.length>5) rollHistory.shift();
 
       let gained = (resultRarity.number/2);
-      let rebirthMulti = Math.pow(1.5, rebirths);
-      let prestigeMulti = Math.pow(1.2, prestiges);
-      gained *= rebirthMulti * prestigeMulti;
+
+      // Apply points multiplier from upgrades + rebirth/prestige
+      let multi = Math.pow(1.5, rebirths)*Math.pow(1.2, prestiges);
+      if(upgrades.pointsMultiplier?.purchases) multi *= Math.pow(1+0.01, upgrades.pointsMultiplier.purchases);
+      gained *= multi;
 
       points += gained;
       totalRolls++;
@@ -141,8 +142,8 @@ function roll(extra=0){
 
       i++;
       if(i<rollsToDo) setTimeout(singleRoll, 200);
-      else canRoll=true; // properly reset
-    }, 650);
+      else canRoll=true;
+    },650);
   }
   singleRoll();
 }
@@ -197,7 +198,6 @@ function loadUpgrades(){
     .then(res => res.json())
     .then(data => {
       data.forEach(u=>{
-        // Merge saved state
         if(upgrades[u.id]){
           u.unlocked = upgrades[u.id].unlocked || false;
           u.price = upgrades[u.id].price || u.price;
@@ -215,30 +215,39 @@ function loadUpgrades(){
 function updateUpgrades(){
   upgradesPanel.innerHTML="";
   Object.values(upgrades).forEach(u=>{
-    const div=document.createElement("div");
+    const div = document.createElement("div");
     div.className="upgrade-box";
-    div.style.background = u.unlocked?"#55aa55":"#222";
-    div.style.border = u.unlocked?"2px solid #55ff55":"2px solid #444";
 
-    let displayCost = u.infinite ? `Cost: ${u.price.toFixed(1)} pts (infinite)` : u.unlocked?"✅ Unlocked":"Cost: "+u.price.toFixed(1)+" pts";
+    if(u.unlocked || u.infinite || u.multiBuy) div.style.background="#55aa55";
+    else div.style.background="#222";
+
+    div.style.border = (u.unlocked || u.infinite || u.multiBuy)?"2px solid #55ff55":"2px solid #444";
+
+    let displayCost;
+    if(u.infinite || u.multiBuy){
+      displayCost = `Cost: ${u.price.toFixed(1)} pts | Level: ${u.purchases||0}`;
+    } else {
+      displayCost = u.unlocked?"✅ Unlocked":"Cost: "+u.price.toFixed(1)+" pts";
+    }
+
     div.innerHTML=`<strong>${u.name}</strong><p>${u.description}</p><span>${displayCost}</span>`;
 
-    if(points >= u.price){
+    if(points >= u.price && (!u.unlocked || u.multiBuy || u.infinite)){
       div.style.cursor = "pointer";
       div.addEventListener("click", ()=>{
         points -= u.price;
-        if(u.infinite){
-          u.purchases++;
+        if(u.infinite || u.multiBuy){
+          u.purchases = (u.purchases||0)+1;
           u.price *= 1.5;
-        } else {
-          u.unlocked = true;
-        }
+        } else u.unlocked = true;
+
         saveData();
         updateUpgrades();
         updateStatsText();
         showPopup(`${u.name} purchased!`);
       });
     }
+
     upgradesPanel.appendChild(div);
   });
 }

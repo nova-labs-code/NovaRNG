@@ -31,7 +31,7 @@ const baseUpgradeCosts = {
   speed: 300, luck: 500, extraRoll: 700, rarityBoost: 800,
   bonusXP: 500, autoUnlock: 1000, fastAutoUnlock: 2500,
   megaLuck: 3000, speedBoost: 2500, superExtra: 4000,
-  ultraLuck: 5000, hyperSpeed: 4500
+  ultraLuck: 5000, hyperSpeed: 4500, cooldownReduce: 2000
 };
 
 // ---------------- PAGE SWIPE ----------------
@@ -75,7 +75,6 @@ function showPopup(msg){
 function saveData(){
   localStorage.setItem("owned", JSON.stringify(owned));
   localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
-  localStorage.setItem("loginStreak", loginStreak);
   localStorage.setItem("points", points);
   localStorage.setItem("totalRolls", totalRolls);
   localStorage.setItem("lastLogin", lastLogin);
@@ -107,10 +106,10 @@ function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
 
-  // Get upgrades affecting rolls
   const extraRollUpg = upgrades.find(u => u.id === "extraRoll");
   const bonusXPUpg = upgrades.find(u => u.id === "bonusXP");
   const speedUpg = upgrades.find(u => u.id === "speed");
+  const cooldownUpg = upgrades.find(u => u.id === "cooldownReduce");
 
   const rollsToDo = 1 + (extraRollUpg ? extraRollUpg.level : 0);
 
@@ -128,12 +127,11 @@ function roll(){
       if(rand <= cumulative){ resultRarity=r; break; }
     }
 
-    // Points per roll
     let rollPoints = resultRarity.number / 2;
-    if(bonusXPUpg) rollPoints *= 1 + 0.05 * bonusXPUpg.level; // 5% extra per level
+    if(bonusXPUpg) rollPoints *= 1 + 0.05 * bonusXPUpg.level;
+
     points += rollPoints;
 
-    // Owned & history
     owned[resultRarity.rarity] = (owned[resultRarity.rarity] || 0) + 1;
     results.push(resultRarity.rarity);
     rollHistory.push(resultRarity.rarity);
@@ -141,11 +139,14 @@ function roll(){
 
   if(rollHistory.length>5) rollHistory = rollHistory.slice(-5);
 
-  // ------------------ Visual ------------------
+  // Visual wipe
   const wipe = document.createElement("div");
   wipe.className = "wipe-bar";
+
   let baseAnim = 650;
-  if(speedUpg) baseAnim = baseAnim / (1 + 0.2 * speedUpg.level);
+  if(speedUpg) baseAnim /= 1 + 0.2 * speedUpg.level;
+  if(cooldownUpg) baseAnim /= 1 + 0.1 * cooldownUpg.level;
+
   wipe.style.animation = `wipeLeftToRight ${baseAnim}ms ease forwards`;
   resultDiv.appendChild(wipe);
 
@@ -206,6 +207,7 @@ let upgrades = [
   {id:"superExtra", name:"Super Extra Roll", description:"Gain 2 extra rolls per click", cost:4000, level:0, maxLevel:2, unlocked:false},
   {id:"ultraLuck", name:"Ultra Luck", description:"Huge rare chance boost", cost:5000, level:0, maxLevel:2, unlocked:false},
   {id:"hyperSpeed", name:"Hyper Speed", description:"Massively reduce auto-roll delay", cost:4500, level:0, maxLevel:3, unlocked:false},
+  {id:"cooldownReduce", name:"Cooldown Reduction", description:"Reduce roll animation and auto-roll delay", cost:2000, level:0, maxLevel:5, unlocked:false}
 ];
 
 let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
@@ -271,8 +273,11 @@ function startAutoRoll(speed){
   stopAutoRoll();
 
   const speedUpg = upgrades.find(u => u.id === "speed");
+  const cooldownUpg = upgrades.find(u => u.id === "cooldownReduce");
+
   let interval = speed;
-  if(speedUpg) interval = interval / (1 + 0.2 * speedUpg.level);
+  if(speedUpg) interval /= 1 + 0.2 * speedUpg.level;
+  if(cooldownUpg) interval /= 1 + 0.1 * cooldownUpg.level;
 
   if(speed === 1000){ 
     isAutoRolling = true; 
@@ -325,6 +330,7 @@ resetStatsBtn.addEventListener("click", ()=>{
   owned = {};
   points = 0;
   totalRolls = 0;
+  lastLogin = lastLogin; // keep login streak intact
 
   upgrades.forEach(u => {
     u.level = 0;

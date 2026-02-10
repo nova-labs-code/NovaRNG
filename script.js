@@ -362,7 +362,7 @@ function init(){
 }
 
 init();
-// -------------------- BACKGROUND MUSIC --------------------
+// -------------------- PRELOAD MUSIC --------------------
 const musicTracks = [
   "https://pixabay.com/uploads/game-music-loop-6-144641.mp3",
   "https://assets.mixkit.co/preview/mixkit-dance-with-me-112.mp3",
@@ -372,23 +372,29 @@ const musicTracks = [
   "https://assets.mixkit.co/preview/mixkit-serene-view-112.mp3"
 ];
 
-const bgMusic = new Audio();
-bgMusic.loop = true;
-bgMusic.volume = 0.25;
+// Create Audio objects for preloading
+const preloadedTracks = musicTracks.map(src => {
+  const audio = new Audio();
+  audio.src = src;
+  audio.preload = "auto";  // preload the track
+  audio.loop = true;
+  audio.volume = 0.25;
+  return audio;
+});
 
-const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
-bgMusic.src = randomTrack;
+// Choose a random track to play on first interaction
+let currentMusic = preloadedTracks[Math.floor(Math.random() * preloadedTracks.length)];
+let musicStarted = false;
 
-// Start music on any first interaction
+// Start music on first interaction
 function startMusic() {
-  bgMusic.play().catch(err => console.log("Music play blocked:", err));
-  // Remove the event listeners so it only triggers once
-  document.removeEventListener("click", startMusic);
-  document.removeEventListener("touchstart", startMusic);
-  document.removeEventListener("keydown", startMusic);
+  if (!musicStarted) {
+    currentMusic.play().catch(err => console.log("Music blocked until user interacts:", err));
+    musicStarted = true;
+  }
 }
 
-// Listen for any interaction
-document.addEventListener("click", startMusic);
-document.addEventListener("touchstart", startMusic);
-document.addEventListener("keydown", startMusic);
+// Listen for any interaction to start music
+["click", "touchstart", "keydown"].forEach(evt => {
+  document.addEventListener(evt, startMusic, { once: true });
+});

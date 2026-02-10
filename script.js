@@ -119,12 +119,7 @@ function applyOfflineRolls(){
   const msOffline=now-last;
   if(msOffline<=0) return;
 
-  let baseInterval=650;
-  const speed1 = upgrades.find(u=>u.id==="speed1")?.level||0;
-  const speed2 = upgrades.find(u=>u.id==="speed2")?.level||0;
-  baseInterval /= (1 + 0.1*speed1 + 0.2*speed2);
-
-  const rollsOffline=Math.floor(msOffline/baseInterval);
+  const rollsOffline = Math.floor(msOffline / 650);
   for(let i=0;i<rollsOffline;i++){
     if(rarities.length===0) break;
     let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
@@ -136,7 +131,7 @@ function applyOfflineRolls(){
     owned[result.rarity]=(owned[result.rarity]||0)+1;
     rollHistory.push(result.rarity);
     if(rollHistory.length>5) rollHistory.shift();
-    points += (result.number/2)*getPointsMultiplier()*0.25; // offline 25% rate
+    points += (result.number/2)*getPointsMultiplier()*0.25; // offline 25%
     totalRolls++;
   }
 }
@@ -161,7 +156,8 @@ function roll(extra=0){
     resultDiv.appendChild(wipe);
 
     setTimeout(()=>{
-      resultDiv.querySelector(".result-text").innerText=result.rarity;
+      const resultText=resultDiv.querySelector(".result-text");
+      if(resultText) resultText.innerText=result.rarity;
       owned[result.rarity]=(owned[result.rarity]||0)+1;
       rollHistory.push(result.rarity);
       if(rollHistory.length>5) rollHistory.shift();
@@ -254,7 +250,7 @@ function updateUpgrades(){
       div.addEventListener("click",()=>{
         points-=u.price;
         if(u.level!==undefined) u.level++;
-        u.price=Math.min(u.basePrice*Math.pow(1.5,u.level||0),1e9); // realistic max
+        u.price=Math.min(u.basePrice*Math.pow(1.5,u.level||0),1e9);
         if(u.unlocked!==undefined) u.unlocked=true;
         savedUpgrades[u.id]={unlocked:u.unlocked, price:u.price, level:u.level||0};
         localStorage.setItem("upgrades",JSON.stringify(savedUpgrades));
@@ -297,7 +293,6 @@ function doRebirth(){
   saveData();
   showPopup(`Rebirth complete! Points multiplier x${(1.5**rebirths).toFixed(2)}`);
   updateStats();
-  showPage(pages.length-1); // show prestige page
 }
 function canPrestige(){ return rebirths>=1000; }
 function doPrestige(){
@@ -307,7 +302,6 @@ function doPrestige(){
   saveData();
   showPopup(`Prestige complete! All multipliers increased x${(1.5**prestige).toFixed(2)}`);
   updateStats();
-  showPage(pages.length-1); // show prestige page
 }
 
 // -------------------- EVENTS --------------------

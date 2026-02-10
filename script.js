@@ -3,7 +3,7 @@ let rarities = [];
 let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
 let loginStreak = parseInt(localStorage.getItem("loginStreak")) || 0;
-let totalRolls = parseInt(localStorage.getItem("totalRolls")) || 0;
+let points = parseFloat(localStorage.getItem("points")) || 0;
 let lastLogin = localStorage.getItem("lastLogin");
 
 const resultDiv = document.getElementById("result");
@@ -67,11 +67,11 @@ function saveData(){
   localStorage.setItem("owned", JSON.stringify(owned));
   localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
   localStorage.setItem("loginStreak", loginStreak);
-  localStorage.setItem("totalRolls", totalRolls);
+  localStorage.setItem("points", points);
   localStorage.setItem("lastLogin", lastLogin);
-  localStorage.setItem("upgrades", JSON.stringify(upgrades.reduce((acc,u)=>{ 
-    acc[u.id]={level:u.level, cost:u.cost, unlocked:u.unlocked}; 
-    return acc; 
+  localStorage.setItem("upgrades", JSON.stringify(upgrades.reduce((acc,u)=>{
+    acc[u.id] = {level:u.level, cost:u.cost, unlocked:u.unlocked};
+    return acc;
   },{})));
 }
 
@@ -96,7 +96,6 @@ function checkLoginStreak() {
 function roll(){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
-  totalRolls++;
 
   let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
   let rand=Math.random()*totalInverse;
@@ -106,6 +105,9 @@ function roll(){
     cumulative+=1/r.number;
     if(rand<=cumulative){ resultRarity=r; break; }
   }
+
+  // Award points
+  points += resultRarity.number/2;
 
   const wipe=document.createElement("div");
   wipe.className="wipe-bar";
@@ -150,7 +152,7 @@ function updateOdds(){
 
 function updateStatsText(){
   statsPanel.innerHTML=`
-    Total Rolls: ${totalRolls}<br>
+    Points: ${Math.floor(points)}<br>
     Unique Rarities Owned: ${Object.values(owned).filter(v=>v>0).length}<br>
     Last 5 Rolls:<br>${rollHistory.join("<br>")}
   `;
@@ -158,24 +160,30 @@ function updateStatsText(){
 
 // ---------------- UPGRADES ----------------
 let upgrades = [
-  {id:"speed", name:"Roll Speed", description:"Increases auto-roll speed.", cost:100, level:0, maxLevel:100},
-  {id:"luck", name:"Luck", description:"Improves chance for rare rolls.", cost:100, level:0, maxLevel:100},
-  {id:"extraRoll", name:"Extra Roll", description:"Grants 1 free roll per click.", cost:50, level:0, maxLevel:100},
-  {id:"autoUnlock", name:"Auto Roll Unlock", description:"Unlock auto-roll feature.", cost:0, level:0, maxLevel:1, unlocked: totalRolls>=100},
-  {id:"fastAutoUnlock", name:"Fast Auto Roll Unlock", description:"Unlock fast auto-roll feature.", cost:0, level:0, maxLevel:1, unlocked: totalRolls>=1000},
+  {id:"speed", name:"Roll Speed", description:"Increase auto-roll speed", cost:300, level:0, maxLevel:5, unlocked:false},
+  {id:"luck", name:"Luck", description:"Increase chance for rare rolls", cost:500, level:0, maxLevel:10, unlocked:false},
+  {id:"extraRoll", name:"Extra Roll", description:"Gain extra roll per click", cost:700, level:0, maxLevel:3, unlocked:false},
+  {id:"rarityBoost", name:"Rarity Boost", description:"Increase chance for high-tier rarities", cost:800, level:0, maxLevel:5, unlocked:false},
+  {id:"bonusXP", name:"Bonus XP", description:"Extra points per roll", cost:500, level:0, maxLevel:10, unlocked:false},
+  {id:"autoUnlock", name:"Auto Roll Unlock", description:"Unlock auto-roll feature", cost:1000, level:0, maxLevel:1, unlocked:false},
+  {id:"fastAutoUnlock", name:"Fast Auto Roll Unlock", description:"Unlock fast auto-roll feature", cost:2500, level:0, maxLevel:1, unlocked:false},
+  {id:"megaLuck", name:"Mega Luck", description:"Maximize rare chances", cost:3000, level:0, maxLevel:3, unlocked:false},
+  {id:"speedBoost", name:"Speed Boost", description:"Further reduce roll animation time", cost:2500, level:0, maxLevel:5, unlocked:false},
+  {id:"superExtra", name:"Super Extra Roll", description:"Gain 2 extra rolls per click", cost:4000, level:0, maxLevel:2, unlocked:false},
+  {id:"ultraLuck", name:"Ultra Luck", description:"Huge rare chance boost", cost:5000, level:0, maxLevel:2, unlocked:false},
+  {id:"hyperSpeed", name:"Hyper Speed", description:"Massively reduce auto-roll delay", cost:4500, level:0, maxLevel:3, unlocked:false},
 ];
 
 let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
 upgrades.forEach(u=>{
-  if(savedUpgrades[u.id] !== undefined) {
+  if(savedUpgrades[u.id] !== undefined){
     u.level = savedUpgrades[u.id].level || 0;
     u.cost = savedUpgrades[u.id].cost || u.cost;
     u.unlocked = savedUpgrades[u.id].unlocked || false;
-  } else {
-    u.unlocked = u.unlocked || false;
   }
 });
 
+// ---------------- UPDATE UPGRADES ----------------
 function updateUpgrades(){
   upgradesPanel.innerHTML = "";
   upgrades.forEach(u=>{
@@ -200,25 +208,20 @@ function updateUpgrades(){
     div.appendChild(levelContainer);
 
     const status = document.createElement("span");
-    if(u.unlocked) {
-      status.innerText = `✅ Unlocked | Level: ${u.level}/${u.maxLevel}`;
-    } else {
-      status.innerText = `Cost: ${Math.floor(u.cost)} rolls | Level: ${u.level}/${u.maxLevel}`;
-    }
+    status.innerText = u.unlocked ? `✅ Unlocked | Level: ${u.level}/${u.maxLevel}` : `Cost: ${Math.floor(u.cost)} pts | Level: ${u.level}/${u.maxLevel}`;
     div.appendChild(status);
 
-    // Click to upgrade with scaling cost
-    if(!u.unlocked && totalRolls >= Math.floor(u.cost) && u.level < u.maxLevel){
+    if(!u.unlocked && points >= u.cost && u.level < u.maxLevel){
       div.style.cursor = "pointer";
       div.addEventListener("click", ()=>{
-        totalRolls -= Math.floor(u.cost);
+        points -= Math.floor(u.cost);
         u.level++;
-        u.cost *= 1.5; // increase cost 1.5x each level
+        u.cost *= 1.5;
         if(u.level >= u.maxLevel) u.unlocked = true;
-        savedUpgrades[u.id] = {level: u.level, cost: u.cost, unlocked: u.unlocked};
+        savedUpgrades[u.id] = {level:u.level, cost:u.cost, unlocked:u.unlocked};
         localStorage.setItem("upgrades", JSON.stringify(savedUpgrades));
         saveData();
-        showPopup(`${u.name} upgraded to level ${u.level}! Next level cost: ${Math.floor(u.cost)} rolls`);
+        showPopup(`${u.name} upgraded to level ${u.level}! Next level: ${Math.floor(u.cost)} pts`);
         updateUpgrades();
         updateStatsText();
         updateAutoRollButtons();
@@ -246,30 +249,35 @@ function stopAutoRoll(){
 }
 
 function updateAutoRollButtons(){
-  autoRollBtn.disabled=totalRolls<100;
-  autoRollBtn.innerText=totalRolls<100?`Locked: get ${100-totalRolls} more rolls`:(isAutoRolling?"⏹ Stop Auto Roll":"🎲 Auto Roll");
-  fastAutoRollBtn.disabled=totalRolls<1000;
-  fastAutoRollBtn.innerText=totalRolls<1000?`Locked: get ${1000-totalRolls} more rolls`:(isFastAutoRolling?"⏹ Stop Fast Auto Roll":"🎲 Fast Auto Roll");
+  const autoUpg = upgrades.find(u=>u.id==="autoUnlock");
+  const fastAutoUpg = upgrades.find(u=>u.id==="fastAutoUnlock");
+
+  autoRollBtn.disabled = !autoUpg.unlocked;
+  autoRollBtn.innerText = !autoUpg.unlocked ? `Locked` : (isAutoRolling?"⏹ Stop Auto Roll":"🎲 Auto Roll");
+
+  fastAutoRollBtn.disabled = !fastAutoUpg.unlocked;
+  fastAutoRollBtn.innerText = !fastAutoUpg.unlocked ? `Locked` : (isFastAutoRolling?"⏹ Stop Fast Auto Roll":"🎲 Fast Auto Roll");
 }
 
 // ---------------- EVENTS ----------------
 pickBtn.addEventListener("click", roll);
 
-autoRollBtn.addEventListener("click",()=>{
-  if(totalRolls<100){ showPopup(`Locked — get ${100-totalRolls} more rolls`); return; }
-  isAutoRolling?stopAutoRoll():startAutoRoll(1000);
+autoRollBtn.addEventListener("click", ()=>{
+  const autoUpg = upgrades.find(u=>u.id==="autoUnlock");
+  if(!autoUpg.unlocked){ showPopup("Locked! Purchase Auto Roll."); return; }
+  isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
 });
 
-fastAutoRollBtn.addEventListener("click",()=>{
-  if(totalRolls<1000){ showPopup(`Locked — get ${1000-totalRolls} more rolls`); return; }
-  isFastAutoRolling?stopAutoRoll():startAutoRoll(500);
+fastAutoRollBtn.addEventListener("click", ()=>{
+  const fastUpg = upgrades.find(u=>u.id==="fastAutoUnlock");
+  if(!fastUpg.unlocked){ showPopup("Locked! Purchase Fast Auto Roll."); return; }
+  isFastAutoRolling ? stopAutoRoll() : startAutoRoll(500);
 });
 
-resetStatsBtn.addEventListener("click",()=>{
-  rollHistory=[]; owned={}; totalRolls=0; loginStreak=0; lastLogin=null;
-  upgrades.forEach(u=>{ u.level=0; u.cost=u.id==="speed"||u.id==="luck"?100:50; u.unlocked=false; });
+resetStatsBtn.addEventListener("click", ()=>{
+  rollHistory=[]; owned={}; points=0; loginStreak=0; lastLogin=null;
+  upgrades.forEach(u=>{ u.level=0; u.unlocked=false; u.cost = upgrades.find(orig=>orig.id===u.id).cost; });
   savedUpgrades={};
-  stopAutoRoll();
   saveData();
   updateRollHistory(); updateOdds(); updateStatsText(); updateUpgrades(); updateAutoRollButtons(); updateLoginStreak();
   showPopup("Stats reset!");

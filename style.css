@@ -1,9 +1,13 @@
-/* ---------------- RESET ---------------- */
+/* ===================== RESET ===================== */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: "Courier New", Courier, monospace;
-  background: radial-gradient(circle at top, #111, #050505);
+  background: radial-gradient(circle at top, #111 0%, #050505 60%);
   color: #eee;
   overflow: hidden;
   touch-action: manipulation;
@@ -16,139 +20,270 @@ body {
   overflow: hidden;
 }
 
-/* ---------------- PAGES ---------------- */
+/* ===================== PAGES ===================== */
 .page {
   position: absolute;
   inset: 0;
   padding: 40px;
-  box-sizing: border-box;
-  background: linear-gradient(180deg, #111, #0a0a0a);
-  transition: transform 0.45s ease;
-  touch-action: pan-y;
+  background: linear-gradient(180deg, #0f0f0f, #080808);
+  color: #eee;
+  transition: transform 0.5s ease;
+  overflow-y: auto;
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
 }
 
 h1, h2 {
   text-align: center;
   color: #ffdd55;
-  text-shadow: 0 0 10px rgba(255,221,85,0.4);
+  margin: 0 0 10px;
+  text-shadow: 0 0 12px rgba(255,221,85,0.4);
 }
 
-/* ---------------- BUTTONS ---------------- */
+/* ===================== LOGIN STREAK ===================== */
+#login-streak {
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: #55cfff;
+  text-shadow: 0 0 6px rgba(85,207,255,0.5);
+}
+
+/* ===================== ROLL BUTTONS ===================== */
 #roll-buttons {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
+  margin-top: 10px;
   flex-wrap: wrap;
 }
 
+.roll-btn-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 button.roll-btn {
-  padding: 10px 22px;
+  padding: 12px 22px;
   font-weight: bold;
   cursor: pointer;
-  background: linear-gradient(180deg, #222, #111);
+  background: linear-gradient(180deg, #1e1e1e, #111);
   color: #fff;
   border: 2px solid #444;
   border-radius: 10px;
   transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
 }
 
 button.roll-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #2a2a2a, #151515);
   color: #ffdd55;
   border-color: #ffdd55;
-  box-shadow: 0 0 12px rgba(255,221,85,0.4);
+  transform: translateY(-2px);
+}
+
+button.roll-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.6);
 }
 
 button.roll-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* ---------------- RESULT ---------------- */
+/* ===================== RESULT ===================== */
 #result {
-  margin-top: 20px;
+  margin-top: 22px;
   font-size: 1.7rem;
   text-align: center;
   color: #ffdd55;
-  min-height: 60px;
+  min-height: 56px;
   position: relative;
   overflow: hidden;
-  text-shadow: 0 0 12px rgba(255,221,85,0.6);
+  text-shadow: 0 0 10px rgba(255,221,85,0.4);
 }
 
 .result-text {
   position: relative;
   z-index: 1;
-  animation: popIn 0.25s ease;
-}
-
-@keyframes popIn {
-  from { transform: scale(0.9); opacity: 0.5; }
-  to { transform: scale(1); opacity: 1; }
 }
 
 .wipe-bar {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, #009dff, transparent);
-  animation: wipe 0.65s ease forwards;
+  left: -100%;
+  background: linear-gradient(
+    90deg,
+    rgba(0,157,255,0),
+    rgba(0,157,255,0.95),
+    rgba(0,157,255,0)
+  );
+  z-index: 2;
+  animation: wipeLeftToRight 0.65s ease forwards;
 }
 
-@keyframes wipe {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
+@keyframes wipeLeftToRight {
+  0% { left: -100%; }
+  50% { left: 0%; }
+  100% { left: 100%; }
 }
 
-/* ---------------- PANELS ---------------- */
-#roll-history,
-#stats-panel {
-  margin-top: 20px;
+/* ===================== ROLL HISTORY ===================== */
+#roll-history {
+  margin-top: 18px;
   font-size: 0.95rem;
-}
-
-#odds-panel,
-#upgrades-panel {
-  margin-top: 10px;
+  color: #ccc;
+  max-height: 180px;
   overflow-y: auto;
-  height: calc(100% - 60px);
 }
 
-.odds-box,
-.upgrade-box {
-  background: #151515;
+/* ===================== ODDS PANEL ===================== */
+#odds-panel {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
+}
+
+.odds-box {
+  background: linear-gradient(180deg, #191919, #101010);
   border: 2px solid #333;
-  border-radius: 10px;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.05rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.7);
+}
+
+.odds-box:hover {
+  border-color: #009dff;
+  box-shadow: 0 0 14px rgba(0,157,255,0.35);
+}
+
+/* ===================== STATS ===================== */
+#stats-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border-top: 2px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-box {
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #ffdd55;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+}
+
+/* ===================== RESET BUTTON ===================== */
+#reset-stats {
+  display: block;
+  margin: 20px auto 0;
   padding: 12px 18px;
-  margin: 10px;
+  background: linear-gradient(180deg, #222, #111);
+  color: #fff;
+  border: 2px solid #444;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
   transition: all 0.25s ease;
 }
 
-.odds-box:hover,
-.upgrade-box:hover {
-  border-color: #009dff;
-  background: rgba(0,157,255,0.08);
+#reset-stats:hover {
+  color: #ffdd55;
+  border-color: #ffdd55;
 }
 
-/* ---------------- STATS ---------------- */
-.stats-box {
-  background: #111;
-  border: 2px solid #444;
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin: 8px 0;
+/* ===================== UPGRADES ===================== */
+#upgrades-panel {
+  margin-top: 14px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+
+.upgrade-box {
+  background: linear-gradient(180deg, #1b1b1b, #101010);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+}
+
+.upgrade-box:hover {
+  border-color: #55ff55;
+  box-shadow: 0 0 14px rgba(85,255,85,0.35);
+}
+
+.upgrade-box strong {
+  font-size: 1.1rem;
   color: #ffdd55;
 }
 
-/* ---------------- POPUP ---------------- */
+.upgrade-box p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+.upgrade-box span {
+  align-self: flex-end;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+/* ===================== UPGRADE LEVEL BAR ===================== */
+.upgrade-level {
+  background: #222;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.upgrade-level-fill {
+  background: linear-gradient(90deg, #55ff55, #99ff99);
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ===================== POPUP ===================== */
 #popup {
   position: fixed;
-  bottom: 12px;
-  right: 12px;
-  background: #222;
+  bottom: 14px;
+  right: 14px;
+  background: #1c1c1c;
+  color: #fff;
   padding: 10px 16px;
   border-radius: 8px;
+  font-size: 0.9rem;
+  opacity: 0.95;
   display: none;
   z-index: 100;
-  box-shadow: 0 0 14px rgba(0,0,0,0.8);
+  box-shadow: 0 0 14px rgba(0,0,0,0.9);
+  pointer-events: none;
+}
+
+/* ===================== MOBILE ===================== */
+@media (max-width: 480px) {
+  .page { padding: 18px 12px; }
+  #result { font-size: 1.35rem; }
+  button.roll-btn { padding: 10px 14px; font-size: 0.9rem; }
 }

@@ -108,7 +108,6 @@ function roll(extra=0){
       if(rand<=cumulative){ resultRarity=r; break; }
     }
 
-    // Animate roll
     const wipe=document.createElement("div");
     wipe.className="wipe-bar";
     resultDiv.appendChild(wipe);
@@ -122,8 +121,6 @@ function roll(extra=0){
       if(rollHistory.length>5) rollHistory.shift();
 
       let gained = (resultRarity.number/2);
-
-      // Apply points multiplier from upgrades + rebirth/prestige
       let multi = Math.pow(1.5, rebirths)*Math.pow(1.2, prestiges);
       if(upgrades.pointsMultiplier?.purchases) multi *= Math.pow(1+0.01, upgrades.pointsMultiplier.purchases);
       gained *= multi;
@@ -192,7 +189,7 @@ function updateStatsText(){
   `;
 }
 
-// ===================== LOAD UPGRADES FROM JSON =====================
+// ===================== LOAD UPGRADES =====================
 function loadUpgrades(){
   fetch("upgrades.json")
     .then(res => res.json())
@@ -218,22 +215,25 @@ function updateUpgrades(){
     const div = document.createElement("div");
     div.className="upgrade-box";
 
-    if(u.unlocked || u.infinite || u.multiBuy) div.style.background="#55aa55";
-    else div.style.background="#222";
-
-    div.style.border = (u.unlocked || u.infinite || u.multiBuy)?"2px solid #55ff55":"2px solid #444";
+    // Reset styling
+    div.style.background="#222";
+    div.style.border="2px solid #444";
+    if(u.unlocked || u.infinite || (u.multiBuy && (!u.maxLevel || (u.purchases||0)<u.maxLevel))){
+      div.style.background="#55aa55";
+      div.style.border="2px solid #55ff55";
+    }
 
     let displayCost;
     if(u.infinite || u.multiBuy){
-      displayCost = `Cost: ${u.price.toFixed(1)} pts | Level: ${u.purchases||0}`;
+      displayCost = `Cost: ${u.price.toFixed(1)} pts | Level: ${u.purchases||0}` + (u.maxLevel?" / "+u.maxLevel:"");
     } else {
       displayCost = u.unlocked?"✅ Unlocked":"Cost: "+u.price.toFixed(1)+" pts";
     }
 
     div.innerHTML=`<strong>${u.name}</strong><p>${u.description}</p><span>${displayCost}</span>`;
 
-    if(points >= u.price && (!u.unlocked || u.multiBuy || u.infinite)){
-      div.style.cursor = "pointer";
+    if(points >= u.price && (!u.unlocked || u.multiBuy || u.infinite) && (!u.maxLevel || (u.purchases||0) < u.maxLevel)){
+      div.style.cursor="pointer";
       div.addEventListener("click", ()=>{
         points -= u.price;
         if(u.infinite || u.multiBuy){
@@ -277,6 +277,7 @@ function updateAutoRollButtons(){
 pickBtn.addEventListener("click", ()=>roll(getExtraRolls()));
 autoRollBtn.addEventListener("click",()=> isAutoRolling?stopAutoRoll():startAutoRoll(1000));
 fastAutoRollBtn.addEventListener("click",()=> isFastAutoRolling?stopAutoRoll():startAutoRoll(500));
+
 resetStatsBtn.addEventListener("click", ()=>{
   rollHistory=[]; owned={}; totalRolls=0; lastLogin=null; points=0; rebirths=0; prestiges=0;
   upgrades={};

@@ -281,12 +281,10 @@ init();
 
 // Preload and play on first user interaction (works on mobile)
 const bgMusicTracks = [
-  "https://pixabay.com/uploads/game-music-loop-6-144641.mp3",
-  "https://assets.mixkit.co/preview/mixkit-dance-with-me-112.mp3",
-  "https://assets.mixkit.co/preview/mixkit-summer-fun-115.mp3",
-  "https://assets.mixkit.co/preview/mixkit-its-a-cool-thing-110.mp3",
-  "https://assets.mixkit.co/preview/mixkit-fun-at-the-farm-104.mp3",
-  "https://assets.mixkit.co/preview/mixkit-serene-view-112.mp3"
+  "song1.mp3",
+  "song2.mp3",
+  "song3.mp3",
+  "song4.mp3"
 ];
 
 const preloadedMusic = bgMusicTracks.map(src=>{

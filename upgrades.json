@@ -1,12 +1,15 @@
 [
-  {"id":"speed1","name":"Roll Speed +1","description":"Roll faster automatically.","price":300,"type":"speed"},
-  {"id":"speed2","name":"Roll Speed +2","description":"Even faster auto rolls.","price":700,"type":"speed"},
-  {"id":"luck1","name":"Luck +5%","description":"Better chance for rare rolls.","price":500,"type":"luck"},
-  {"id":"luck2","name":"Luck +10%","description":"Maximize rare chances.","price":1500,"type":"luck"},
-  {"id":"extra1","name":"Extra Roll","description":"Gain 1 extra roll each time.","price":400,"type":"extra"},
-  {"id":"cooldown1","name":"Cooldown -0.1s","description":"Reduce roll cooldown slightly.","price":600,"type":"cooldown"},
-  {"id":"cooldown2","name":"Cooldown -0.2s","description":"Reduce roll cooldown more.","price":1200,"type":"cooldown"},
-  {"id":"offline","name":"Offline Rolling","description":"Earn 25% points while offline.","price":2500,"type":"offline"},
-  {"id":"rebirthLimit","name":"Max Rebirths Upgrade","description":"Increase rebirths per rebirth action. Can buy infinite times.","price":5000,"type":"rebirth","infinite":true},
-  {"id":"prestigeLimit","name":"Max Prestiges Upgrade","description":"Increase prestiges per prestige action. Can buy infinite times.","price":25000,"type":"prestige","infinite":true}
+  {"id":"speed1","name":"Roll Speed +1","description":"Roll faster automatically.","price":300,"type":"speed","multiBuy":true},
+  {"id":"speed2","name":"Roll Speed +2","description":"Even faster auto rolls.","price":1200,"type":"speed","multiBuy":true},
+  {"id":"luck1","name":"Luck +5%","description":"Better chance for rare rolls.","price":500,"type":"luck","multiBuy":true},
+  {"id":"luck2","name":"Luck +10%","description":"Maximize rare chances.","price":2500,"type":"luck","multiBuy":true},
+  {"id":"extra1","name":"Extra Roll","description":"Gain 1 extra roll each time.","price":400,"type":"extra","multiBuy":true},
+  {"id":"cooldown1","name":"Cooldown -0.1s","description":"Reduce roll cooldown slightly.","price":600,"type":"cooldown","multiBuy":true},
+  {"id":"cooldown2","name":"Cooldown -0.2s","description":"Reduce roll cooldown more.","price":2000,"type":"cooldown","multiBuy":true},
+  {"id":"pointsMultiplier","name":"Points Multiplier","description":"Multiply points gained per roll.","price":1000,"type":"points","multiBuy":true,"infinite":true},
+  {"id":"offline","name":"Offline Rolls","description":"Gain points while away (25%).","price":5000,"type":"offline","multiBuy":true,"infinite":true},
+  {"id":"rebirthLimit","name":"Max Rebirths Upgrade","description":"Increase rebirths per rebirth action.","price":5000,"type":"rebirth","multiBuy":true,"infinite":true},
+  {"id":"prestigeLimit","name":"Max Prestiges Upgrade","description":"Increase prestiges per prestige action.","price":25000,"type":"prestige","multiBuy":true,"infinite":true},
+  {"id":"autoRoll","name":"Auto Roll Upgrade","description":"Unlock auto roll feature.","price":10000,"type":"auto","multiBuy":false},
+  {"id":"fastAuto","name":"Fast Auto Roll Upgrade","description":"Unlock fast auto roll feature.","price":50000,"type":"auto","multiBuy":false}
 ]

@@ -31,8 +31,10 @@ const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
 const resetStatsBtn = document.getElementById("reset-stats");
 
 // -------------------- PAGE SWIPE --------------------
-const pages = document.querySelectorAll(".page");
 let currentPage = 0;
+const pages = document.querySelectorAll(".page");
+let startX = null;
+let isSwiping = false;
 
 function showPage(index){
   pages.forEach((page,i)=>{
@@ -41,17 +43,34 @@ function showPage(index){
   currentPage = index;
 }
 
-let touchStartX = null;
 pages.forEach(page=>{
   page.addEventListener("touchstart", e=>{
-    touchStartX = e.touches[0].clientX;
+    startX = e.touches[0].clientX;
+    isSwiping = true;
   });
+
+  page.addEventListener("touchmove", e=>{
+    if(!isSwiping) return;
+    const deltaX = e.touches[0].clientX - startX;
+
+    // Optional: visual drag effect
+    pages.forEach((p,i)=>{
+      p.style.transition = "none";
+      p.style.transform = `translateX(${(i-currentPage)*100 + deltaX / window.innerWidth * 100}%)`;
+    });
+  });
+
   page.addEventListener("touchend", e=>{
-    if(!touchStartX) return;
-    const delta = e.changedTouches[0].clientX - touchStartX;
-    if(delta > 80) showPage(Math.max(0,currentPage-1));
-    if(delta < -80) showPage(Math.min(pages.length-1,currentPage+1));
-    touchStartX = null;
+    if(!isSwiping) return;
+    const deltaX = e.changedTouches[0].clientX - startX;
+    isSwiping = false;
+
+    // Restore transition
+    pages.forEach(p=>p.style.transition = "transform 0.5s ease");
+
+    if(deltaX > 50) showPage(Math.max(0,currentPage-1));
+    else if(deltaX < -50) showPage(Math.min(pages.length-1,currentPage+1));
+    else showPage(currentPage); // snap back if small swipe
   });
 });
 

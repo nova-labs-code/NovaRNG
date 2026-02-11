@@ -400,22 +400,24 @@ async function init(){
 
 init();
 
-// -------------------- BACKGROUND MUSIC (WEB AUDIO) --------------------
+// -------------------- BACKGROUND MUSIC --------------------
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
 let audioCtx = null;
 let currentSource = null;
-let isMuted = false; // global mute
+let currentGain = null; // store gain node for mute control
 let musicStarted = false;
+let isMuted = false;
 
-// Load and play a track
+// Play a track by URL
 async function playTrack(src) {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
 
   // Stop current track
   if (currentSource) {
     currentSource.stop();
     currentSource.disconnect();
-    currentSource = null;
   }
 
   try {
@@ -423,20 +425,23 @@ async function playTrack(src) {
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-    currentSource = audioCtx.createBufferSource();
-    currentSource.buffer = audioBuffer;
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
 
-    // Create gain node for volume/mute control
     const gainNode = audioCtx.createGain();
-    gainNode.gain.value = isMuted ? 0 : 0.25;
+    gainNode.gain.value = isMuted ? 0 : 0.25; // respect mute
 
-    currentSource.connect(gainNode).connect(audioCtx.destination);
-    currentSource.start(0);
+    source.connect(gainNode).connect(audioCtx.destination);
+    source.start(0);
 
-    currentSource.onended = () => {
-      // play another random track when this one ends
-      playRandomMusic();
+    // Store references for mute control
+    currentSource = source;
+    currentGain = gainNode;
+
+    source.onended = () => {
+      playRandomMusic(); // play next track
     };
+
   } catch (err) {
     console.error("Error loading track:", err);
   }
@@ -448,9 +453,13 @@ function playRandomMusic() {
   playTrack(trackSrc);
 }
 
-// Start music after first user interaction (required by browsers)
+// Start music after first user interaction
 function startMusic() {
   if (!musicStarted) {
+    // Resume context if it was suspended (required on mobile)
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
     playRandomMusic();
     musicStarted = true;
   }
@@ -462,13 +471,11 @@ function startMusic() {
 
 // -------------------- MUTE BUTTON --------------------
 const muteBtn = document.getElementById("mute-btn");
-
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
 
-  // Adjust gain of current track
-  if (currentSource && currentSource.gainNode) {
-    currentSource.gainNode.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
+  if (currentGain) {
+    currentGain.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
   }
 });

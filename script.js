@@ -188,9 +188,17 @@ function updateStatsText(){
 function updateUpgrades(){
   upgradesPanel.innerHTML="";
   upgrades.forEach(u=>{
+    // Always sync savedUpgrades
+    savedUpgrades[u.id] = {
+      level: u.level || 0,
+      unlocked: u.unlocked || false,
+      price: u.price
+    };
+
     const div=document.createElement("div");
     div.className="upgrade-box";
     
+    // Multi-buy gradient
     if(u.multiBuy){
       const pct = ((u.level||0)/(u.maxLevel||1))*100;
       div.style.background = `linear-gradient(to right, #55aa55 ${pct}%, #222 ${pct}%)`;
@@ -199,9 +207,18 @@ function updateUpgrades(){
       div.style.background = u.unlocked?"#55aa55":"#222";
       div.style.border = u.unlocked?"2px solid #55ff55":"2px solid #444";
     }
-    
-    div.innerHTML = `<strong>${u.name}</strong><p>${u.description}</p><span>${u.multiBuy?"Level: "+(u.level||0)+"/"+(u.maxLevel||1):u.unlocked?"✅ Unlocked":"Cost: "+u.price+" pts"}</span>`;
 
+    // Show price or level visually
+    let displayText;
+    if(u.multiBuy){
+      displayText = `Level: ${u.level||0}/${u.maxLevel||1} | Price: ${u.price.toFixed(1)} pts`;
+    } else {
+      displayText = u.unlocked ? "✅ Unlocked" : `Price: ${u.price.toFixed(1)} pts`;
+    }
+
+    div.innerHTML = `<strong>${u.name}</strong><p>${u.description}</p><span>${displayText}</span>`;
+
+    // Upgrade click
     if((u.multiBuy && (u.level||0)<(u.maxLevel||1) && points>=u.price) || (!u.multiBuy && !u.unlocked && points>=u.price)){
       div.style.cursor="pointer";
       div.addEventListener("click", ()=>{
@@ -211,20 +228,33 @@ function updateUpgrades(){
             u.level = (u.level||0)+1;
             u.price *= 1.5;
             if(u.level >= u.maxLevel) u.unlocked = true;
-            savedUpgrades[u.id] = {level:u.level, unlocked:u.unlocked, price:u.price};
             showPopup(`${u.name} upgraded! Level: ${u.level}`);
           }
         } else {
           points -= u.price;
           u.unlocked = true;
-          savedUpgrades[u.id] = {unlocked:true, price:u.price};
           showPopup(`${u.name} unlocked!`);
         }
+
+        // Always sync after any change
+        savedUpgrades[u.id] = {
+          level: u.level || 0,
+          unlocked: u.unlocked || false,
+          price: u.price
+        };
+
         saveData();
         updateUpgrades();
         updateStatsText();
       });
     }
+
+    upgradesPanel.appendChild(div);
+  });
+
+  // Save after updating visuals too
+  saveData();
+}
 
     upgradesPanel.appendChild(div);
   });

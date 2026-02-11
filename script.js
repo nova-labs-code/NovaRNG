@@ -77,12 +77,7 @@ function saveData(){
   localStorage.setItem("points", points);
   localStorage.setItem("rebirths", rebirths);
   localStorage.setItem("prestiges", prestiges);
-  localStorage.setItem("upgrades", JSON.stringify(upgrades.map(u=>({
-    id:u.id,
-    level:u.level||0,
-    unlocked:u.unlocked||false,
-    price:u.price
-  }))));
+  localStorage.setItem("upgrades", JSON.stringify(savedUpgrades));
 }
 
 // -------------------- LOGIN STREAK --------------------
@@ -95,7 +90,7 @@ function checkLoginStreak() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split("T")[0];
-    loginStreak = lastLogin===yesterdayStr ? loginStreak+1 : loginStreak; 
+    loginStreak = lastLogin===yesterdayStr ? loginStreak+1 : 1; 
   } else loginStreak=1;
   lastLogin=today;
   saveData();
@@ -110,6 +105,7 @@ function roll(extra=0){
   let i=0;
 
   function singleRoll(){
+    // Calculate total inverse chance
     let totalInverse = rarities.reduce((sum,r)=>sum+(1/r.number),0);
     let rand=Math.random()*totalInverse;
     let cumulative=0;
@@ -161,11 +157,16 @@ function updateOdds(){
     const div=document.createElement("div");
     div.classList.add("odds-box");
     const color=getRarityColor(r.number);
-    div.style.borderColor=color;
-    const chancePercent = ((1/r.number)/totalInverse*100).toFixed(2);
+
+    // Show chance with 8 decimals
+    let chancePercent = ((1/r.number)/totalInverse*100);
+    chancePercent = chancePercent < 0.00000001 ? 0 : chancePercent;
+    chancePercent = chancePercent.toFixed(8);
+
     const countOwned = owned[r.rarity]||0;
     const displayName = countOwned>0?r.rarity:"???";
     div.innerHTML=`<span>${displayName}</span><span>${countOwned} owned</span><span>${chancePercent}%</span>`;
+    div.style.borderColor=color;
     div.style.background=countOwned>0?`${color}33`:"#1a1a1a";
     if(countOwned>0) div.classList.add("owned");
     oddsPanel.appendChild(div);
@@ -190,7 +191,6 @@ function updateUpgrades(){
     const div=document.createElement("div");
     div.className="upgrade-box";
     
-    // Background: multi-buy shows gradient for level
     if(u.multiBuy){
       const pct = ((u.level||0)/(u.maxLevel||1))*100;
       div.style.background = `linear-gradient(to right, #55aa55 ${pct}%, #222 ${pct}%)`;

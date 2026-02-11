@@ -428,3 +428,31 @@ function startMusic(){
 ["click","touchstart","keydown"].forEach(evt=>{
   document.addEventListener(evt, startMusic, {once:true});
 });
+
+// Global mute state
+let isMuted = false;
+
+// Select the mute button
+const muteBtn = document.getElementById('mute-btn');
+
+// Function to toggle mute
+function toggleMute() {
+  isMuted = !isMuted;
+  muteBtn.textContent = isMuted ? '🔇' : '🔊';
+
+  // Mute/unmute all audio elements
+  const audios = document.querySelectorAll('audio');
+  audios.forEach(audio => {
+    audio.muted = isMuted;
+  });
+}
+
+// Event listener
+muteBtn.addEventListener('click', toggleMute);
+
+// Optional: when you create/play new audio dynamically, set its muted property
+function playSound(src) {
+  const audio = new Audio(src);
+  audio.muted = isMuted; // respects mute button
+  audio.play();
+}

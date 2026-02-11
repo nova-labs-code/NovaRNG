@@ -130,9 +130,10 @@ function getExtraRolls(){
   const upgrade = upgrades.find(u=>u.id==="extra1");
   return upgrade?.level ? Math.min(upgrade.level,5) : 0;
 }
+
+// -------------------- SPEED HELPERS --------------------
 function getSpeedBonus(){
   let bonus = 0;
-
   const s1 = upgrades.find(u=>u.id==="speed1");
   const s2 = upgrades.find(u=>u.id==="speed2");
   const s3 = upgrades.find(u=>u.id==="speed3");
@@ -146,9 +147,10 @@ function getSpeedBonus(){
 
 function getRollDelay(){
   const base = 650;
-  const reduction = getSpeedBonus() * 40; // 40ms faster per speed point
+  const reduction = getSpeedBonus() * 40;
   return Math.max(120, base - reduction);
 }
+
 // -------------------- ROLL --------------------
 function roll(extra=0){
   if(!canRoll || rarities.length===0) return;
@@ -310,8 +312,10 @@ function startAutoRoll(interval){
   if(interval===500) isFastAutoRolling=true;
 
   autoRollInterval=setInterval(()=>{
-  if(canRoll) roll(getExtraRolls());
-}, Math.max(120, interval - getSpeedBonus()*40));
+    if(canRoll) roll(getExtraRolls());
+  }, Math.max(120, interval - getSpeedBonus()*40));
+}
+
 function stopAutoRoll(){
   clearInterval(autoRollInterval);
   autoRollInterval=null;

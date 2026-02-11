@@ -212,43 +212,61 @@ function updateStatsText(){
 
 // -------------------- UPGRADES --------------------
 function updateUpgrades(){
-  upgradesPanel.innerHTML="";
+  upgradesPanel.innerHTML = "";
 
   upgrades.forEach(u=>{
-    const div=document.createElement("div");
-    div.className="upgrade-box";
+    const div = document.createElement("div");
+    div.className = "upgrade-box";
 
-    if(u.multiBuy){
-      const pct=((u.level||0)/(u.maxLevel||1))*100;
-      div.style.background=`linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
+    // Background styling
+    if(u.multiBuy && !u.infinite){
+      const pct = ((u.level||0)/(u.maxLevel||1))*100;
+      div.style.background = `linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
+    } else if(u.infinite){
+      const pct = Math.min((u.level||0)*5,100); // visual fill just for fun
+      div.style.background = `linear-gradient(to right,#ffaa55 ${pct}%,#222 ${pct}%)`;
     } else {
-      div.style.background=u.unlocked?"#55aa55":"#222";
+      div.style.background = u.unlocked ? "#55aa55" : "#222";
     }
 
-    const levelText = u.multiBuy
-      ? `Level: ${u.level||0}/${u.maxLevel||1}`
-      : (u.unlocked ? "✅ Unlocked" : "🔒 Locked");
+    // Level / status text
+    let levelText = "";
+    if(u.multiBuy && !u.infinite){
+      levelText = `Level: ${u.level||0}/${u.maxLevel||1}`;
+    } else if(u.infinite){
+      levelText = `Purchased: ${u.level||0} times`;
+    } else {
+      levelText = u.unlocked ? "✅ Unlocked" : "🔒 Locked";
+    }
 
-    div.innerHTML=`
+    div.innerHTML = `
       <strong>${u.name}</strong>
       <p>${u.description}</p>
       <span>${levelText}</span>
       <span>Cost: ${Math.ceil(u.price)} pts</span>
     `;
 
+    // Determine if can buy
     const canBuy =
-      (u.multiBuy && (u.level||0)<u.maxLevel && points>=u.price) ||
-      (!u.multiBuy && !u.unlocked && points>=u.price);
+      (u.multiBuy && !u.infinite && (u.level||0)<u.maxLevel && points>=u.price) ||
+      (!u.multiBuy && !u.unlocked && points>=u.price) ||
+      (u.infinite && points>=u.price);
 
     if(canBuy){
-      div.style.cursor="pointer";
-      div.onclick=()=>{
-        points-=u.price;
-        if(u.multiBuy){
-          u.level=(u.level||0)+1;
-          u.price=Math.ceil(u.price*1.5);
-          if(u.level>=u.maxLevel) u.unlocked=true;
-        } else u.unlocked=true;
+      div.style.cursor = "pointer";
+      div.onclick = ()=>{
+        points -= u.price;
+
+        if(u.multiBuy && !u.infinite){
+          u.level = (u.level||0) + 1;
+          u.price = Math.ceil(u.price * 1.5);
+          if(u.level >= u.maxLevel) u.unlocked = true;
+        } else if(u.infinite){
+          u.level = (u.level||0) + 1;      // count purchases
+          u.price = Math.ceil(u.price * 1.5); // price scales
+        } else {
+          u.unlocked = true;
+        }
 
         showPopup(`${u.name} purchased`);
         saveData();
@@ -256,6 +274,10 @@ function updateUpgrades(){
         updateStatsText();
       };
     }
+
+    upgradesPanel.appendChild(div);
+  });
+}
 
     upgradesPanel.appendChild(div);
   });

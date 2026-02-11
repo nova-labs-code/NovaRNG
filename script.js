@@ -153,23 +153,18 @@ function updateRollHistory(){
 function updateUpgrades(){
   upgradesPanel.innerHTML="";
 
-  upgrades.forEach(u=>{
-    savedUpgrades[u.id]={level:u.level||0,unlocked:u.unlocked||false,price:u.price};
+  upgrades.forEach(u => {
+  const saved = savedUpgrades[u.id];
 
-    const canBuy=u.multiBuy
-      ?u.level<u.maxLevel&&points>=u.price
-      :!u.unlocked&&points>=u.price;
+  if (u.multiBuy) {
+    u.level = saved?.level ?? 0;
+    u.unlocked = saved?.unlocked ?? false;
+  } else {
+    u.unlocked = saved?.unlocked ?? false;
+  }
 
-    const div=document.createElement("div");
-    div.className="upgrade-box";
-    div.innerHTML=`
-      <strong>${u.name}</strong>
-      <p>${u.description}</p>
-      <span>${u.multiBuy
-        ?`Lvl ${u.level}/${u.maxLevel} — ${u.price.toFixed(1)} pts`
-        :u.unlocked?"Unlocked":`${u.price.toFixed(1)} pts`}
-      </span>`;
-
+  u.price = saved?.price ?? u.price;
+});
     if(canBuy){
       div.onclick=()=>{
         points-=u.price;

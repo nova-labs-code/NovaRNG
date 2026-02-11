@@ -77,8 +77,7 @@
     "description": "Increase points gained per roll.",
     "price": 1000,
     "type": "multiplier",
-    "multiBuy": true,
-    "maxLevel": 1000
+    "infinite": true
   },
   {
     "id": "autoRoll",

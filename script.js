@@ -63,25 +63,7 @@ function getRarityColor(number){
   if(number<=400) return "#ffdd55";
   return "#aa55ff";
 }
-function getSpeedBonus(){
-  let bonus = 0;
 
-  const s1 = upgrades.find(u=>u.id==="speed1");
-  const s2 = upgrades.find(u=>u.id==="speed2");
-  const s3 = upgrades.find(u=>u.id==="speed3");
-
-  if(s1?.level) bonus += s1.level * 1;
-  if(s2?.level) bonus += s2.level * 2;
-  if(s3?.level) bonus += s3.level * 5;
-
-  return bonus;
-}
-
-function getRollDelay(){
-  const base = 650;
-  const reduction = getSpeedBonus() * 40; // tune if you want
-  return Math.max(120, base - reduction);
-}
 function showPopup(msg){
   popup.innerText = msg;
   popup.style.display = "block";
@@ -148,7 +130,25 @@ function getExtraRolls(){
   const upgrade = upgrades.find(u=>u.id==="extra1");
   return upgrade?.level ? Math.min(upgrade.level,5) : 0;
 }
+function getSpeedBonus(){
+  let bonus = 0;
 
+  const s1 = upgrades.find(u=>u.id==="speed1");
+  const s2 = upgrades.find(u=>u.id==="speed2");
+  const s3 = upgrades.find(u=>u.id==="speed3");
+
+  if(s1?.level) bonus += s1.level * 1;
+  if(s2?.level) bonus += s2.level * 2;
+  if(s3?.level) bonus += s3.level * 5;
+
+  return bonus;
+}
+
+function getRollDelay(){
+  const base = 650;
+  const reduction = getSpeedBonus() * 40; // tune if you want
+  return Math.max(120, base - reduction);
+}
 // -------------------- ROLL --------------------
 function roll(extra=0){
   if(!canRoll || rarities.length===0) return;

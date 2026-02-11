@@ -146,7 +146,7 @@ function getSpeedBonus(){
 
 function getRollDelay(){
   const base = 650;
-  const reduction = getSpeedBonus() * 40; // tune if you want
+  const reduction = getSpeedBonus() * 40; // 40ms faster per speed point
   return Math.max(120, base - reduction);
 }
 // -------------------- ROLL --------------------

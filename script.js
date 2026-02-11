@@ -154,7 +154,7 @@ function roll(extra=0){
 
     // Compute points with infinite upgrade multipliers
     const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
-    const mult = 1 + ((multUpgrade?.level||0) * 0.01);
+    const mult = 1 + ((multUpgrade?.level||0) * 0.08);
 
     const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
     const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);

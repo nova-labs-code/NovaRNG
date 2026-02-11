@@ -21,7 +21,7 @@
     "id": "speed3",
     "name": "mega speed,",
     "description": "Even faster auto rolls.",
-    "price": 300,
+    "price": 3000,
     "type": "speed",
     "multiBuy": true,
     "maxLevel": 3

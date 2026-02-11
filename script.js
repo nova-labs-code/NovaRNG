@@ -1,3 +1,34 @@
+let isMuted = false;
+const muteBtn = document.getElementById('mute-btn');
+
+muteBtn.addEventListener('click', () => {
+  isMuted = !isMuted;
+  muteBtn.textContent = isMuted ? '🔇' : '🔊';
+
+  // Mute all existing <audio> and <video> elements
+  document.querySelectorAll('audio, video').forEach(media => {
+    media.muted = isMuted;
+  });
+
+  // Override Audio.prototype.play so future Audio objects respect mute
+  if (!Audio.prototype._originalPlay) {
+    Audio.prototype._originalPlay = Audio.prototype.play;
+    Audio.prototype.play = function () {
+      this.muted = isMuted;
+      return this._originalPlay.apply(this, arguments);
+    };
+  }
+
+  // Override HTMLMediaElement.prototype.play for video or audio tags dynamically created
+  if (!HTMLMediaElement.prototype._originalPlay) {
+    HTMLMediaElement.prototype._originalPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      this.muted = isMuted;
+      return this._originalPlay.apply(this, arguments);
+    };
+  }
+});
+
 // -------------------- DATA --------------------
 let rarities = [];
 let upgrades = [];
@@ -428,31 +459,3 @@ function startMusic(){
 ["click","touchstart","keydown"].forEach(evt=>{
   document.addEventListener(evt, startMusic, {once:true});
 });
-
-// Global mute state
-let isMuted = false;
-
-// Select the mute button
-const muteBtn = document.getElementById('mute-btn');
-
-// Function to toggle mute
-function toggleMute() {
-  isMuted = !isMuted;
-  muteBtn.textContent = isMuted ? '🔇' : '🔊';
-
-  // Mute/unmute all audio elements
-  const audios = document.querySelectorAll('audio');
-  audios.forEach(audio => {
-    audio.muted = isMuted;
-  });
-}
-
-// Event listener
-muteBtn.addEventListener('click', toggleMute);
-
-// Optional: when you create/play new audio dynamically, set its muted property
-function playSound(src) {
-  const audio = new Audio(src);
-  audio.muted = isMuted; // respects mute button
-  audio.play();
-}

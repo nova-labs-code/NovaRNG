@@ -24,7 +24,7 @@
     "price": 300,
     "type": "speed",
     "multiBuy": true,
-    "maxLevel": 5
+    "maxLevel": 3
   },
   {
     "id": "luck1",

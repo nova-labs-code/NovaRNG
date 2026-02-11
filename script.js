@@ -1,34 +1,3 @@
-let isMuted = false;
-const muteBtn = document.getElementById('mute-btn');
-
-muteBtn.addEventListener('click', () => {
-  isMuted = !isMuted;
-  muteBtn.textContent = isMuted ? '🔇' : '🔊';
-
-  // Mute all existing <audio> and <video> elements
-  document.querySelectorAll('audio, video').forEach(media => {
-    media.muted = isMuted;
-  });
-
-  // Override Audio.prototype.play so future Audio objects respect mute
-  if (!Audio.prototype._originalPlay) {
-    Audio.prototype._originalPlay = Audio.prototype.play;
-    Audio.prototype.play = function () {
-      this.muted = isMuted;
-      return this._originalPlay.apply(this, arguments);
-    };
-  }
-
-  // Override HTMLMediaElement.prototype.play for video or audio tags dynamically created
-  if (!HTMLMediaElement.prototype._originalPlay) {
-    HTMLMediaElement.prototype._originalPlay = HTMLMediaElement.prototype.play;
-    HTMLMediaElement.prototype.play = function () {
-      this.muted = isMuted;
-      return this._originalPlay.apply(this, arguments);
-    };
-  }
-});
-
 // -------------------- DATA --------------------
 let rarities = [];
 let upgrades = [];
@@ -435,20 +404,26 @@ init();
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
 let currentMusic = null;
 let musicStarted = false;
+let isMuted = false; // global mute state
 
+// Play a random track
 function playRandomMusic(){
   if(currentMusic){
     currentMusic.pause();
     currentMusic.currentTime = 0;
   }
-  const trackSrc = bgMusicTracks[Math.floor(Math.random()*bgMusicTracks.length)];
+
+  const trackSrc = bgMusicTracks[Math.floor(Math.random() * bgMusicTracks.length)];
   currentMusic = new Audio(trackSrc);
   currentMusic.volume = 0.25;
   currentMusic.preload = "auto";
+  currentMusic.loop = false; // we handle looping manually
+  currentMusic.muted = isMuted; // respect mute state
   currentMusic.addEventListener("ended", playRandomMusic);
-  currentMusic.play().catch(err=>console.log("Music blocked:",err));
+  currentMusic.play().catch(err => console.log("Music blocked:", err));
 }
 
+// Start music after first user interaction
 function startMusic(){
   if(!musicStarted){
     playRandomMusic();
@@ -456,6 +431,26 @@ function startMusic(){
   }
 }
 
-["click","touchstart","keydown"].forEach(evt=>{
-  document.addEventListener(evt, startMusic, {once:true});
+// Trigger on first click, touch, or key press
+["click", "touchstart", "keydown"].forEach(evt => {
+  document.addEventListener(evt, startMusic, { once: true });
 });
+
+// -------------------- GLOBAL MUTE BUTTON --------------------
+const muteBtn = document.getElementById("mute-btn");
+
+muteBtn.addEventListener("click", () => {
+  isMuted = !isMuted;
+  muteBtn.textContent = isMuted ? "🔇" : "🔊";
+
+  if(currentMusic) currentMusic.muted = isMuted; // mute/unmute current music
+});
+
+// Optional: wrap Audio.prototype.play to auto-respect mute for any new audio
+if (!Audio.prototype._originalPlay) {
+  Audio.prototype._originalPlay = Audio.prototype.play;
+  Audio.prototype.play = function () {
+    this.muted = isMuted;
+    return this._originalPlay.apply(this, arguments);
+  };
+}

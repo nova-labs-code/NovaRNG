@@ -400,22 +400,22 @@ async function init(){
 
 init();
 
-// -------------------- GLOBAL MUTE --------------------
-let isMuted = false; // global mute state
+// ==================== GLOBAL MUTE ====================
+let isMuted = false;
 const muteBtn = document.getElementById("mute-btn");
 
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
 
-  // Mute/unmute current music
-  if(currentMusic) currentMusic.muted = isMuted;
+  if (currentMusic) currentMusic.muted = isMuted;
 
-  // Mute/unmute all other existing <audio> or <video>
-  document.querySelectorAll("audio, video").forEach(media => media.muted = isMuted);
+  document.querySelectorAll("audio, video").forEach(media => {
+    media.muted = isMuted;
+  });
 });
 
-// Override Audio.prototype.play so all future sounds respect mute
+// Make ALL future Audio respect global mute
 if (!Audio.prototype._originalPlay) {
   Audio.prototype._originalPlay = Audio.prototype.play;
   Audio.prototype.play = function () {
@@ -424,34 +424,54 @@ if (!Audio.prototype._originalPlay) {
   };
 }
 
-// -------------------- BACKGROUND MUSIC --------------------
-const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
+// ==================== BACKGROUND MUSIC ====================
+// Auto-load song1.mp3 → song21.mp3
+const SONG_COUNT = 21;
+const SONG_PREFIX = "song";
+const SONG_EXT = ".mp3";
+
 let currentMusic = null;
 let musicStarted = false;
+let lastSong = null;
+
+function getRandomSong() {
+  let index;
+  do {
+    index = Math.floor(Math.random() * SONG_COUNT) + 1;
+  } while (index === lastSong && SONG_COUNT > 1);
+
+  lastSong = index;
+  return `${SONG_PREFIX}${index}${SONG_EXT}`;
+}
 
 function playRandomMusic() {
-  if(currentMusic) {
+  if (currentMusic) {
     currentMusic.pause();
     currentMusic.currentTime = 0;
   }
 
-  const trackSrc = bgMusicTracks[Math.floor(Math.random() * bgMusicTracks.length)];
+  const trackSrc = getRandomSong();
   currentMusic = new Audio(trackSrc);
   currentMusic.volume = 0.25;
   currentMusic.preload = "auto";
-  currentMusic.muted = isMuted; // respect mute
+  currentMusic.loop = false;
+  currentMusic.muted = isMuted;
+
   currentMusic.addEventListener("ended", playRandomMusic);
-  currentMusic.play().catch(err => console.log("Music blocked:", err));
+
+  currentMusic.play().catch(err => {
+    console.log("Music blocked until interaction:", err);
+  });
 }
 
 function startMusic() {
-  if(!musicStarted){
+  if (!musicStarted) {
     playRandomMusic();
     musicStarted = true;
   }
 }
 
-// Start music on first user interaction
+// ==================== USER INTERACTION START ====================
 ["click", "touchstart", "keydown"].forEach(evt => {
   document.addEventListener(evt, startMusic, { once: true });
 });

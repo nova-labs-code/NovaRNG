@@ -63,7 +63,25 @@ function getRarityColor(number){
   if(number<=400) return "#ffdd55";
   return "#aa55ff";
 }
+function getSpeedBonus(){
+  let bonus = 0;
 
+  const s1 = upgrades.find(u=>u.id==="speed1");
+  const s2 = upgrades.find(u=>u.id==="speed2");
+  const s3 = upgrades.find(u=>u.id==="speed3");
+
+  if(s1?.level) bonus += s1.level * 1;
+  if(s2?.level) bonus += s2.level * 2;
+  if(s3?.level) bonus += s3.level * 5;
+
+  return bonus;
+}
+
+function getRollDelay(){
+  const base = 650;
+  const reduction = getSpeedBonus() * 40; // tune if you want
+  return Math.max(120, base - reduction);
+}
 function showPopup(msg){
   popup.innerText = msg;
   popup.style.display = "block";
@@ -181,7 +199,7 @@ function roll(extra=0){
 
     resultDiv.removeChild(wipe);
     canRoll=true;
-  }, 650);
+  }, getRollDelay());
 }
 
 // -------------------- UPDATE PANELS --------------------
@@ -292,10 +310,8 @@ function startAutoRoll(interval){
   if(interval===500) isFastAutoRolling=true;
 
   autoRollInterval=setInterval(()=>{
-    if(canRoll) roll(getExtraRolls());
-  }, interval);
-}
-
+  if(canRoll) roll(getExtraRolls());
+}, Math.max(120, interval - getSpeedBonus()*40));
 function stopAutoRoll(){
   clearInterval(autoRollInterval);
   autoRollInterval=null;

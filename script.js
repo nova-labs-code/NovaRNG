@@ -13,7 +13,6 @@ let prestiges = parseInt(localStorage.getItem("prestiges")) || 0;
 
 let canRoll = true;
 let autoRollInterval = null;
-let fastAutoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
 
@@ -127,15 +126,21 @@ function getRandomRarity(){
   }
 }
 
+// -------------------- EXTRA ROLLS --------------------
+function getExtraRolls(){
+  const upgrade = upgrades.find(u=>u.id==="extra1");
+  return upgrade?.level ? Math.min(upgrade.level,5) : 0;
+}
+
 // -------------------- ROLL --------------------
-function roll(extra = 0){
-  if(!canRoll || rarities.length === 0) return;
-  canRoll = false;
+function roll(extra=0){
+  if(!canRoll || rarities.length===0) return;
+  canRoll=false;
 
   const rolls = 1 + extra;
   const results = [];
 
-  for(let i = 0; i < rolls; i++){
+  for(let i=0;i<rolls;i++){
     results.push(getRandomRarity());
   }
 
@@ -144,23 +149,18 @@ function roll(extra = 0){
   resultDiv.appendChild(wipe);
 
   setTimeout(()=>{
-    // Display multiple rarities at once
+    // Display results
     resultDiv.querySelector(".result-text").innerHTML =
-      results.map(r=>r.rarity).join("<br>");
+      results.map(r=>`<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
 
-    const mult =
-      1 + (upgrades.find(u=>u.id==="pointsMultiplier")?.level || 0) * 0.01;
+    // Compute points
+    const mult = 1 + (upgrades.find(u=>u.id==="pointsMultiplier")?.level||0)*0.01;
 
     results.forEach(r=>{
-      owned[r.rarity] = (owned[r.rarity] || 0) + 1;
+      owned[r.rarity]=(owned[r.rarity]||0)+1;
       rollHistory.push(r.rarity);
 
-      points +=
-        (r.number / 2) *
-        mult *
-        Math.pow(1.5, rebirths) *
-        Math.pow(1.5, prestiges);
-
+      points += (r.number/2)*mult*Math.pow(1.5,rebirths)*Math.pow(1.5,prestiges);
       totalRolls++;
     });
 
@@ -174,13 +174,13 @@ function roll(extra = 0){
     saveData();
 
     resultDiv.removeChild(wipe);
-    canRoll = true;
+    canRoll=true;
   }, 650);
 }
 
 // -------------------- UPDATE PANELS --------------------
 function updateRollHistory(){
-  rollHistoryDiv.innerHTML = "Last Rolls:<br>"+rollHistory.join("<br>");
+  rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>");
 }
 
 function updateOdds(){
@@ -262,19 +262,36 @@ function updateUpgrades(){
 }
 
 // -------------------- AUTO ROLL --------------------
-function updateAutoRollButtons(){
-  autoRollBtn.disabled=!upgrades.find(u=>u.id==="autoRoll"&&u.unlocked);
-  fastAutoRollBtn.disabled=!upgrades.find(u=>u.id==="fastAuto"&&u.unlocked);
+function startAutoRoll(interval){
+  stopAutoRoll();
+  if(interval===1000) isAutoRolling=true;
+  if(interval===500) isFastAutoRolling=true;
+
+  autoRollInterval=setInterval(()=>{
+    if(canRoll) roll(getExtraRolls());
+  }, interval);
 }
 
-function getExtraRolls(){
-  const upgrade = upgrades.find(u => u.id === "extra1");
-  if(!upgrade || !(upgrade.level > 0)) return 0;
-  return Math.min(upgrade.level, 5); // cap at 5 extra rolls
+function stopAutoRoll(){
+  clearInterval(autoRollInterval);
+  autoRollInterval=null;
+  isAutoRolling=false;
+  isFastAutoRolling=false;
+}
+
+function updateAutoRollButtons(){
+  const auto = upgrades.find(u=>u.id==="autoRoll" && u.unlocked);
+  const fast = upgrades.find(u=>u.id==="fastAuto" && u.unlocked);
+
+  autoRollBtn.disabled = !auto;
+  fastAutoRollBtn.disabled = !fast;
+
+  autoRollBtn.innerText = isAutoRolling ? "Stop Auto Roll" : "Auto Roll";
+  fastAutoRollBtn.innerText = isFastAutoRolling ? "Stop Fast Auto Roll" : "Fast Auto Roll";
 }
 
 // -------------------- EVENTS --------------------
-pickBtn.onclick = () => roll(getExtraRolls());
+pickBtn.onclick=()=>roll(getExtraRolls());
 autoRollBtn.onclick=()=>isAutoRolling?stopAutoRoll():startAutoRoll(1000);
 fastAutoRollBtn.onclick=()=>isFastAutoRolling?stopAutoRoll():startAutoRoll(500);
 
@@ -314,37 +331,34 @@ async function init(){
   updateUpgrades();
   updateRollHistory();
   checkLoginStreak();
+  updateAutoRollButtons();
   showPage(0);
 }
 
 init();
 
 // -------------------- BACKGROUND MUSIC --------------------
-const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
-let currentMusic = null;
-let musicStarted = false;
+const bgMusicTracks=["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
+let currentMusic=null;
+let musicStarted=false;
 
 function playRandomMusic(){
   if(currentMusic){
     currentMusic.pause();
-    currentMusic.currentTime = 0;
+    currentMusic.currentTime=0;
   }
-  const trackSrc = bgMusicTracks[Math.floor(Math.random()*bgMusicTracks.length)];
-  currentMusic = new Audio(trackSrc);
-  currentMusic.volume = 0.25;
-  currentMusic.preload = "auto";
-
+  const trackSrc=bgMusicTracks[Math.floor(Math.random()*bgMusicTracks.length)];
+  currentMusic=new Audio(trackSrc);
+  currentMusic.volume=0.25;
+  currentMusic.preload="auto";
   currentMusic.addEventListener("ended", playRandomMusic);
-
-  currentMusic.play().catch(err=>{
-    console.log("Music blocked, will start on interaction:", err);
-  });
+  currentMusic.play().catch(err=>console.log("Music blocked:",err));
 }
 
 function startMusic(){
   if(!musicStarted){
     playRandomMusic();
-    musicStarted = true;
+    musicStarted=true;
   }
 }
 

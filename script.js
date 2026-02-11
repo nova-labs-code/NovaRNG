@@ -403,21 +403,30 @@ init();
 // -------------------- BACKGROUND MUSIC --------------------
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
 let audioCtx = null;
+let masterGain = null; // Persistent gain for volume/mute
 let currentSource = null;
-let currentGain = null; // store gain node for mute control
 let musicStarted = false;
 let isMuted = false;
 
-// Play a track by URL
-async function playTrack(src) {
+// Initialize AudioContext and master gain
+function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = isMuted ? 0 : 0.25; // respect mute state
+    masterGain.connect(audioCtx.destination);
   }
+}
 
-  // Stop current track
+// Play a track by URL
+async function playTrack(src) {
+  initAudio();
+
+  // Stop current track if exists
   if (currentSource) {
     currentSource.stop();
     currentSource.disconnect();
+    currentSource = null;
   }
 
   try {
@@ -427,21 +436,14 @@ async function playTrack(src) {
 
     const source = audioCtx.createBufferSource();
     source.buffer = audioBuffer;
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = isMuted ? 0 : 0.25; // respect mute
-
-    source.connect(gainNode).connect(audioCtx.destination);
+    source.connect(masterGain);
     source.start(0);
 
-    // Store references for mute control
     currentSource = source;
-    currentGain = gainNode;
 
     source.onended = () => {
-      playRandomMusic(); // play next track
+      playRandomMusic(); // play next track automatically
     };
-
   } catch (err) {
     console.error("Error loading track:", err);
   }
@@ -456,26 +458,34 @@ function playRandomMusic() {
 // Start music after first user interaction
 function startMusic() {
   if (!musicStarted) {
-    // Resume context if it was suspended (required on mobile)
-    if (audioCtx && audioCtx.state === "suspended") {
-      audioCtx.resume();
+    initAudio();
+
+    // Resume context if suspended (mobile requirement)
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume().then(() => {
+        playRandomMusic();
+      });
+    } else {
+      playRandomMusic();
     }
-    playRandomMusic();
+
     musicStarted = true;
   }
 }
 
+// Trigger on first interaction
 ["click", "touchstart", "keydown"].forEach(evt => {
   document.addEventListener(evt, startMusic, { once: true });
 });
 
 // -------------------- MUTE BUTTON --------------------
 const muteBtn = document.getElementById("mute-btn");
+
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
 
-  if (currentGain) {
-    currentGain.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
+  if (masterGain) {
+    masterGain.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
   }
 });

@@ -400,57 +400,75 @@ async function init(){
 
 init();
 
-// -------------------- BACKGROUND MUSIC --------------------
+// -------------------- BACKGROUND MUSIC (WEB AUDIO) --------------------
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
-let currentMusic = null;
+let audioCtx = null;
+let currentSource = null;
+let isMuted = false; // global mute
 let musicStarted = false;
-let isMuted = false; // global mute state
 
-// Play a random track
-function playRandomMusic(){
-  if(currentMusic){
-    currentMusic.pause();
-    currentMusic.currentTime = 0;
+// Load and play a track
+async function playTrack(src) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Stop current track
+  if (currentSource) {
+    currentSource.stop();
+    currentSource.disconnect();
+    currentSource = null;
   }
 
-  const trackSrc = bgMusicTracks[Math.floor(Math.random() * bgMusicTracks.length)];
-  currentMusic = new Audio(trackSrc);
-  currentMusic.volume = 0.25;
-  currentMusic.preload = "auto";
-  currentMusic.loop = false; // we handle looping manually
-  currentMusic.muted = isMuted; // respect mute state
-  currentMusic.addEventListener("ended", playRandomMusic);
-  currentMusic.play().catch(err => console.log("Music blocked:", err));
+  try {
+    const response = await fetch(src);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+    currentSource = audioCtx.createBufferSource();
+    currentSource.buffer = audioBuffer;
+
+    // Create gain node for volume/mute control
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.value = isMuted ? 0 : 0.25;
+
+    currentSource.connect(gainNode).connect(audioCtx.destination);
+    currentSource.start(0);
+
+    currentSource.onended = () => {
+      // play another random track when this one ends
+      playRandomMusic();
+    };
+  } catch (err) {
+    console.error("Error loading track:", err);
+  }
 }
 
-// Start music after first user interaction
-function startMusic(){
-  if(!musicStarted){
+// Play a random track
+function playRandomMusic() {
+  const trackSrc = bgMusicTracks[Math.floor(Math.random() * bgMusicTracks.length)];
+  playTrack(trackSrc);
+}
+
+// Start music after first user interaction (required by browsers)
+function startMusic() {
+  if (!musicStarted) {
     playRandomMusic();
     musicStarted = true;
   }
 }
 
-// Trigger on first click, touch, or key press
 ["click", "touchstart", "keydown"].forEach(evt => {
   document.addEventListener(evt, startMusic, { once: true });
 });
 
-// -------------------- GLOBAL MUTE BUTTON --------------------
+// -------------------- MUTE BUTTON --------------------
 const muteBtn = document.getElementById("mute-btn");
 
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
 
-  if(currentMusic) currentMusic.muted = isMuted; // mute/unmute current music
+  // Adjust gain of current track
+  if (currentSource && currentSource.gainNode) {
+    currentSource.gainNode.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
+  }
 });
-
-// Optional: wrap Audio.prototype.play to auto-respect mute for any new audio
-if (!Audio.prototype._originalPlay) {
-  Audio.prototype._originalPlay = Audio.prototype.play;
-  Audio.prototype.play = function () {
-    this.muted = isMuted;
-    return this._originalPlay.apply(this, arguments);
-  };
-}

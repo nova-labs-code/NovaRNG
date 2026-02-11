@@ -403,7 +403,7 @@ init();
 // -------------------- BACKGROUND MUSIC --------------------
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
 let audioCtx = null;
-let masterGain = null; // Persistent gain for volume/mute
+let masterGain = null;
 let currentSource = null;
 let musicStarted = false;
 let isMuted = false;
@@ -413,23 +413,23 @@ function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
-    masterGain.gain.value = isMuted ? 0 : 0.25; // respect mute state
+    masterGain.gain.value = isMuted ? 0 : 0.25;
     masterGain.connect(audioCtx.destination);
   }
 }
 
-// Play a track by URL
+// Play a track through the master gain
 async function playTrack(src) {
   initAudio();
 
-  // Stop current track if exists
+  // Stop current track
   if (currentSource) {
     currentSource.stop();
     currentSource.disconnect();
-    currentSource = null;
   }
 
   try {
+    // Fetch and decode
     const response = await fetch(src);
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -442,38 +442,35 @@ async function playTrack(src) {
     currentSource = source;
 
     source.onended = () => {
-      playRandomMusic(); // play next track automatically
+      playRandomMusic(); // next track
     };
   } catch (err) {
     console.error("Error loading track:", err);
   }
 }
 
-// Play a random track
+// Play random track
 function playRandomMusic() {
   const trackSrc = bgMusicTracks[Math.floor(Math.random() * bgMusicTracks.length)];
   playTrack(trackSrc);
 }
 
 // Start music after first user interaction
-function startMusic() {
+async function startMusic() {
   if (!musicStarted) {
     initAudio();
 
-    // Resume context if suspended (mobile requirement)
+    // Must resume first to unlock audio on mobile
     if (audioCtx.state === "suspended") {
-      audioCtx.resume().then(() => {
-        playRandomMusic();
-      });
-    } else {
-      playRandomMusic();
+      await audioCtx.resume();
     }
 
+    playRandomMusic();
     musicStarted = true;
   }
 }
 
-// Trigger on first interaction
+// Trigger on first click, touch, or keypress
 ["click", "touchstart", "keydown"].forEach(evt => {
   document.addEventListener(evt, startMusic, { once: true });
 });

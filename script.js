@@ -404,10 +404,11 @@ init();
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
 let audioCtx = null;
 let currentSource = null;
+let gainNode = null;
 let isMuted = false; // global mute
 let musicStarted = false;
 
-// Load and play a track
+// Play a track with Web Audio API
 async function playTrack(src) {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -415,6 +416,7 @@ async function playTrack(src) {
   if (currentSource) {
     currentSource.stop();
     currentSource.disconnect();
+    gainNode.disconnect();
     currentSource = null;
   }
 
@@ -423,32 +425,33 @@ async function playTrack(src) {
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
+    // Create source
     currentSource = audioCtx.createBufferSource();
     currentSource.buffer = audioBuffer;
 
-    // Create gain node for volume/mute control
-    const gainNode = audioCtx.createGain();
+    // Create gain node for volume control
+    gainNode = audioCtx.createGain();
     gainNode.gain.value = isMuted ? 0 : 0.25;
 
+    // Connect and play
     currentSource.connect(gainNode).connect(audioCtx.destination);
     currentSource.start(0);
 
-    currentSource.onended = () => {
-      // play another random track when this one ends
-      playRandomMusic();
-    };
+    // When track ends, play another random track
+    currentSource.onended = () => playRandomMusic();
+
   } catch (err) {
     console.error("Error loading track:", err);
   }
 }
 
-// Play a random track
+// Play random track
 function playRandomMusic() {
   const trackSrc = bgMusicTracks[Math.floor(Math.random() * bgMusicTracks.length)];
   playTrack(trackSrc);
 }
 
-// Start music after first user interaction (required by browsers)
+// Start music on first interaction
 function startMusic() {
   if (!musicStarted) {
     playRandomMusic();
@@ -467,8 +470,8 @@ muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
 
-  // Adjust gain of current track
-  if (currentSource && currentSource.gainNode) {
-    currentSource.gainNode.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
+  // Apply mute immediately
+  if (gainNode) {
+    gainNode.gain.setValueAtTime(isMuted ? 0 : 0.25, audioCtx.currentTime);
   }
 });

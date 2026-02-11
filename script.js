@@ -115,53 +115,67 @@ function checkLoginStreak(){
   updateLoginStreak();
 }
 
+// -------------------- ROLL HELPERS --------------------
+function getRandomRarity(){
+  let total = rarities.reduce((s,r)=>s+(1/r.number),0);
+  let rand = Math.random()*total;
+  let acc = 0;
+
+  for(const r of rarities){
+    acc += 1/r.number;
+    if(rand <= acc) return r;
+  }
+}
+
 // -------------------- ROLL --------------------
-function roll(extra=0){
-  if(!canRoll || rarities.length===0) return;
-  canRoll=false;
+function roll(extra = 0){
+  if(!canRoll || rarities.length === 0) return;
+  canRoll = false;
 
-  let rolls = 1 + extra;
-  let done = 0;
+  const rolls = 1 + extra;
+  const results = [];
 
-  function singleRoll(){
-    let total = rarities.reduce((s,r)=>s+(1/r.number),0);
-    let rand = Math.random()*total;
-    let acc = 0;
-    let result;
-
-    for(const r of rarities){
-      acc += 1/r.number;
-      if(rand<=acc){ result=r; break; }
-    }
-
-    const wipe = document.createElement("div");
-    wipe.className="wipe-bar";
-    resultDiv.appendChild(wipe);
-
-    setTimeout(()=>{
-      resultDiv.querySelector(".result-text").innerText = result.rarity;
-      owned[result.rarity]=(owned[result.rarity]||0)+1;
-      rollHistory.push(result.rarity);
-      if(rollHistory.length>5) rollHistory.shift();
-
-      const mult = 1 + (upgrades.find(u=>u.id==="pointsMultiplier")?.level||0)*0.01;
-      points += (result.number/2)*mult*Math.pow(1.5,rebirths)*Math.pow(1.5,prestiges);
-
-      totalRolls++;
-      updateRollHistory();
-      updateOdds();
-      updateStatsText();
-      updateUpgrades();
-      updateAutoRollButtons();
-      saveData();
-
-      resultDiv.removeChild(wipe);
-      done++;
-      done<rolls ? setTimeout(singleRoll,200) : canRoll=true;
-    },650);
+  for(let i = 0; i < rolls; i++){
+    results.push(getRandomRarity());
   }
 
-  singleRoll();
+  const wipe = document.createElement("div");
+  wipe.className = "wipe-bar";
+  resultDiv.appendChild(wipe);
+
+  setTimeout(()=>{
+    // Display multiple rarities at once
+    resultDiv.querySelector(".result-text").innerHTML =
+      results.map(r=>r.rarity).join("<br>");
+
+    const mult =
+      1 + (upgrades.find(u=>u.id==="pointsMultiplier")?.level || 0) * 0.01;
+
+    results.forEach(r=>{
+      owned[r.rarity] = (owned[r.rarity] || 0) + 1;
+      rollHistory.push(r.rarity);
+
+      points +=
+        (r.number / 2) *
+        mult *
+        Math.pow(1.5, rebirths) *
+        Math.pow(1.5, prestiges);
+
+      totalRolls++;
+    });
+
+    rollHistory = rollHistory.slice(-5);
+
+    updateRollHistory();
+    updateOdds();
+    updateStatsText();
+    updateUpgrades();
+    updateAutoRollButtons();
+    saveData();
+
+    resultDiv.removeChild(wipe);
+    canRoll = true;
+  }, 650);
 }
 
 // -------------------- UPDATE PANELS --------------------
@@ -302,6 +316,7 @@ async function init(){
 }
 
 init();
+
 // -------------------- BACKGROUND MUSIC --------------------
 const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
 let currentMusic = null;
@@ -317,7 +332,6 @@ function playRandomMusic(){
   currentMusic.volume = 0.25;
   currentMusic.preload = "auto";
 
-  // When a song ends, pick a new random one
   currentMusic.addEventListener("ended", playRandomMusic);
 
   currentMusic.play().catch(err=>{
@@ -325,7 +339,6 @@ function playRandomMusic(){
   });
 }
 
-// Start music on first user interaction
 function startMusic(){
   if(!musicStarted){
     playRandomMusic();

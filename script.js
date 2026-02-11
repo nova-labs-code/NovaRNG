@@ -302,3 +302,37 @@ async function init(){
 }
 
 init();
+// -------------------- BACKGROUND MUSIC --------------------
+const bgMusicTracks = ["song1.mp3","song2.mp3","song3.mp3","song4.mp3"];
+let currentMusic = null;
+let musicStarted = false;
+
+function playRandomMusic(){
+  if(currentMusic){
+    currentMusic.pause();
+    currentMusic.currentTime = 0;
+  }
+  const trackSrc = bgMusicTracks[Math.floor(Math.random()*bgMusicTracks.length)];
+  currentMusic = new Audio(trackSrc);
+  currentMusic.volume = 0.25;
+  currentMusic.preload = "auto";
+
+  // When a song ends, pick a new random one
+  currentMusic.addEventListener("ended", playRandomMusic);
+
+  currentMusic.play().catch(err=>{
+    console.log("Music blocked, will start on interaction:", err);
+  });
+}
+
+// Start music on first user interaction
+function startMusic(){
+  if(!musicStarted){
+    playRandomMusic();
+    musicStarted = true;
+  }
+}
+
+["click","touchstart","keydown"].forEach(evt=>{
+  document.addEventListener(evt, startMusic, {once:true});
+});

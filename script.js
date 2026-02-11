@@ -274,7 +274,7 @@ function getExtraRolls(){
 }
 
 // -------------------- EVENTS --------------------
-pickBtn.onclick=()=>roll(getExtraRolls());
+pickBtn.onclick = () => roll(getExtraRolls());
 autoRollBtn.onclick=()=>isAutoRolling?stopAutoRoll():startAutoRoll(1000);
 fastAutoRollBtn.onclick=()=>isFastAutoRolling?stopAutoRoll():startAutoRoll(500);
 

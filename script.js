@@ -189,7 +189,7 @@ function updateOdds(){
 
   rarities.forEach(r=>{
     const ownedCount = owned[r.rarity]||0;
-    const chance = ((1/r.number)/total*100).toFixed(2);
+    const chance = ((1/r.number)/total*100).toFixed(6);
     const div=document.createElement("div");
 
     div.className="odds-box";

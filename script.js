@@ -268,7 +268,9 @@ function updateAutoRollButtons(){
 }
 
 function getExtraRolls(){
-  return upgrades.find(u=>u.id==="extra1"&&(u.level||0)>0)?1:0;
+  const upgrade = upgrades.find(u => u.id === "extra1");
+  if(!upgrade || !(upgrade.level > 0)) return 0;
+  return Math.min(upgrade.level, 5); // cap at 5 extra rolls
 }
 
 // -------------------- EVENTS --------------------

@@ -73,6 +73,21 @@ button.roll-btn:disabled {
     cursor: not-allowed;
 }
 
+/* ===================== MUTE BUTTON ===================== */
+#mute-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 999;
+    font-size: 24px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: none;
+    background: #222;
+    color: #fff;
+    cursor: pointer;
+}
+
 /* ===================== RESULT ===================== */
 #result {
     margin-top: 22px;
@@ -98,32 +113,14 @@ button.roll-btn:disabled {
     overflow-y: auto;
 }
 
-/* ===================== ODDS PANEL ===================== */
+/* ===================== PANELS ===================== */
 #odds-panel,
 #upgrades-panel,
-#stats-panel,
-.settings-panel {
+#stats-panel {
     margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-}
-
-/* ===================== SETTINGS ===================== */
-.settings-panel label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    color: #eee;
-}
-
-.settings-panel input,
-.settings-panel select {
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background: #111;
-    color: #fff;
 }
 
 /* ===================== POPUP ===================== */
@@ -156,5 +153,10 @@ button.roll-btn:disabled {
     button.roll-btn {
         padding: 10px 14px;
         font-size: 0.9rem;
+    }
+
+    #mute-btn {
+        font-size: 20px;
+        padding: 4px 8px;
     }
 }

@@ -96,9 +96,7 @@ function initPages() {
   });
 }
 
-// At the end of init()
-showPage(0);  // Already in your code
-initPages();  // Make sure pages are positioned correctly
+
 // -------------------- HELPERS --------------------
 function getRarityColor(number){
   if(number<=100) return "#aaaaaa";
@@ -617,4 +615,7 @@ function startMusic() {
 setInterval(applyIdleProgress, 1000); // idle every second
 setInterval(applyOfflineProgress, 60000); // offline progress every minute
 
+// At the end of init()
+showPage(0);  // Already in your code
+initPages();  // Make sure pages are positioned correctly
 init();

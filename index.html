@@ -1,202 +1,76 @@
-/* ===================== RESET ===================== */
-* {
-  box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nova RNG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Courier New", Courier, monospace;
-  background: radial-gradient(circle at top, #111 0%, #050505 60%);
-  color: #eee;
-  overflow: hidden;
-  touch-action: manipulation;
-}
+<!-- Mute Button -->
+<button id="mute-btn" class="top-btn">🔊</button>
 
-.container {
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
+<div class="container">
 
-/* ===================== PAGES ===================== */
-.page {
-  position: absolute;      /* stacked pages */
-  inset: 0;
-  padding: 40px;
-  background: linear-gradient(180deg, #0f0f0f, #080808);
-  color: #eee;
-  transition: transform 0.5s ease; /* smooth swipe */
-  overflow-y: auto;
-  box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
-}
+  <!-- Page 1: Roll -->
+  <div class="page" id="page1">
+    <h1>Nova RNG</h1>
+    <div id="login-streak">Login Streak: 0</div>
 
-/* ===================== HEADERS ===================== */
-h1, h2 {
-  text-align: center;
-  color: #ffdd55;
-  margin: 0 0 10px;
-  text-shadow: 0 0 12px rgba(255,221,85,0.4);
-}
+    <div id="roll-buttons">
+      <button id="pick-btn" class="roll-btn">🎲 Roll</button>
+      <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
+      <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+    </div>
 
-/* ===================== LOGIN STREAK ===================== */
-#login-streak {
-  text-align: center;
-  margin-bottom: 12px;
-  font-weight: bold;
-  color: #55cfff;
-  text-shadow: 0 0 6px rgba(85,207,255,0.5);
-}
+    <div id="result"><div class="result-text">🎉 Ready to roll!</div></div>
+    <div id="roll-history"></div>
+  </div>
 
-/* ===================== ROLL BUTTONS ===================== */
-#roll-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
+  <!-- Page 2: Odds -->
+  <div class="page" id="page2">
+    <h2>Rarity Odds</h2>
+    <div id="odds-panel"></div>
+  </div>
 
-.roll-btn-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  <!-- Page 3: Upgrades -->
+  <div class="page" id="page3">
+    <h2>Upgrades</h2>
+    <div id="upgrades-panel"></div>
+  </div>
 
-button.roll-btn {
-  padding: 12px 22px;
-  font-weight: bold;
-  cursor: pointer;
-  background: linear-gradient(180deg, #1e1e1e, #111);
-  color: #fff;
-  border: 2px solid #444;
-  border-radius: 10px;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
-}
+  <!-- Page 4: Stats -->
+  <div class="page" id="page4">
+    <h2>Your Stats</h2>
+    <div id="stats-panel"></div>
+    <button id="reset-stats" class="roll-btn">Reset Stats</button>
+  </div>
 
-button.roll-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #2a2a2a, #151515);
-  color: #ffdd55;
-  border-color: #ffdd55;
-  transform: translateY(-2px);
-}
+  <!-- Page 5: Rebirth & Prestige -->
+  <div class="page" id="page5">
+    <h2>Rebirth & Prestige</h2>
+    <div class="stats-box"><span>Rebirths</span><span id="rebirth-count">0</span></div>
+    <div class="stats-box"><span>Prestiges</span><span id="prestige-count">0</span></div>
+    <div class="stats-box"><span>Point Multiplier</span><span id="multiplier-display">1.00×</span></div>
+    <button id="rebirth-btn" class="roll-btn">🔁 Rebirth</button>
+    <button id="prestige-btn" class="roll-btn">⭐ Prestige</button>
+  </div>
 
-button.roll-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+  <!-- Page 6: Settings -->
+  <div class="page" id="page6">
+    <h2>Settings</h2>
+    <div class="stats-box">Lockscreen: <span id="lockscreen-status">Off</span></div>
+    <div class="stats-box">Offline Upgrade: <span id="offline-status">Locked</span></div>
+    <div class="stats-box">Sound: <span id="sound-status">On</span></div>
+    <div class="stats-box">Other settings can go here...</div>
+  </div>
 
-/* ===================== RESULT ===================== */
-#result {
-  margin-top: 22px;
-  font-size: 1.7rem;
-  text-align: center;
-  color: #ffdd55;
-  min-height: 56px;
-  position: relative;
-  overflow: hidden;
-  text-shadow: 0 0 10px rgba(255,221,85,0.4);
-}
+</div>
 
-.result-text {
-  position: relative;
-  z-index: 1;
-}
+<!-- Popup -->
+<div id="popup"></div>
 
-.wipe-bar {
-  position: absolute;
-  inset: 0;
-  left: -100%;
-  background: linear-gradient(90deg, rgba(0,157,255,0), rgba(0,157,255,0.95), rgba(0,157,255,0));
-  z-index: 2;
-  animation: wipeLeftToRight 0.65s ease forwards;
-}
-
-@keyframes wipeLeftToRight {
-  0% { left: -100%; }
-  50% { left: 0%; }
-  100% { left: 100%; }
-}
-
-/* ===================== ROLL HISTORY ===================== */
-#roll-history {
-  margin-top: 18px;
-  font-size: 0.95rem;
-  color: #ccc;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-/* ===================== ODDS PANEL ===================== */
-#odds-panel {
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 20px;
-}
-
-.odds-box {
-  background: linear-gradient(180deg, #191919, #101010);
-  border: 2px solid #333;
-  border-radius: 12px;
-  padding: 14px 20px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1.05rem;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.7);
-}
-
-.odds-box:hover {
-  border-color: #009dff;
-  box-shadow: 0 0 14px rgba(0,157,255,0.35);
-}
-
-/* ===================== STATS ===================== */
-#stats-panel {
-  margin-top: 16px;
-  padding: 14px;
-  border-top: 2px solid #333;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stats-box {
-  background: #111;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.95rem;
-  color: #ffdd55;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
-}
-
-/* ===================== POPUP ===================== */
-#popup {
-  position: fixed;
-  bottom: 14px;
-  right: 14px;
-  background: #1c1c1c;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  opacity: 0.95;
-  display: none;
-  z-index: 100;
-  box-shadow: 0 0 14px rgba(0,0,0,0.9);
-  pointer-events: none;
-}
-
-/* ===================== MOBILE ===================== */
-@media (max-width: 480px) {
-  .page { padding: 18px 12px; }
-  #result { font-size: 1.35rem; }
-  button.roll-btn { padding: 10px 14px; font-size: 0.9rem; }
-}
+<script src="script.js"></script>
+</body>
+</html>

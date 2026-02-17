@@ -63,12 +63,17 @@ body[data-theme="blue"] {
 .page {
   position: absolute;
   inset: 0;
-  padding: 30px 20px;
-  background: var(--bg-gradient);
-  color: var(--text-color);
-  transition: transform 0.5s ease, background 0.3s, color 0.3s;
+  width: 100%;
+  height: 100%;
+  padding: 40px;
+
+  background: linear-gradient(180deg, #0f0f0f, #080808);
+  color: inherit;
+
+  transform: translateX(100%);
+  transition: transform 0.5s ease;
+
   overflow-y: auto;
-  display: none; /* only show the active page */
 }
 
 .page.active {

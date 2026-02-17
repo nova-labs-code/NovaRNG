@@ -1,151 +1,202 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Nova RNG</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
+/* ===================== RESET ===================== */
+* {
+  box-sizing: border-box;
+}
 
-<!-- Mute Button -->
-<button id="mute-btn" style="
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
-  padding: 10px;
-  font-size: 16px;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Courier New", Courier, monospace;
+  background: radial-gradient(circle at top, #111 0%, #050505 60%);
+  color: #eee;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===================== PAGES ===================== */
+.page {
+  position: absolute;      /* stacked pages */
+  inset: 0;
+  padding: 40px;
+  background: linear-gradient(180deg, #0f0f0f, #080808);
+  color: #eee;
+  transition: transform 0.5s ease; /* smooth swipe */
+  overflow-y: auto;
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
+}
+
+/* ===================== HEADERS ===================== */
+h1, h2 {
+  text-align: center;
+  color: #ffdd55;
+  margin: 0 0 10px;
+  text-shadow: 0 0 12px rgba(255,221,85,0.4);
+}
+
+/* ===================== LOGIN STREAK ===================== */
+#login-streak {
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: #55cfff;
+  text-shadow: 0 0 6px rgba(85,207,255,0.5);
+}
+
+/* ===================== ROLL BUTTONS ===================== */
+#roll-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.roll-btn-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+button.roll-btn {
+  padding: 12px 22px;
+  font-weight: bold;
   cursor: pointer;
-">🔊</button>
+  background: linear-gradient(180deg, #1e1e1e, #111);
+  color: #fff;
+  border: 2px solid #444;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+}
 
-<div class="container">
+button.roll-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #2a2a2a, #151515);
+  color: #ffdd55;
+  border-color: #ffdd55;
+  transform: translateY(-2px);
+}
 
-  <!-- Page 1: Roll -->
-  <div class="page" id="page1">
-    <h1>Nova RNG</h1>
-    <div id="login-streak">Login Streak: 0</div>
+button.roll-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
-    <div id="roll-buttons">
-      <div class="roll-btn-container">
-        <button id="pick-btn" class="roll-btn">🎲 Roll</button>
-      </div>
-      <div class="roll-btn-container">
-        <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
-      </div>
-      <div class="roll-btn-container">
-        <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
-      </div>
-    </div>
+/* ===================== RESULT ===================== */
+#result {
+  margin-top: 22px;
+  font-size: 1.7rem;
+  text-align: center;
+  color: #ffdd55;
+  min-height: 56px;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 0 10px rgba(255,221,85,0.4);
+}
 
-    <div id="result">
-      <div class="result-text">🎉 Ready to roll!</div>
-    </div>
+.result-text {
+  position: relative;
+  z-index: 1;
+}
 
-    <div id="roll-history"></div>
-  </div>
+.wipe-bar {
+  position: absolute;
+  inset: 0;
+  left: -100%;
+  background: linear-gradient(90deg, rgba(0,157,255,0), rgba(0,157,255,0.95), rgba(0,157,255,0));
+  z-index: 2;
+  animation: wipeLeftToRight 0.65s ease forwards;
+}
 
-  <!-- Page 2: Odds -->
-  <div class="page" id="page2">
-    <h2>Rarity Odds</h2>
-    <div id="odds-panel"></div>
-  </div>
+@keyframes wipeLeftToRight {
+  0% { left: -100%; }
+  50% { left: 0%; }
+  100% { left: 100%; }
+}
 
-  <!-- Page 3: Upgrades -->
-  <div class="page" id="page3">
-    <h2>Upgrades</h2>
-    <div id="upgrades-panel"></div>
-  </div>
+/* ===================== ROLL HISTORY ===================== */
+#roll-history {
+  margin-top: 18px;
+  font-size: 0.95rem;
+  color: #ccc;
+  max-height: 180px;
+  overflow-y: auto;
+}
 
-  <!-- Page 4: Stats -->
-  <div class="page" id="page4">
-    <h2>Your Stats</h2>
-    <div id="stats-panel"></div>
-    <button id="reset-stats">Reset Stats</button>
-  </div>
+/* ===================== ODDS PANEL ===================== */
+#odds-panel {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
+}
 
-  <!-- Page 5: Rebirth & Prestige -->
-  <div class="page" id="page5">
-    <h2>Rebirth & Prestige</h2>
+.odds-box {
+  background: linear-gradient(180deg, #191919, #101010);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.05rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.7);
+}
 
-    <div class="stats-box">
-      <span>Rebirths</span>
-      <span id="rebirth-count">0</span>
-    </div>
+.odds-box:hover {
+  border-color: #009dff;
+  box-shadow: 0 0 14px rgba(0,157,255,0.35);
+}
 
-    <div class="stats-box">
-      <span>Prestige</span>
-      <span id="prestige-count">0</span>
-    </div>
+/* ===================== STATS ===================== */
+#stats-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border-top: 2px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-    <div class="stats-box">
-      <span>Point Multiplier</span>
-      <span id="multiplier-display">1.00×</span>
-    </div>
+.stats-box {
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #ffdd55;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+}
 
-    <button id="rebirth-btn" class="roll-btn" style="margin-top:15px;">
-      🔁 Rebirth (500,000 points)
-    </button>
+/* ===================== POPUP ===================== */
+#popup {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  background: #1c1c1c;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  opacity: 0.95;
+  display: none;
+  z-index: 100;
+  box-shadow: 0 0 14px rgba(0,0,0,0.9);
+  pointer-events: none;
+}
 
-    <button id="prestige-btn" class="roll-btn" style="margin-top:10px;">
-      ⭐ Prestige (1000 rebirths)
-    </button>
-  </div>
-
-  <!-- Page 6: Settings -->
-  <div class="page" id="page6">
-    <h2>Settings</h2>
-
-    <div class="stats-box">
-      <label>
-        <input type="checkbox" id="toggle-idle" checked>
-        Enable Idle Points
-      </label>
-    </div>
-
-    <div class="stats-box">
-      <label>
-        <input type="checkbox" id="toggle-lockscreen" checked>
-        Show Lock Screen Stats
-      </label>
-    </div>
-
-    <div class="stats-box">
-      <label>
-        <input type="checkbox" id="toggle-music" checked>
-        Background Music
-      </label>
-    </div>
-
-    <div class="stats-box">
-      <label>
-        <input type="checkbox" id="toggle-autohints" checked>
-        Show Auto-Roll Hints
-      </label>
-    </div>
-
-    <div class="stats-box">
-      <label>
-        <input type="checkbox" id="toggle-globalmute">
-        Global Mute
-      </label>
-    </div>
-  </div>
-
-  <!-- Lock Screen Panel -->
-  <div id="lockscreen-panel">
-    <span>Total Rolls: <span id="lock-total-rolls">0</span></span>
-    <span>Rarest Rolled: <span id="lock-rarest">???</span></span>
-  </div>
-
-  <!-- Idle Points Panel -->
-  <div id="idle-points">Idle Points: 0</div>
-
-  <!-- Popup -->
-  <div id="popup"></div>
-
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>
+/* ===================== MOBILE ===================== */
+@media (max-width: 480px) {
+  .page { padding: 18px 12px; }
+  #result { font-size: 1.35rem; }
+  button.roll-btn { padding: 10px 14px; font-size: 0.9rem; }
+}

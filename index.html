@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <!-- Mute Button -->
 <button id="mute-btn" style="
   position: fixed;
@@ -83,52 +82,35 @@
       <span id="multiplier-display">1.00×</span>
     </div>
 
-    <button id="rebirth-btn" class="roll-btn" style="margin-top:15px;">
-      🔁 Rebirth (500,000 points)
-    </button>
-
-    <button id="prestige-btn" class="roll-btn" style="margin-top:10px;">
-      ⭐ Prestige (1000 rebirths)
-    </button>
+    <button id="rebirth-btn" class="roll-btn">🔁 Rebirth (500,000 points)</button>
+    <button id="prestige-btn" class="roll-btn">⭐ Prestige (1000 rebirths)</button>
   </div>
 
   <!-- Page 6: Settings -->
   <div class="page" id="page6">
     <h2>Settings</h2>
 
-    <div class="settings-box">
-      <label>Volume: <span id="volume-label">25%</span></label>
-      <input type="range" id="volume-slider" min="0" max="100" value="25">
+    <div class="settings-item">
+      <label for="volume-slider">Volume: <span id="volume-label">25%</span></label>
+      <input type="range" min="0" max="100" value="25" id="volume-slider">
     </div>
 
-    <div class="settings-box">
-      <label><input type="checkbox" id="mute-toggle"> Mute</label>
+    <div class="settings-item">
+      <label for="mute-toggle">Mute</label>
+      <input type="checkbox" id="mute-toggle">
     </div>
 
-    <div class="settings-box">
-      <label>Theme:
-        <select id="theme-select">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="gradient">Gradient</option>
-        </select>
-      </label>
+    <div class="settings-item">
+      <label for="theme-select">Theme</label>
+      <select id="theme-select">
+        <option value="default">Default</option>
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
     </div>
 
-    <div class="settings-box">
-      <label><input type="checkbox" id="auto-roll-default"> Start Auto-Roll by default</label>
-    </div>
-
-    <div class="settings-box">
-      <label><input type="checkbox" id="show-roll-history" checked> Show Roll History</label>
-    </div>
-
-    <div class="settings-box">
-      <label><input type="checkbox" id="show-stats-total-rolls" checked> Show Total Rolls in Stats</label>
-    </div>
-
-    <div class="settings-box">
-      <button id="reset-game-btn" class="roll-btn">Reset Game Data</button>
+    <div class="settings-item">
+      <button id="reset-game-btn" class="roll-btn">Reset All Progress</button>
     </div>
   </div>
 

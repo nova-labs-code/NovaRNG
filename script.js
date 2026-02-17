@@ -11,6 +11,7 @@ let points = parseFloat(localStorage.getItem("points")) || 0;
 let rebirths = parseInt(localStorage.getItem("rebirths")) || 0;
 let prestiges = parseInt(localStorage.getItem("prestiges")) || 0;
 
+// Flags
 let canRoll = true;
 let autoRollInterval = null;
 let isAutoRolling = false;
@@ -84,6 +85,7 @@ function showPopup(msg){
   setTimeout(()=>popup.style.display="none",3000);
 }
 
+// ==================== DATA SAVE ====================
 function saveData(){
   localStorage.setItem("owned", JSON.stringify(owned));
   localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
@@ -104,7 +106,7 @@ function saveData(){
   });
   localStorage.setItem("upgrades", JSON.stringify(upgradeSave));
 
-  // 🔹 Track last update time for offline rolls
+  // Track last update timestamp for offline calculation
   localStorage.setItem("lastUpdate", Date.now());
 }
 
@@ -120,9 +122,7 @@ function checkLoginStreak(){
   if(lastLogin){
     const y = new Date();
     y.setDate(y.getDate()-1);
-    loginStreak = lastLogin === y.toISOString().split("T")[0]
-      ? loginStreak + 1
-      : 1;
+    loginStreak = lastLogin === y.toISOString().split("T")[0] ? loginStreak + 1 : 1;
   } else loginStreak = 1;
 
   lastLogin = today;
@@ -146,7 +146,6 @@ function getExtraRolls(){
   return upgrade?.level ? Math.min(upgrade.level,5) : 0;
 }
 
-// ==================== SPEED HELPERS ====================
 function getSpeedBonus(){
   let bonus = 0;
   const s1 = upgrades.find(u=>u.id==="speed1");
@@ -166,7 +165,7 @@ function getRollDelay(){
   return Math.max(120, base - reduction);
 }
 
-// ==================== ROLL ====================
+// ==================== ROLL FUNCTION ====================
 function roll(extra=0, offline=false){
   if(!canRoll || rarities.length===0) return;
   if (!offline) canRoll=false;
@@ -196,7 +195,6 @@ function roll(extra=0, offline=false){
       owned[r.rarity]=(owned[r.rarity]||0)+1;
       if(!offline) rollHistory.push(r.rarity);
 
-      // Apply offline efficiency if offline
       let efficiency = offline ? 0.25 : 1;
       points += ((r.number/2) * mult * Math.pow(1.5, rebirths*rebirthMultiplier) * Math.pow(1.5, prestiges*prestigeMultiplier)) * efficiency;
 
@@ -347,44 +345,43 @@ function updateAutoRollButtons(){
   fastAutoRollBtn.innerText = isFastAutoRolling ? "Stop Fast Auto Roll" : "Fast Auto Roll";
 }
 
-// ==================== OFFLINE PROGRESS ====================
-function applyOfflineProgress() {
-  const lastUpdate = parseInt(localStorage.getItem("lastUpdate") || Date.now());
-  const now = Date.now();
+// ==================== OFFLINE / BACKGROUND ROLL ====================
+function applyOfflineProgressContinuous(){
   const offlineUpgrade = upgrades.find(u=>u.id==="offline" && u.unlocked);
+  if(!offlineUpgrade) return;
 
-  if (!offlineUpgrade) return;
+  setInterval(()=>{
+    const lastUpdate = parseInt(localStorage.getItem("lastUpdate") || Date.now());
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - lastUpdate)/1000);
+    if(elapsedSeconds <= 0) return;
 
-  const elapsedSeconds = Math.floor((now - lastUpdate) / 1000);
-  if (elapsedSeconds <= 0) return;
+    // Scale rolls & points by upgrades
+    const extraRolls = getExtraRolls();
+    const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
+    const mult = 1 + ((multUpgrade?.level||0) * 0.08);
+    const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
+    const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);
+    const prestigeUpgrade = upgrades.find(u=>u.id==="prestigeLimit");
+    const prestigeMultiplier = 1 + (prestigeUpgrade?.level||0);
 
-  const extraRolls = getExtraRolls();
-  const totalRollsOffline = Math.floor(elapsedSeconds);
+    for(let i=0;i<elapsedSeconds;i++){
+      for(let r=0;r<1 + extraRolls;r++){
+        const rarity = getRandomRarity();
+        owned[rarity.rarity]=(owned[rarity.rarity]||0)+1;
+        totalRolls++;
+        points += ((rarity.number/2) * mult * Math.pow(1.5, rebirths*rebirthMultiplier) * Math.pow(1.5, prestiges*prestigeMultiplier)) * 0.25;
+      }
+    }
 
-  for(let i=0;i<totalRollsOffline;i++){
-    roll(extraRolls, true); // offline mode
-  }
-
-  showPopup(`Offline progress applied: ${totalRollsOffline} rolls`);
+    rollHistory = rollHistory.slice(-5);
+    updateRollHistory();
+    updateOdds();
+    updateStatsText();
+    updateUpgrades();
+    saveData();
+  }, 1000); // apply every second
 }
-
-// ==================== EVENTS ====================
-pickBtn.onclick = ()=>roll(getExtraRolls());
-autoRollBtn.onclick = ()=>isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
-fastAutoRollBtn.onclick = ()=>isFastAutoRolling ? stopAutoRoll() : startAutoRoll(500);
-
-resetStatsBtn.onclick = async()=>{
-  owned={}; rollHistory=[]; totalRolls=0; points=0;
-  rebirths=0; prestiges=0;
-  localStorage.removeItem("upgrades");
-
-  upgrades = await fetch("upgrades.json").then(r=>r.json());
-  saveData();
-  updateUpgrades();
-  updateStatsText();
-  updateOdds();
-  showPopup("Stats reset");
-};
 
 // ==================== INIT ====================
 async function init(){
@@ -404,7 +401,8 @@ async function init(){
     }
   });
 
-  applyOfflineProgress(); // 🔹 apply offline progress on startup
+  applyOfflineProgress();          // offline progress at startup
+  applyOfflineProgressContinuous(); // continuous offline accumulation
 
   updateOdds();
   updateStatsText();
@@ -414,6 +412,24 @@ async function init(){
   updateAutoRollButtons();
   showPage(0);
 }
+
+// ==================== EVENTS ====================
+pickBtn.onclick = ()=>roll(getExtraRolls());
+autoRollBtn.onclick = ()=>isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
+fastAutoRollBtn.onclick = ()=>isFastAutoRolling ? stopAutoRoll() : startAutoRoll(500);
+
+resetStatsBtn.onclick = async()=>{
+  owned={}; rollHistory=[]; totalRolls=0; points=0;
+  rebirths=0; prestiges=0;
+  localStorage.removeItem("upgrades");
+
+  upgrades = await fetch("upgrades.json").then(r=>r.json());
+  saveData();
+  updateUpgrades();
+  updateStatsText();
+  updateOdds();
+  showPopup("Stats reset");
+};
 
 init();
 
@@ -437,7 +453,7 @@ if (!Audio.prototype._originalPlay) {
   };
 }
 
-// ==================== BACKGROUND MUSIC ====================
+// ==================== MUSIC ====================
 const SONG_COUNT = 21;
 const SONG_PREFIX = "song";
 const SONG_EXT = ".mp3";
@@ -456,7 +472,6 @@ function getRandomSong() {
 
 function playRandomMusic() {
   if (currentMusic) { currentMusic.pause(); currentMusic.currentTime = 0; }
-
   const trackSrc = getRandomSong();
   currentMusic = new Audio(trackSrc);
   currentMusic.volume = 0.25;

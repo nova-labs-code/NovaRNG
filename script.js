@@ -1,7 +1,6 @@
 // ===================== DATA =====================
 let rarities = [];
 let upgrades = [];
-let idleMessages = [];
 
 let owned = JSON.parse(localStorage.getItem("owned")) || {};
 let rollHistory = JSON.parse(localStorage.getItem("rollHistory")) || [];
@@ -30,6 +29,7 @@ const pickBtn = document.getElementById("pick-btn");
 const autoRollBtn = document.getElementById("auto-roll-btn");
 const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
 const resetStatsBtn = document.getElementById("reset-stats");
+const muteBtn = document.getElementById("mute-btn");
 
 // ===================== PAGE SWIPE =====================
 let currentPage = 0;
@@ -103,7 +103,6 @@ function saveData(){
       price: u.price
     };
   });
-
   localStorage.setItem("upgrades", JSON.stringify(upgradeSave));
 }
 
@@ -134,7 +133,6 @@ function getRandomRarity(){
   let total = rarities.reduce((s,r)=>s+(1/r.number),0);
   let rand = Math.random()*total;
   let acc = 0;
-
   for(const r of rarities){
     acc += 1/r.number;
     if(rand <= acc) return r;
@@ -152,11 +150,9 @@ function getSpeedBonus(){
   const s1 = upgrades.find(u=>u.id==="speed1");
   const s2 = upgrades.find(u=>u.id==="speed2");
   const s3 = upgrades.find(u=>u.id==="speed3");
-
   if(s1?.level) bonus += s1.level * 1;
   if(s2?.level) bonus += s2.level * 2;
   if(s3?.level) bonus += s3.level * 5;
-
   return bonus;
 }
 
@@ -170,10 +166,8 @@ function getRollDelay(){
 function roll(extra=0){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
-
   const rolls = 1 + extra;
   const results = [];
-
   for(let i=0;i<rolls;i++){
     results.push(getRandomRarity());
   }
@@ -188,10 +182,8 @@ function roll(extra=0){
 
     const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
     const mult = 1 + ((multUpgrade?.level||0) * 0.08);
-
     const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
     const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);
-
     const prestigeUpgrade = upgrades.find(u=>u.id==="prestigeLimit");
     const prestigeMultiplier = 1 + (prestigeUpgrade?.level||0);
 
@@ -203,7 +195,6 @@ function roll(extra=0){
     });
 
     rollHistory = rollHistory.slice(-5);
-
     updateRollHistory();
     updateOdds();
     updateStatsText();
@@ -224,7 +215,6 @@ function updateRollHistory(){
 function updateOdds(){
   oddsPanel.innerHTML="";
   const total = rarities.reduce((s,r)=>s+(1/r.number),0);
-
   rarities.forEach(r=>{
     const ownedCount = owned[r.rarity]||0;
     const chance = ((1/r.number)/total*100).toFixed(6);
@@ -250,11 +240,9 @@ function updateStatsText(){
 // ===================== UPGRADES =====================
 function updateUpgrades(){
   upgradesPanel.innerHTML = "";
-
   upgrades.forEach(u=>{
     const div = document.createElement("div");
     div.className = "upgrade-box";
-
     if(u.multiBuy && !u.infinite){
       const pct = ((u.level||0)/(u.maxLevel||1))*100;
       div.style.background = `linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
@@ -265,14 +253,9 @@ function updateUpgrades(){
       div.style.background = u.unlocked ? "#55aa55" : "#222";
     }
 
-    let levelText = "";
-    if(u.multiBuy && !u.infinite){
-      levelText = `Level: ${u.level||0}/${u.maxLevel||1}`;
-    } else if(u.infinite){
-      levelText = `Purchased: ${u.level||0} times`;
-    } else {
-      levelText = u.unlocked ? "✅ Unlocked" : "🔒 Locked";
-    }
+    let levelText = u.multiBuy && !u.infinite ? `Level: ${u.level||0}/${u.maxLevel||1}` :
+                    u.infinite ? `Purchased: ${u.level||0} times` :
+                    u.unlocked ? "✅ Unlocked" : "🔒 Locked";
 
     div.innerHTML = `
       <strong>${u.name}</strong>
@@ -306,7 +289,6 @@ function updateUpgrades(){
         updateStatsText();
       };
     }
-
     upgradesPanel.appendChild(div);
   });
 }
@@ -316,10 +298,7 @@ function startAutoRoll(interval){
   stopAutoRoll();
   if(interval===1000) isAutoRolling=true;
   if(interval===500) isFastAutoRolling=true;
-
-  autoRollInterval=setInterval(()=>{
-    if(canRoll) roll(getExtraRolls());
-  }, Math.max(120, interval - getSpeedBonus()*40));
+  autoRollInterval=setInterval(()=>{ if(canRoll) roll(getExtraRolls()); }, Math.max(120, interval - getSpeedBonus()*40));
 }
 
 function stopAutoRoll(){
@@ -332,10 +311,8 @@ function stopAutoRoll(){
 function updateAutoRollButtons(){
   const auto = upgrades.find(u=>u.id==="autoRoll" && u.unlocked);
   const fast = upgrades.find(u=>u.id==="fastAuto" && u.unlocked);
-
   autoRollBtn.disabled = !auto;
   fastAutoRollBtn.disabled = !fast;
-
   autoRollBtn.innerText = isAutoRolling ? "Stop Auto Roll" : "Auto Roll";
   fastAutoRollBtn.innerText = isFastAutoRolling ? "Stop Fast Auto Roll" : "Fast Auto Roll";
 }
@@ -346,8 +323,7 @@ autoRollBtn.onclick = ()=>isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
 fastAutoRollBtn.onclick = ()=>isFastAutoRolling ? stopAutoRoll() : startAutoRoll(500);
 
 resetStatsBtn.onclick = async()=>{
-  owned={}; rollHistory=[]; totalRolls=0; points=0;
-  rebirths=0; prestiges=0;
+  owned={}; rollHistory=[]; totalRolls=0; points=0; rebirths=0; prestiges=0;
   localStorage.removeItem("upgrades");
   upgrades = await fetch("upgrades.json").then(r=>r.json());
   saveData();
@@ -357,121 +333,101 @@ resetStatsBtn.onclick = async()=>{
   showPopup("Stats reset");
 };
 
-// ===================== IDLE POPUPS =====================
-async function loadIdleMessages(){
-  idleMessages = await fetch("idle.json").then(r=>r.json());
+// ===================== INIT =====================
+async function init(){
+  rarities = await fetch("rarities.json").then(r=>r.json());
+  upgrades = await fetch("upgrades.json").then(r=>r.json());
+  const saved = JSON.parse(localStorage.getItem("upgrades")) || {};
+  upgrades.forEach(u=>{
+    const s = saved[u.id];
+    if(s){ u.level = s.level; u.unlocked = s.unlocked; u.price = s.price; } 
+    else { u.level = u.multiBuy || u.infinite ? 0 : undefined; u.unlocked = false; }
+  });
+  updateOdds(); updateStatsText(); updateUpgrades(); updateRollHistory();
+  checkLoginStreak(); updateAutoRollButtons(); showPage(0);
 }
+init();
 
-function showIdlePopup(){
-  if(idleMessages.length===0) return;
-  const msg = idleMessages[Math.floor(Math.random()*idleMessages.length)];
-  popup.innerText = msg;
-  popup.style.display="block";
-  setTimeout(()=>popup.style.display="none",3000);
-}
-
-function startIdlePopups(){
-  setInterval(()=>{
-    if(!isAutoRolling && !isFastAutoRolling){
-      showIdlePopup();
-    }
-  },15000 + Math.random()*10000);
-}
-
-// ===================== GLOBAL MUTE =====================
+// ==================== GLOBAL MUTE ====================
 let isMuted = false;
-const muteBtn = document.createElement("button");
-muteBtn.id = "mute-btn";
-muteBtn.textContent = "🔊";
-document.body.appendChild(muteBtn);
-
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
-  if(currentMusic) currentMusic.muted = isMuted;
-  document.querySelectorAll("audio, video").forEach(media=>media.muted=isMuted);
+  if (currentMusic) currentMusic.muted = isMuted;
+  document.querySelectorAll("audio, video").forEach(media => { media.muted = isMuted; });
 });
-
-if(!Audio.prototype._originalPlay){
+if (!Audio.prototype._originalPlay) {
   Audio.prototype._originalPlay = Audio.prototype.play;
-  Audio.prototype.play = function(){
-    this.muted = isMuted;
-    return this._originalPlay.apply(this, arguments);
-  };
+  Audio.prototype.play = function () { this.muted = isMuted; return this._originalPlay.apply(this, arguments); };
 }
 
-// ===================== BACKGROUND MUSIC =====================
+// ==================== BACKGROUND MUSIC ====================
 const SONG_COUNT = 21;
 const SONG_PREFIX = "song";
 const SONG_EXT = ".mp3";
-let currentMusic = null;
-let musicStarted = false;
-let lastSong = null;
+let currentMusic = null, musicStarted = false, lastSong = null;
 
-function getRandomSong(){
+function getRandomSong() {
   let index;
-  do{
-    index = Math.floor(Math.random()*SONG_COUNT)+1;
-  }while(index===lastSong && SONG_COUNT>1);
+  do { index = Math.floor(Math.random()*SONG_COUNT)+1; } 
+  while(index === lastSong && SONG_COUNT > 1);
   lastSong = index;
   return `${SONG_PREFIX}${index}${SONG_EXT}`;
 }
 
 function playRandomMusic(){
-  if(currentMusic){
-    currentMusic.pause();
-    currentMusic.currentTime=0;
-  }
+  if(currentMusic){ currentMusic.pause(); currentMusic.currentTime=0; }
   const trackSrc = getRandomSong();
   currentMusic = new Audio(trackSrc);
-  currentMusic.volume=0.25;
-  currentMusic.preload="auto";
-  currentMusic.loop=false;
-  currentMusic.muted=isMuted;
-  currentMusic.addEventListener("ended",playRandomMusic);
-  currentMusic.play().catch(err=>{
-    console.log("Music blocked until interaction:",err);
-  });
+  currentMusic.volume=0.25; currentMusic.preload="auto"; currentMusic.loop=false; currentMusic.muted=isMuted;
+  currentMusic.addEventListener("ended", playRandomMusic);
+  currentMusic.play().catch(err=>console.log("Music blocked until interaction:", err));
 }
 
 function startMusic(){
-  if(!musicStarted){
-    playRandomMusic();
-    musicStarted=true;
-  }
+  if(!musicStarted){ playRandomMusic(); musicStarted=true; }
 }
 
 ["click","touchstart","keydown"].forEach(evt=>{
-  document.addEventListener(evt,startMusic,{once:true});
+  document.addEventListener(evt, startMusic, {once:true});
 });
 
-// ===================== INIT =====================
-async function init(){
-  rarities = await fetch("rarities.json").then(r=>r.json());
-  upgrades = await fetch("upgrades.json").then(r=>r.json());
-  await loadIdleMessages();
+// ==================== IDLE MESSAGES ====================
+let idleMessages = [];
+let lastInteraction = Date.now();
+let idleChangeTimer = null;
+let idleStartTimer = null;
 
-  const saved = JSON.parse(localStorage.getItem("upgrades"))||{};
-  upgrades.forEach(u=>{
-    const s=saved[u.id];
-    if(s){
-      u.level=s.level;
-      u.unlocked=s.unlocked;
-      u.price=s.price;
-    } else {
-      u.level=u.multiBuy||u.infinite?0:undefined;
-      u.unlocked=false;
-    }
-  });
+// Load idle messages
+fetch("idle.json").then(r=>r.json()).then(data=>idleMessages=data).catch(e=>console.error(e));
 
-  updateOdds();
-  updateStatsText();
-  updateUpgrades();
-  updateRollHistory();
-  checkLoginStreak();
-  updateAutoRollButtons();
-  showPage(0);
-  startIdlePopups();
+// Reset idle timers
+function resetIdleTimers() {
+  lastInteraction = Date.now();
+  if(idleChangeTimer) clearInterval(idleChangeTimer);
+  if(idleStartTimer) clearTimeout(idleStartTimer);
+  idleStartTimer = setTimeout(startIdleMessages, 45000); // 45s inactivity
 }
 
-init();
+// Show idle message
+function showIdleMessage() {
+  if(idleMessages.length===0) return;
+  const msg = idleMessages[Math.floor(Math.random()*idleMessages.length)];
+  showPopup(msg);
+}
+
+// Start showing idle messages every 6s
+function startIdleMessages() {
+  showIdleMessage();
+  idleChangeTimer = setInterval(()=>{
+    if(Date.now() - lastInteraction >= 45000) showIdleMessage();
+    else clearInterval(idleChangeTimer);
+  }, 6000);
+}
+
+// Reset idle timers on player activity
+["click","touchstart","keydown","mousemove"].forEach(evt=>{
+  document.addEventListener(evt, resetIdleTimers, true);
+});
+
+resetIdleTimers();

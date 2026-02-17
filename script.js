@@ -1,4 +1,4 @@
-// -------------------- DATA --------------------
+// ===================== DATA =====================
 let rarities = [];
 let upgrades = [];
 
@@ -16,15 +16,7 @@ let autoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
 
-// -------------------- USER SETTINGS --------------------
-let userSettings = JSON.parse(localStorage.getItem("userSettings")) || {
-    theme: "dark",
-    volume: 25,
-    autoRollOnStart: false,
-    fastAutoOnStart: false
-};
-
-// -------------------- DOM --------------------
+// ===================== DOM =====================
 const resultDiv = document.getElementById("result");
 const oddsPanel = document.getElementById("odds-panel");
 const rollHistoryDiv = document.getElementById("roll-history");
@@ -33,434 +25,324 @@ const statsPanel = document.getElementById("stats-panel");
 const upgradesPanel = document.getElementById("upgrades-panel");
 const popup = document.getElementById("popup");
 
-// Buttons
 const pickBtn = document.getElementById("pick-btn");
 const autoRollBtn = document.getElementById("auto-roll-btn");
 const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
 const resetStatsBtn = document.getElementById("reset-stats");
 
-// Settings elements
-const themeSelect = document.getElementById("theme-select");
-const volumeInput = document.getElementById("volume-input");
-const autoRollToggle = document.getElementById("auto-roll-toggle");
-const fastAutoToggle = document.getElementById("fast-auto-toggle");
-
-// -------------------- PAGE SWIPE --------------------
+// ===================== PAGES =====================
 let currentPage = 0;
 const pages = document.querySelectorAll(".page");
 let startX = null;
 let isSwiping = false;
 
 function showPage(index){
-    pages.forEach((page,i)=>{
-        page.style.transform = `translateX(${(i-index)*100}%)`;
-    });
-    currentPage = index;
+  pages.forEach((page,i)=>{
+    page.style.transform = `translateX(${(i-index)*100}%)`;
+  });
+  currentPage = index;
 }
 
 function initPages(){
-    pages.forEach((page,i)=>{
-        page.style.transform = `translateX(${(i-currentPage)*100}%)`;
-        page.addEventListener("touchstart", e=>{
-            startX = e.touches[0].clientX;
-            isSwiping = true;
-        });
-        page.addEventListener("touchmove", e=>{
-            if(!isSwiping) return;
-            const deltaX = e.touches[0].clientX - startX;
-            pages.forEach((p,i)=>{
-                p.style.transition = "none";
-                p.style.transform = `translateX(${(i-currentPage)*100 + deltaX/window.innerWidth*100}%)`;
-            });
-        });
-        page.addEventListener("touchend", e=>{
-            if(!isSwiping) return;
-            const deltaX = e.changedTouches[0].clientX - startX;
-            isSwiping = false;
-            pages.forEach(p=>p.style.transition = "transform 0.5s ease");
-            if(deltaX > 50) showPage(Math.max(0,currentPage-1));
-            else if(deltaX < -50) showPage(Math.min(pages.length-1,currentPage+1));
-            else showPage(currentPage);
-        });
-    });
+  pages.forEach((page,i)=>{
+    page.style.transform = `translateX(${i*100}%)`;
+  });
 }
 
-// -------------------- HELPERS --------------------
+pages.forEach(page=>{
+  page.addEventListener("touchstart", e=>{
+    startX = e.touches[0].clientX;
+    isSwiping = true;
+  });
+  page.addEventListener("touchmove", e=>{
+    if(!isSwiping) return;
+    const deltaX = e.touches[0].clientX - startX;
+    pages.forEach((p,i)=>{
+      p.style.transition = "none";
+      p.style.transform = `translateX(${(i-currentPage)*100 + deltaX / window.innerWidth * 100}%)`;
+    });
+  });
+  page.addEventListener("touchend", e=>{
+    if(!isSwiping) return;
+    const deltaX = e.changedTouches[0].clientX - startX;
+    isSwiping = false;
+    pages.forEach(p=>p.style.transition = "transform 0.5s ease");
+    if(deltaX > 50) showPage(Math.max(0,currentPage-1));
+    else if(deltaX < -50) showPage(Math.min(pages.length-1,currentPage+1));
+    else showPage(currentPage);
+  });
+});
+
+// ===================== HELPERS =====================
 function getRarityColor(number){
-    if(number<=100) return "#aaaaaa";
-    if(number<=215) return "#55ff55";
-    if(number<=330) return "#55aaff";
-    if(number<=400) return "#ffdd55";
-    return "#aa55ff";
+  if(number<=100) return "#aaaaaa";
+  if(number<=215) return "#55ff55";
+  if(number<=330) return "#55aaff";
+  if(number<=400) return "#ffdd55";
+  return "#aa55ff";
 }
 
 function showPopup(msg){
-    popup.innerText = msg;
-    popup.style.display = "block";
-    setTimeout(()=>popup.style.display="none",3000);
+  popup.innerText = msg;
+  popup.style.display = "block";
+  setTimeout(()=>popup.style.display="none",3000);
 }
 
 function saveData(){
-    localStorage.setItem("owned", JSON.stringify(owned));
-    localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
-    localStorage.setItem("loginStreak", loginStreak);
-    localStorage.setItem("totalRolls", totalRolls);
-    localStorage.setItem("lastLogin", lastLogin);
-    localStorage.setItem("points", points);
-    localStorage.setItem("rebirths", rebirths);
-    localStorage.setItem("prestiges", prestiges);
+  localStorage.setItem("owned", JSON.stringify(owned));
+  localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
+  localStorage.setItem("loginStreak", loginStreak);
+  localStorage.setItem("totalRolls", totalRolls);
+  localStorage.setItem("lastLogin", lastLogin);
+  localStorage.setItem("points", points);
+  localStorage.setItem("rebirths", rebirths);
+  localStorage.setItem("prestiges", prestiges);
 
-    const upgradeSave = {};
-    upgrades.forEach(u=>{
-        upgradeSave[u.id] = {
-            level: u.level || 0,
-            unlocked: u.unlocked || false,
-            price: u.price
-        };
-    });
-    localStorage.setItem("upgrades", JSON.stringify(upgradeSave));
-    localStorage.setItem("userSettings", JSON.stringify(userSettings));
+  const upgradeSave = {};
+  upgrades.forEach(u=>{
+    upgradeSave[u.id] = {
+      level: u.level || 0,
+      unlocked: u.unlocked || false,
+      price: u.price
+    };
+  });
+  localStorage.setItem("upgrades", JSON.stringify(upgradeSave));
 }
 
-// -------------------- LOGIN STREAK --------------------
-function updateLoginStreak(){
-    loginStreakDiv.innerText = `Login Streak: ${loginStreak}`;
-}
-
+// ===================== LOGIN STREAK =====================
+function updateLoginStreak(){ loginStreakDiv.innerText=`Login Streak: ${loginStreak}`; }
 function checkLoginStreak(){
-    const today = new Date().toISOString().split("T")[0];
-    if(lastLogin === today){ updateLoginStreak(); return; }
-
-    if(lastLogin){
-        const y = new Date();
-        y.setDate(y.getDate()-1);
-        loginStreak = lastLogin === y.toISOString().split("T")[0]? loginStreak+1 : 1;
-    } else loginStreak = 1;
-
-    lastLogin = today;
-    saveData();
-    updateLoginStreak();
+  const today = new Date().toISOString().split("T")[0];
+  if(lastLogin === today){ updateLoginStreak(); return; }
+  if(lastLogin){
+    const y = new Date(); y.setDate(y.getDate()-1);
+    loginStreak = lastLogin === y.toISOString().split("T")[0] ? loginStreak+1 : 1;
+  } else loginStreak = 1;
+  lastLogin = today;
+  saveData();
+  updateLoginStreak();
 }
 
-// -------------------- ROLL HELPERS --------------------
+// ===================== ROLL HELPERS =====================
 function getRandomRarity(){
-    let total = rarities.reduce((s,r)=>s+(1/r.number),0);
-    let rand = Math.random()*total;
-    let acc = 0;
-    for(const r of rarities){
-        acc += 1/r.number;
-        if(rand <= acc) return r;
-    }
+  let total = rarities.reduce((s,r)=>s+(1/r.number),0);
+  let rand = Math.random()*total;
+  let acc = 0;
+  for(const r of rarities){
+    acc += 1/r.number;
+    if(rand <= acc) return r;
+  }
 }
 
 function getExtraRolls(){
-    const upgrade = upgrades.find(u=>u.id==="extra1");
-    return upgrade?.level? Math.min(upgrade.level,5):0;
+  const upgrade = upgrades.find(u=>u.id==="extra1");
+  return upgrade?.level ? Math.min(upgrade.level,5) : 0;
 }
 
-// -------------------- SPEED HELPERS --------------------
+// ===================== SPEED HELPERS =====================
 function getSpeedBonus(){
-    let bonus=0;
-    ["speed1","speed2","speed3"].forEach(id=>{
-        const u=upgrades.find(u=>u.id===id);
-        if(u?.level) bonus+=u.level* (id==="speed1"?1:id==="speed2"?2:5);
-    });
-    return bonus;
+  let bonus = 0;
+  ["speed1","speed2","speed3"].forEach(id=>{
+    const u = upgrades.find(u=>u.id===id);
+    if(u?.level) bonus += u.level * (id==="speed1"?1:id==="speed2"?2:5);
+  });
+  return bonus;
 }
-
 function getRollDelay(){
-    const base=650;
-    const reduction = getSpeedBonus()*40;
-    return Math.max(120,base-reduction);
+  const base = 650;
+  const reduction = getSpeedBonus() * 40;
+  return Math.max(120, base - reduction);
 }
 
-// -------------------- ROLL --------------------
+// ===================== ROLL =====================
 function roll(extra=0){
-    if(!canRoll || rarities.length===0) return;
-    canRoll=false;
-
-    const rolls=1+extra;
-    const results=[];
-
-    for(let i=0;i<rolls;i++){
-        results.push(getRandomRarity());
-    }
-
-    const wipe = document.createElement("div");
-    wipe.className="wipe-bar";
-    resultDiv.appendChild(wipe);
-
-    setTimeout(()=>{
-        resultDiv.querySelector(".result-text").innerHTML = results.map(r=>`<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
-
-        const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
-        const mult = 1 + ((multUpgrade?.level||0)*0.08);
-        const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
-        const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);
-        const prestigeUpgrade = upgrades.find(u=>u.id==="prestigeLimit");
-        const prestigeMultiplier = 1 + (prestigeUpgrade?.level||0);
-
-        results.forEach(r=>{
-            owned[r.rarity]=(owned[r.rarity]||0)+1;
-            rollHistory.push(r.rarity);
-            points += (r.number/2)*mult*Math.pow(1.5,rebirths*rebirthMultiplier)*Math.pow(1.5,prestiges*prestigeMultiplier);
-            totalRolls++;
-        });
-
-        rollHistory = rollHistory.slice(-5);
-
-        updateRollHistory();
-        updateOdds();
-        updateStatsText();
-        updateUpgrades();
-        updateAutoRollButtons();
-        saveData();
-
-        resultDiv.removeChild(wipe);
-        canRoll=true;
-    }, getRollDelay());
+  if(!canRoll || rarities.length===0) return;
+  canRoll=false;
+  const rolls = 1+extra;
+  const results=[];
+  for(let i=0;i<rolls;i++) results.push(getRandomRarity());
+  const wipe=document.createElement("div");
+  wipe.className="wipe-bar";
+  resultDiv.appendChild(wipe);
+  setTimeout(()=>{
+    resultDiv.querySelector(".result-text").innerHTML=
+      results.map(r=>`<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
+    const multUpgrade=upgrades.find(u=>u.id==="pointsMultiplier");
+    const mult = 1+((multUpgrade?.level||0)*0.08);
+    const rebirthUpgrade=upgrades.find(u=>u.id==="rebirthLimit");
+    const rebirthMultiplier=1+(rebirthUpgrade?.level||0);
+    const prestigeUpgrade=upgrades.find(u=>u.id==="prestigeLimit");
+    const prestigeMultiplier=1+(prestigeUpgrade?.level||0);
+    results.forEach(r=>{
+      owned[r.rarity]=(owned[r.rarity]||0)+1;
+      rollHistory.push(r.rarity);
+      points += (r.number/2)*mult*Math.pow(1.5,rebirths*rebirthMultiplier)*Math.pow(1.5,prestiges*prestigeMultiplier);
+      totalRolls++;
+    });
+    rollHistory = rollHistory.slice(-5);
+    updateRollHistory(); updateOdds(); updateStatsText(); updateUpgrades(); updateAutoRollButtons(); saveData();
+    resultDiv.removeChild(wipe); canRoll=true;
+  }, getRollDelay());
 }
 
-// -------------------- UPDATE PANELS --------------------
-function updateRollHistory(){
-    rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>");
-}
-
+// ===================== UPDATE PANELS =====================
+function updateRollHistory(){ rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>"); }
 function updateOdds(){
-    oddsPanel.innerHTML="";
-    const total=rarities.reduce((s,r)=>s+(1/r.number),0);
-    rarities.forEach(r=>{
-        const ownedCount=owned[r.rarity]||0;
-        const chance=((1/r.number)/total*100).toFixed(6);
-        const div=document.createElement("div");
-        div.className="odds-box";
-        div.style.borderColor=getRarityColor(r.number);
-        div.style.background=ownedCount?`${getRarityColor(r.number)}33`:"#1a1a1a";
-        div.innerHTML=`<span>${ownedCount?r.rarity:"???"}</span><span>${ownedCount} owned</span><span>${chance}%</span>`;
-        oddsPanel.appendChild(div);
-    });
+  oddsPanel.innerHTML="";
+  const total = rarities.reduce((s,r)=>s+(1/r.number),0);
+  rarities.forEach(r=>{
+    const ownedCount = owned[r.rarity]||0;
+    const chance = ((1/r.number)/total*100).toFixed(6);
+    const div=document.createElement("div");
+    div.className="odds-box";
+    div.style.borderColor=getRarityColor(r.number);
+    div.style.background=ownedCount?`${getRarityColor(r.number)}33`:"#1a1a1a";
+    div.innerHTML=`<span>${ownedCount?r.rarity:"???"}</span><span>${ownedCount} owned</span><span>${chance}%</span>`;
+    oddsPanel.appendChild(div);
+  });
 }
-
 function updateStatsText(){
-    statsPanel.innerHTML=`
-        Total Rolls: ${totalRolls}<br>
-        Points: ${points.toFixed(1)}<br>
-        Rebirths: ${rebirths}<br>
-        Prestiges: ${prestiges}<br>
-        Unique Owned: ${Object.values(owned).filter(v=>v>0).length}
-    `;
+  statsPanel.innerHTML=`
+    Total Rolls: ${totalRolls}<br>
+    Points: ${points.toFixed(1)}<br>
+    Rebirths: ${rebirths}<br>
+    Prestiges: ${prestiges}<br>
+    Unique Owned: ${Object.values(owned).filter(v=>v>0).length}
+  `;
 }
 
-// -------------------- UPGRADES --------------------
+// ===================== UPGRADES =====================
 function updateUpgrades(){
-    upgradesPanel.innerHTML="";
-    upgrades.forEach(u=>{
-        const div=document.createElement("div");
-        div.className="upgrade-box";
-
-        // Background styling
-        if(u.multiBuy && !u.infinite){
-            const pct=((u.level||0)/(u.maxLevel||1))*100;
-            div.style.background=`linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
-        } else if(u.infinite){
-            const pct=Math.min((u.level||0)*5,100);
-            div.style.background=`linear-gradient(to right,#ffaa55 ${pct}%,#222 ${pct}%)`;
-        } else {
-            div.style.background=u.unlocked?"#55aa55":"#222";
-        }
-
-        // Level text
-        let levelText="";
-        if(u.multiBuy && !u.infinite) levelText=`Level: ${u.level||0}/${u.maxLevel||1}`;
-        else if(u.infinite) levelText=`Purchased: ${u.level||0} times`;
-        else levelText=u.unlocked?"✅ Unlocked":"🔒 Locked";
-
-        div.innerHTML=`
-            <strong>${u.name}</strong>
-            <p>${u.description}</p>
-            <span>${levelText}</span>
-            <span>Cost: ${Math.ceil(u.price)} pts</span>
-        `;
-
-        const canBuy=(u.multiBuy && !u.infinite && (u.level||0)<u.maxLevel && points>=u.price)
-            ||(!u.multiBuy && !u.unlocked && points>=u.price)
-            ||(u.infinite && points>=u.price);
-
-        if(canBuy){
-            div.style.cursor="pointer";
-            div.onclick=()=>{
-                points-=u.price;
-                if(u.multiBuy && !u.infinite){
-                    u.level=(u.level||0)+1;
-                    u.price=Math.ceil(u.price*1.5);
-                    if(u.level>=u.maxLevel) u.unlocked=true;
-                } else if(u.infinite){
-                    u.level=(u.level||0)+1;
-                    u.price=Math.ceil(u.price*1.5);
-                } else u.unlocked=true;
-
-                showPopup(`${u.name} purchased`);
-                saveData();
-                updateUpgrades();
-                updateStatsText();
-            };
-        }
-        upgradesPanel.appendChild(div);
-    });
+  upgradesPanel.innerHTML = "";
+  upgrades.forEach(u=>{
+    const div=document.createElement("div");
+    div.className="upgrade-box";
+    if(u.multiBuy && !u.infinite){
+      const pct=((u.level||0)/(u.maxLevel||1))*100;
+      div.style.background=`linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
+    } else if(u.infinite){
+      const pct=Math.min((u.level||0)*5,100);
+      div.style.background=`linear-gradient(to right,#ffaa55 ${pct}%,#222 ${pct}%)`;
+    } else { div.style.background=u.unlocked?"#55aa55":"#222"; }
+    let levelText="";
+    if(u.multiBuy && !u.infinite) levelText=`Level: ${u.level||0}/${u.maxLevel||1}`;
+    else if(u.infinite) levelText=`Purchased: ${u.level||0} times`;
+    else levelText=u.unlocked?"✅ Unlocked":"🔒 Locked";
+    div.innerHTML=`<strong>${u.name}</strong><p>${u.description}</p><span>${levelText}</span><span>Cost: ${Math.ceil(u.price)} pts</span>`;
+    const canBuy=
+      (u.multiBuy && !u.infinite && (u.level||0)<u.maxLevel && points>=u.price)||
+      (!u.multiBuy && !u.unlocked && points>=u.price)||
+      (u.infinite && points>=u.price);
+    if(canBuy) div.onclick=()=>{
+      points-=u.price;
+      if(u.multiBuy && !u.infinite){
+        u.level=(u.level||0)+1;
+        u.price=Math.ceil(u.price*1.5);
+        if(u.level>=u.maxLevel) u.unlocked=true;
+      } else if(u.infinite) u.level=(u.level||0)+1, u.price=Math.ceil(u.price*1.5);
+      else u.unlocked=true;
+      showPopup(`${u.name} purchased`);
+      saveData(); updateUpgrades(); updateStatsText();
+    };
+    upgradesPanel.appendChild(div);
+  });
 }
 
-// -------------------- AUTO ROLL --------------------
+// ===================== AUTO ROLL =====================
 function startAutoRoll(interval){
-    stopAutoRoll();
-    if(interval===1000) isAutoRolling=true;
-    if(interval===500) isFastAutoRolling=true;
-
-    autoRollInterval=setInterval(()=>{
-        if(canRoll) roll(getExtraRolls());
-    }, Math.max(120,interval-getSpeedBonus()*40));
+  stopAutoRoll();
+  if(interval===1000) isAutoRolling=true;
+  if(interval===500) isFastAutoRolling=true;
+  autoRollInterval=setInterval(()=>{
+    if(canRoll) roll(getExtraRolls());
+  }, Math.max(120, interval-getSpeedBonus()*40));
 }
-
-function stopAutoRoll(){
-    clearInterval(autoRollInterval);
-    autoRollInterval=null;
-    isAutoRolling=false;
-    isFastAutoRolling=false;
-}
-
+function stopAutoRoll(){ clearInterval(autoRollInterval); autoRollInterval=null; isAutoRolling=false; isFastAutoRolling=false; }
 function updateAutoRollButtons(){
-    const auto=upgrades.find(u=>u.id==="autoRoll" && u.unlocked);
-    const fast=upgrades.find(u=>u.id==="fastAuto" && u.unlocked);
-
-    autoRollBtn.disabled=!auto;
-    fastAutoRollBtn.disabled=!fast;
-
-    autoRollBtn.innerText=isAutoRolling?"Stop Auto Roll":"Auto Roll";
-    fastAutoRollBtn.innerText=isFastAutoRolling?"Stop Fast Auto Roll":"Fast Auto Roll";
+  const auto=upgrades.find(u=>u.id==="autoRoll" && u.unlocked);
+  const fast=upgrades.find(u=>u.id==="fastAuto" && u.unlocked);
+  autoRollBtn.disabled=!auto; fastAutoRollBtn.disabled=!fast;
+  autoRollBtn.innerText=isAutoRolling?"Stop Auto Roll":"Auto Roll";
+  fastAutoRollBtn.innerText=isFastAutoRolling?"Stop Fast Auto Roll":"Fast Auto Roll";
 }
 
-// -------------------- MUSIC --------------------
-let currentMusic=null;
-let lastSong=null;
-
-function getRandomSong(){
-    let index;
-    do { index=Math.floor(Math.random()*21)+1; } while(index===lastSong && 21>1);
-    lastSong=index;
-    return `song${index}.mp3`;
-}
-
-function playRandomMusic(){
-    if(currentMusic){ currentMusic.pause(); currentMusic.currentTime=0; }
-    currentMusic=new Audio(getRandomSong());
-    currentMusic.volume = userSettings.volume/100;
-    currentMusic.loop=false;
-    currentMusic.addEventListener("ended",playRandomMusic);
-    currentMusic.play().catch(()=>{});
-    updateMediaSession();
-}
-
-function updateMediaSession(trackTitle="Nova RNG Music"){
-    if('mediaSession' in navigator && currentMusic){
-        navigator.mediaSession.metadata=new MediaMetadata({
-            title: trackTitle,
-            artist: "Nova RNG",
-            album: "Nova RNG Collection",
-            artwork:[
-                {src:"favicon.png",sizes:"128x128",type:"image/png"},
-                {src:"favicon.png",sizes:"256x256",type:"image/png"}
-            ]
-        });
-        navigator.mediaSession.setActionHandler('play',()=>currentMusic.play());
-        navigator.mediaSession.setActionHandler('pause',()=>currentMusic.pause());
-    }
-}
-
-// -------------------- SETTINGS --------------------
-function applyTheme(theme){
-    document.body.className="";
-    document.body.classList.add(theme);
-}
-function applyVolume(vol){
-    userSettings.volume=vol;
-    if(currentMusic) currentMusic.volume=vol/100;
-    saveData();
-}
-
-// -------------------- EVENTS --------------------
+// ===================== EVENTS =====================
 pickBtn.onclick=()=>roll(getExtraRolls());
 autoRollBtn.onclick=()=>isAutoRolling?stopAutoRoll():startAutoRoll(1000);
 fastAutoRollBtn.onclick=()=>isFastAutoRolling?stopAutoRoll():startAutoRoll(500);
-
 resetStatsBtn.onclick=async()=>{
-    owned={}; rollHistory=[]; totalRolls=0; points=0;
-    rebirths=0; prestiges=0;
-    localStorage.removeItem("upgrades");
-    upgrades=await fetch("upgrades.json").then(r=>r.json());
-    saveData();
-    updateUpgrades();
-    updateStatsText();
-    updateOdds();
-    showPopup("Stats reset");
+  owned={}; rollHistory=[]; totalRolls=0; points=0; rebirths=0; prestiges=0;
+  localStorage.removeItem("upgrades");
+  upgrades=await fetch("upgrades.json").then(r=>r.json());
+  saveData(); updateUpgrades(); updateStatsText(); updateOdds(); showPopup("Stats reset");
 };
 
-// Settings events
-themeSelect.onchange=e=>{
-    userSettings.theme=e.target.value;
-    applyTheme(userSettings.theme);
-    saveData();
-};
+// ===================== MUSIC & SETTINGS =====================
+let currentMusic=null;
+let musicStarted=false;
+let lastSong=null;
+let isMuted=false;
+let currentVolume=0.25; // 0-1
 
-volumeInput.oninput=e=>{
-    let val=parseInt(e.target.value);
-    if(val===0) currentMusic?.muted?currentMusic.muted=false:currentMusic.muted=true;
-    else currentMusic.muted=false;
-    applyVolume(val);
-};
+const volumeInput = document.getElementById("volume-input");
+const muteToggle = document.getElementById("mute-toggle");
+const themeSelect = document.getElementById("theme-select");
+const autoToggle = document.getElementById("auto-roll-toggle");
+const fastToggle = document.getElementById("fast-auto-toggle");
 
-autoRollToggle.onchange=e=>{
-    userSettings.autoRollOnStart=e.target.checked;
-    saveData();
-};
+function getRandomSong(){
+  let index;
+  do{ index=Math.floor(Math.random()*21)+1; } while(index===lastSong && 21>1);
+  lastSong=index; return `song${index}.mp3`;
+}
+function playRandomMusic(){
+  if(currentMusic){ currentMusic.pause(); currentMusic.currentTime=0; }
+  const trackSrc=getRandomSong();
+  currentMusic=new Audio(trackSrc);
+  currentMusic.volume=currentVolume; currentMusic.muted=isMuted;
+  currentMusic.preload="auto"; currentMusic.loop=false;
+  currentMusic.addEventListener("ended", playRandomMusic);
+  currentMusic.play().catch(err=>{ console.log("Music blocked until interaction:", err); });
+}
 
-fastAutoToggle.onchange=e=>{
-    userSettings.fastAutoOnStart=e.target.checked;
-    saveData();
-};
+function startMusic(){
+  if(!musicStarted){ playRandomMusic(); musicStarted=true; }
+}
 
-// -------------------- INIT --------------------
+["click","touchstart","keydown"].forEach(evt=>document.addEventListener(evt, startMusic, {once:true}));
+
+// ===================== SETTINGS =====================
+themeSelect.onchange = ()=>{
+  document.body.className = themeSelect.value;
+  localStorage.setItem("theme", themeSelect.value);
+};
+muteToggle.onchange=()=>{
+  isMuted=muteToggle.checked;
+  if(currentMusic) currentMusic.muted=isMuted;
+};
+volumeInput.oninput=()=>{
+  let val=parseInt(volumeInput.value);
+  if(val<=0){ isMuted=true; muteToggle.checked=true; currentVolume=0.1; }
+  else { isMuted=false; muteToggle.checked=false; currentVolume=val/100; }
+  if(currentMusic){ currentMusic.volume=currentVolume; currentMusic.muted=isMuted; }
+};
+autoToggle.onchange=()=>{ if(autoToggle.checked) startAutoRoll(1000); else stopAutoRoll(); };
+fastToggle.onchange=()=>{ if(fastToggle.checked) startAutoRoll(500); else stopAutoRoll(); };
+
+// ===================== INIT =====================
 async function init(){
-    rarities = await fetch("rarities.json").then(r=>r.json());
-    upgrades = await fetch("upgrades.json").then(r=>r.json());
-
-    const saved=JSON.parse(localStorage.getItem("upgrades"))||{};
-    upgrades.forEach(u=>{
-        const s=saved[u.id];
-        if(s){
-            u.level=s.level;
-            u.unlocked=s.unlocked;
-            u.price=s.price;
-        } else u.level=u.multiBuy||u.infinite?0:undefined, u.unlocked=false;
-    });
-
-    applyTheme(userSettings.theme);
-    volumeInput.value=userSettings.volume;
-
-    updateOdds();
-    updateStatsText();
-    updateUpgrades();
-    updateRollHistory();
-    checkLoginStreak();
-    updateAutoRollButtons();
-    initPages();
-    showPage(0);
-
-    if(userSettings.autoRollOnStart) startAutoRoll(1000);
-    if(userSettings.fastAutoOnStart) startAutoRoll(500);
+  rarities = await fetch("rarities.json").then(r=>r.json());
+  upgrades = await fetch("upgrades.json").then(r=>r.json());
+  const saved = JSON.parse(localStorage.getItem("upgrades"))||{};
+  upgrades.forEach(u=>{
+    const s = saved[u.id];
+    if(s){ u.level=s.level; u.unlocked=s.unlocked; u.price=s.price; }
+    else { u.level=u.multiBuy||u.infinite?0:undefined; u.unlocked=false; }
+  });
+  // Restore settings
+  const savedTheme=localStorage.getItem("theme"); if(savedTheme){ themeSelect.value=savedTheme; document.body.className=savedTheme; }
+  updateOdds(); updateStatsText(); updateUpgrades(); updateRollHistory(); checkLoginStreak(); updateAutoRollButtons();
+  showPage(0); initPages();
 }
 
 init();
-
-// -------------------- PAGE INTERACTION TO START MUSIC --------------------
-["click","touchstart","keydown"].forEach(evt=>document.addEventListener(evt,()=>{
-    if(!currentMusic) playRandomMusic();
-},{once:true}));

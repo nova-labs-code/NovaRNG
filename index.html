@@ -6,7 +6,7 @@
 <title>Nova RNG</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-theme="dark">
 
 <div class="container">
 
@@ -50,74 +50,34 @@
   <div class="page" id="page4">
     <h2>Your Stats</h2>
     <div id="stats-panel"></div>
-    <button id="reset-stats" class="roll-btn">Reset Stats</button>
+    <button id="reset-stats">Reset Stats</button>
   </div>
 
-  <!-- Page 5: Rebirth & Prestige -->
+  <!-- Page 5: Settings -->
   <div class="page" id="page5">
-    <h2>Rebirth & Prestige</h2>
-
-    <div class="stats-box">
-      <span>Rebirths</span>
-      <span id="rebirth-count">0</span>
-    </div>
-
-    <div class="stats-box">
-      <span>Prestiges</span>
-      <span id="prestige-count">0</span>
-    </div>
-
-    <div class="stats-box">
-      <span>Point Multiplier</span>
-      <span id="multiplier-display">1.00×</span>
-    </div>
-
-    <button id="rebirth-btn" class="roll-btn" style="margin-top:15px;">
-      🔁 Rebirth (500,000 points)
-    </button>
-
-    <button id="prestige-btn" class="roll-btn" style="margin-top:10px;">
-      ⭐ Prestige (1000 rebirths)
-    </button>
-  </div>
-
-  <!-- Page 6: Settings -->
-  <div class="page" id="page6">
     <h2>Settings</h2>
-    <div id="settings-panel">
+    <div class="settings-box">
+      <label for="theme-select">Theme:</label>
+      <select id="theme-select">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="blue">Blue</option>
+      </select>
+    </div>
 
-      <div class="settings-row">
-        <label for="volume-input">Volume:</label>
-        <input type="number" id="volume-input" min="0" max="100">
-      </div>
+    <div class="settings-box">
+      <label for="volume-input">Volume (0-100):</label>
+      <input type="number" id="volume-input" min="0" max="100">
+    </div>
 
-      <div class="settings-row">
-        <label for="theme-select">Theme:</label>
-        <select id="theme-select">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="blue">Blue</option>
-          <option value="green">Green</option>
-          <option value="purple">Purple</option>
-        </select>
-      </div>
-
-      <div class="settings-row">
-        <label for="auto-roll-start">Auto Roll on Start:</label>
-        <input type="checkbox" id="auto-roll-start">
-      </div>
-
-      <div class="settings-row">
-        <label for="fast-auto-roll-start">Fast Auto Roll on Start:</label>
-        <input type="checkbox" id="fast-auto-roll-start">
-      </div>
-
+    <div class="settings-box">
+      <label for="mute-checkbox">Mute:</label>
+      <input type="checkbox" id="mute-checkbox">
     </div>
   </div>
 
   <!-- Popup -->
   <div id="popup"></div>
-
 </div>
 
 <script src="script.js"></script>

@@ -17,6 +17,7 @@
   font-size: 16px;
   cursor: pointer;
 ">🔊</button>
+
 <div class="container">
 
   <!-- Page 1: Roll -->
@@ -90,9 +91,53 @@
     </button>
   </div>
 
+  <!-- Page 6: Settings -->
+  <div class="page" id="page6">
+    <h2>Settings</h2>
+    <div class="settings-box">
+      <label>
+        <input type="checkbox" id="show-idle-points" checked>
+        Show Idle Points Panel
+      </label>
+    </div>
+
+    <div class="settings-box">
+      <label>
+        <input type="checkbox" id="enable-lockscreen-stats" checked>
+        Show Lock Screen Stats Panel
+      </label>
+    </div>
+
+    <div class="settings-box">
+      <label>
+        <input type="checkbox" id="enable-music" checked>
+        Background Music
+      </label>
+    </div>
+  </div>
+
   <!-- Popup -->
   <div id="popup"></div>
 
+</div>
+
+<!-- Lock Screen Stats Panel (hidden by default) -->
+<div id="lockscreen-panel" style="
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#111;
+  color:#fff;
+  text-align:center;
+  z-index:9999;
+  padding-top:50px;
+">
+  <h2>Lock Screen Stats</h2>
+  <p>Total Rolls: <span id="lock-total-rolls">0</span></p>
+  <p>Rarest Rolled: <span id="lock-rarest">???</span></p>
 </div>
 
 <script src="script.js"></script>

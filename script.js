@@ -89,7 +89,16 @@ pages.forEach(page=>{
     else showPage(currentPage);
   });
 });
+// Make sure this runs after all pages exist in DOM
+function initPages() {
+  pages.forEach((page, i) => {
+    page.style.transform = `translateX(${(i - currentPage) * 100}%)`;
+  });
+}
 
+// At the end of init()
+showPage(0);  // Already in your code
+initPages();  // Make sure pages are positioned correctly
 // -------------------- HELPERS --------------------
 function getRarityColor(number){
   if(number<=100) return "#aaaaaa";

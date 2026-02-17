@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" href="favicon.png" type="image/png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Nova RNG</title>
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.png">
 </head>
-<body data-theme="default">
+<body class="dark">
 
 <div class="container">
 
@@ -15,14 +15,23 @@
   <div class="page" id="page1">
     <h1>Nova RNG</h1>
     <div id="login-streak">Login Streak: 0</div>
+
     <div id="roll-buttons">
-      <button id="pick-btn" class="roll-btn">🎲 Roll</button>
-      <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
-      <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+      <div class="roll-btn-container">
+        <button id="pick-btn" class="roll-btn">🎲 Roll</button>
+      </div>
+      <div class="roll-btn-container">
+        <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
+      </div>
+      <div class="roll-btn-container">
+        <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+      </div>
     </div>
+
     <div id="result">
       <div class="result-text">🎉 Ready to roll!</div>
     </div>
+
     <div id="roll-history"></div>
   </div>
 
@@ -42,38 +51,36 @@
   <div class="page" id="page4">
     <h2>Your Stats</h2>
     <div id="stats-panel"></div>
-    <button id="reset-stats" class="roll-btn">Reset Stats</button>
+    <button id="reset-stats">Reset Stats</button>
   </div>
 
   <!-- Page 5: Settings -->
   <div class="page" id="page5">
     <h2>Settings</h2>
-    <div class="settings-panel">
-      <label for="volume-slider">Volume: <span id="volume-label">25%</span></label>
-      <input type="range" id="volume-slider" min="0" max="100" value="25">
 
-      <label>
-        <input type="checkbox" id="mute-toggle"> Mute
-      </label>
-
+    <div class="settings-box">
       <label for="theme-select">Theme:</label>
       <select id="theme-select">
-        <option value="default">Default</option>
         <option value="dark">Dark</option>
-        <option value="neon">Neon</option>
-        <option value="cyber">Cyber</option>
+        <option value="light">Light</option>
       </select>
-
-      <label>
-        <input type="checkbox" id="auto-roll-setting"> Start Auto Roll on Load
-      </label>
-
-      <label>
-        <input type="checkbox" id="fast-auto-setting"> Start Fast Auto Roll on Load
-      </label>
-
-      <button id="reset-game-btn" class="roll-btn">Reset Game</button>
     </div>
+
+    <div class="settings-box">
+      <label for="volume-input">Volume (0–100):</label>
+      <input type="range" id="volume-input" min="0" max="100" value="25">
+    </div>
+
+    <div class="settings-box">
+      <label for="auto-roll-toggle">Start Auto Roll on Load:</label>
+      <input type="checkbox" id="auto-roll-toggle">
+    </div>
+
+    <div class="settings-box">
+      <label for="fast-auto-toggle">Start Fast Auto Roll on Load:</label>
+      <input type="checkbox" id="fast-auto-toggle">
+    </div>
+
   </div>
 
   <!-- Popup -->

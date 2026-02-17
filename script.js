@@ -16,6 +16,17 @@ let autoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
 
+let idlePointsAccumulated = 0;
+let lastIdleCheck = Date.now();
+let lockScreenActive = false;
+
+// -------------------- SETTINGS --------------------
+let settings = {
+  showIdlePoints: true,
+  showLockScreenStats: true,
+  enableMusic: true
+};
+
 // -------------------- DOM --------------------
 const resultDiv = document.getElementById("result");
 const oddsPanel = document.getElementById("odds-panel");
@@ -29,6 +40,16 @@ const pickBtn = document.getElementById("pick-btn");
 const autoRollBtn = document.getElementById("auto-roll-btn");
 const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
 const resetStatsBtn = document.getElementById("reset-stats");
+
+const idlePanel = document.getElementById("idle-points");
+const lockPanel = document.getElementById("lockscreen-panel");
+const lockTotal = document.getElementById("lock-total-rolls");
+const lockRarest = document.getElementById("lock-rarest");
+
+// Settings inputs
+const idleCheckbox = document.getElementById("show-idle-points");
+const lockCheckbox = document.getElementById("enable-lockscreen-stats");
+const musicCheckbox = document.getElementById("enable-music");
 
 // -------------------- PAGE SWIPE --------------------
 let currentPage = 0;
@@ -52,8 +73,6 @@ pages.forEach(page=>{
   page.addEventListener("touchmove", e=>{
     if(!isSwiping) return;
     const deltaX = e.touches[0].clientX - startX;
-
-    // Optional: visual drag effect
     pages.forEach((p,i)=>{
       p.style.transition = "none";
       p.style.transform = `translateX(${(i-currentPage)*100 + deltaX / window.innerWidth * 100}%)`;
@@ -64,13 +83,10 @@ pages.forEach(page=>{
     if(!isSwiping) return;
     const deltaX = e.changedTouches[0].clientX - startX;
     isSwiping = false;
-
-    // Restore transition
     pages.forEach(p=>p.style.transition = "transform 0.5s ease");
-
     if(deltaX > 50) showPage(Math.max(0,currentPage-1));
     else if(deltaX < -50) showPage(Math.min(pages.length-1,currentPage+1));
-    else showPage(currentPage); // snap back if small swipe
+    else showPage(currentPage);
   });
 });
 
@@ -109,6 +125,7 @@ function saveData(){
   });
 
   localStorage.setItem("upgrades", JSON.stringify(upgradeSave));
+  localStorage.setItem("settings", JSON.stringify(settings));
 }
 
 // -------------------- LOGIN STREAK --------------------
@@ -119,15 +136,11 @@ function updateLoginStreak(){
 function checkLoginStreak(){
   const today = new Date().toISOString().split("T")[0];
   if(lastLogin === today){ updateLoginStreak(); return; }
-
   if(lastLogin){
     const y = new Date();
     y.setDate(y.getDate()-1);
-    loginStreak = lastLogin === y.toISOString().split("T")[0]
-      ? loginStreak + 1
-      : 1;
+    loginStreak = lastLogin === y.toISOString().split("T")[0] ? loginStreak + 1 : 1;
   } else loginStreak = 1;
-
   lastLogin = today;
   saveData();
   updateLoginStreak();
@@ -138,7 +151,6 @@ function getRandomRarity(){
   let total = rarities.reduce((s,r)=>s+(1/r.number),0);
   let rand = Math.random()*total;
   let acc = 0;
-
   for(const r of rarities){
     acc += 1/r.number;
     if(rand <= acc) return r;
@@ -150,17 +162,14 @@ function getExtraRolls(){
   return upgrade?.level ? Math.min(upgrade.level,5) : 0;
 }
 
-// -------------------- SPEED HELPERS --------------------
 function getSpeedBonus(){
   let bonus = 0;
   const s1 = upgrades.find(u=>u.id==="speed1");
   const s2 = upgrades.find(u=>u.id==="speed2");
   const s3 = upgrades.find(u=>u.id==="speed3");
-
   if(s1?.level) bonus += s1.level * 1;
   if(s2?.level) bonus += s2.level * 2;
   if(s3?.level) bonus += s3.level * 5;
-
   return bonus;
 }
 
@@ -171,56 +180,51 @@ function getRollDelay(){
 }
 
 // -------------------- ROLL --------------------
-function roll(extra=0){
+function roll(extra=0, showResult=true){
   if(!canRoll || rarities.length===0) return;
   canRoll=false;
-
   const rolls = 1 + extra;
   const results = [];
-
   for(let i=0;i<rolls;i++){
     results.push(getRandomRarity());
   }
 
-  const wipe = document.createElement("div");
-  wipe.className = "wipe-bar";
-  resultDiv.appendChild(wipe);
+  if(showResult){
+    const wipe = document.createElement("div");
+    wipe.className = "wipe-bar";
+    resultDiv.appendChild(wipe);
+    setTimeout(()=>{
+      resultDiv.querySelector(".result-text").innerHTML =
+        results.map(r=>`<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
+      resultDiv.removeChild(wipe);
+    }, getRollDelay());
+  }
 
-  setTimeout(()=>{
-    // Display results
-    resultDiv.querySelector(".result-text").innerHTML =
-      results.map(r=>`<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
+  // compute points
+  const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
+  const mult = 1 + ((multUpgrade?.level||0) * 0.08);
+  const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
+  const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);
+  const prestigeUpgrade = upgrades.find(u=>u.id==="prestigeLimit");
+  const prestigeMultiplier = 1 + (prestigeUpgrade?.level||0);
 
-    // Compute points with infinite upgrade multipliers
-    const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
-    const mult = 1 + ((multUpgrade?.level||0) * 0.08);
+  results.forEach(r=>{
+    owned[r.rarity]=(owned[r.rarity]||0)+1;
+    rollHistory.push(r.rarity);
+    points += (r.number/2)*mult*Math.pow(1.5, rebirths*rebirthMultiplier)*Math.pow(1.5, prestiges*prestigeMultiplier);
+    totalRolls++;
+  });
 
-    const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
-    const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);
+  rollHistory = rollHistory.slice(-5);
+  updateRollHistory();
+  updateOdds();
+  updateStatsText();
+  updateUpgrades();
+  updateLockScreenStats();
+  updateAutoRollButtons();
+  saveData();
 
-    const prestigeUpgrade = upgrades.find(u=>u.id==="prestigeLimit");
-    const prestigeMultiplier = 1 + (prestigeUpgrade?.level||0);
-
-    results.forEach(r=>{
-      owned[r.rarity]=(owned[r.rarity]||0)+1;
-      rollHistory.push(r.rarity);
-
-      points += (r.number/2) * mult * Math.pow(1.5, rebirths*rebirthMultiplier) * Math.pow(1.5, prestiges*prestigeMultiplier);
-      totalRolls++;
-    });
-
-    rollHistory = rollHistory.slice(-5);
-
-    updateRollHistory();
-    updateOdds();
-    updateStatsText();
-    updateUpgrades();
-    updateAutoRollButtons();
-    saveData();
-
-    resultDiv.removeChild(wipe);
-    canRoll=true;
-  }, getRollDelay());
+  canRoll=true;
 }
 
 // -------------------- UPDATE PANELS --------------------
@@ -231,12 +235,10 @@ function updateRollHistory(){
 function updateOdds(){
   oddsPanel.innerHTML="";
   const total = rarities.reduce((s,r)=>s+(1/r.number),0);
-
   rarities.forEach(r=>{
     const ownedCount = owned[r.rarity]||0;
     const chance = ((1/r.number)/total*100).toFixed(6);
     const div=document.createElement("div");
-
     div.className="odds-box";
     div.style.borderColor=getRarityColor(r.number);
     div.style.background=ownedCount?`${getRarityColor(r.number)}33`:"#1a1a1a";
@@ -253,17 +255,15 @@ function updateStatsText(){
     Prestiges: ${prestiges}<br>
     Unique Owned: ${Object.values(owned).filter(v=>v>0).length}
   `;
+  if(settings.showIdlePoints && idlePanel) idlePanel.innerText = idlePointsAccumulated.toFixed(1);
 }
 
 // -------------------- UPGRADES --------------------
 function updateUpgrades(){
   upgradesPanel.innerHTML = "";
-
   upgrades.forEach(u=>{
     const div = document.createElement("div");
     div.className = "upgrade-box";
-
-    // Background styling
     if(u.multiBuy && !u.infinite){
       const pct = ((u.level||0)/(u.maxLevel||1))*100;
       div.style.background = `linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
@@ -274,15 +274,10 @@ function updateUpgrades(){
       div.style.background = u.unlocked ? "#55aa55" : "#222";
     }
 
-    // Level / status text
     let levelText = "";
-    if(u.multiBuy && !u.infinite){
-      levelText = `Level: ${u.level||0}/${u.maxLevel||1}`;
-    } else if(u.infinite){
-      levelText = `Purchased: ${u.level||0} times`;
-    } else {
-      levelText = u.unlocked ? "✅ Unlocked" : "🔒 Locked";
-    }
+    if(u.multiBuy && !u.infinite) levelText = `Level: ${u.level||0}/${u.maxLevel||1}`;
+    else if(u.infinite) levelText = `Purchased: ${u.level||0} times`;
+    else levelText = u.unlocked ? "✅ Unlocked" : "🔒 Locked";
 
     div.innerHTML = `
       <strong>${u.name}</strong>
@@ -291,7 +286,6 @@ function updateUpgrades(){
       <span>Cost: ${Math.ceil(u.price)} pts</span>
     `;
 
-    // Can buy logic
     const canBuy =
       (u.multiBuy && !u.infinite && (u.level||0)<u.maxLevel && points>=u.price) ||
       (!u.multiBuy && !u.unlocked && points>=u.price) ||
@@ -301,7 +295,6 @@ function updateUpgrades(){
       div.style.cursor = "pointer";
       div.onclick = ()=>{
         points -= u.price;
-
         if(u.multiBuy && !u.infinite){
           u.level = (u.level||0) + 1;
           u.price = Math.ceil(u.price * 1.5);
@@ -312,7 +305,6 @@ function updateUpgrades(){
         } else {
           u.unlocked = true;
         }
-
         showPopup(`${u.name} purchased`);
         saveData();
         updateUpgrades();
@@ -329,7 +321,6 @@ function startAutoRoll(interval){
   stopAutoRoll();
   if(interval===1000) isAutoRolling=true;
   if(interval===500) isFastAutoRolling=true;
-
   autoRollInterval=setInterval(()=>{
     if(canRoll) roll(getExtraRolls());
   }, Math.max(120, interval - getSpeedBonus()*40));
@@ -345,12 +336,69 @@ function stopAutoRoll(){
 function updateAutoRollButtons(){
   const auto = upgrades.find(u=>u.id==="autoRoll" && u.unlocked);
   const fast = upgrades.find(u=>u.id==="fastAuto" && u.unlocked);
-
   autoRollBtn.disabled = !auto;
   fastAutoRollBtn.disabled = !fast;
-
   autoRollBtn.innerText = isAutoRolling ? "Stop Auto Roll" : "Auto Roll";
   fastAutoRollBtn.innerText = isFastAutoRolling ? "Stop Fast Auto Roll" : "Fast Auto Roll";
+}
+
+// -------------------- LOCK SCREEN --------------------
+function getRarestRolled() {
+  if(Object.keys(owned).length === 0) return "???";
+  let rarest = null;
+  for(const r of rarities){
+    if(owned[r.rarity] > 0){
+      if(!rarest || r.number > rarest.number) rarest = r;
+    }
+  }
+  return rarest ? rarest.rarity : "???";
+}
+
+function updateLockScreenStats(){
+  if(!settings.showLockScreenStats) return;
+  if(lockTotal) lockTotal.innerText = totalRolls;
+  if(lockRarest) lockRarest.innerText = getRarestRolled();
+}
+
+function toggleLockScreenPanel(show){
+  if(!settings.showLockScreenStats) return;
+  if(lockPanel) lockPanel.style.display = show ? "block" : "none";
+}
+
+document.addEventListener("visibilitychange", () => {
+  lockScreenActive = document.hidden;
+  toggleLockScreenPanel(lockScreenActive);
+});
+
+// -------------------- IDLE PROGRESS --------------------
+function applyIdleProgress(){
+  const now = Date.now();
+  const deltaSeconds = Math.floor((now - lastIdleCheck)/1000);
+  if(deltaSeconds<=0) return;
+
+  for(let i=0;i<deltaSeconds;i++){
+    roll(getExtraRolls(), false);
+  }
+
+  idlePointsAccumulated += 0; // optionally show separate points
+  lastIdleCheck = now;
+  updateStatsText();
+  updateLockScreenStats();
+}
+
+// -------------------- OFFLINE PROGRESS --------------------
+function applyOfflineProgress(){
+  const offlineUpgrade = upgrades.find(u=>u.id==="offline" && u.level>0);
+  if(!offlineUpgrade) return;
+  const lastTime = parseInt(localStorage.getItem("lastOffline")) || Date.now();
+  const deltaSeconds = Math.floor((Date.now()-lastTime)/1000);
+  const efficiency = 0.25;
+  for(let i=0;i<deltaSeconds;i++){
+    roll(getExtraRolls(), false);
+    points *= efficiency; // offline reduced efficiency
+  }
+  localStorage.setItem("lastOffline", Date.now());
+  updateLockScreenStats();
 }
 
 // -------------------- EVENTS --------------------
@@ -362,14 +410,33 @@ resetStatsBtn.onclick = async()=>{
   owned={}; rollHistory=[]; totalRolls=0; points=0;
   rebirths=0; prestiges=0;
   localStorage.removeItem("upgrades");
-
   upgrades = await fetch("upgrades.json").then(r=>r.json());
   saveData();
   updateUpgrades();
   updateStatsText();
   updateOdds();
+  updateLockScreenStats();
   showPopup("Stats reset");
 };
+
+// -------------------- SETTINGS --------------------
+idleCheckbox?.addEventListener("change", ()=> {
+  settings.showIdlePoints = idleCheckbox.checked;
+  saveData();
+  updateStatsText();
+});
+
+lockCheckbox?.addEventListener("change", ()=>{
+  settings.showLockScreenStats = lockCheckbox.checked;
+  saveData();
+});
+
+musicCheckbox?.addEventListener("change", ()=>{
+  settings.enableMusic = musicCheckbox.checked;
+  if(settings.enableMusic) startMusic();
+  else if(currentMusic) currentMusic.pause();
+  saveData();
+});
 
 // -------------------- INIT --------------------
 async function init(){
@@ -377,6 +444,9 @@ async function init(){
   upgrades = await fetch("upgrades.json").then(r=>r.json());
 
   const saved = JSON.parse(localStorage.getItem("upgrades")) || {};
+  const savedSettings = JSON.parse(localStorage.getItem("settings")) || {};
+  Object.assign(settings, savedSettings);
+
   upgrades.forEach(u=>{
     const s = saved[u.id];
     if(s){
@@ -389,6 +459,10 @@ async function init(){
     }
   });
 
+  idleCheckbox.checked = settings.showIdlePoints;
+  lockCheckbox.checked = settings.showLockScreenStats;
+  musicCheckbox.checked = settings.enableMusic;
+
   updateOdds();
   updateStatsText();
   updateUpgrades();
@@ -396,26 +470,25 @@ async function init(){
   checkLoginStreak();
   updateAutoRollButtons();
   showPage(0);
+  lastIdleCheck = Date.now();
+
+  if(settings.enableMusic) startMusic();
 }
 
-init();
-
-// ==================== GLOBAL MUTE ====================
+// -------------------- GLOBAL MUTE -------------------
 let isMuted = false;
 const muteBtn = document.getElementById("mute-btn");
+let currentMusic = null;
+let musicStarted = false;
+let lastSong = null;
 
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
-
-  if (currentMusic) currentMusic.muted = isMuted;
-
-  document.querySelectorAll("audio, video").forEach(media => {
-    media.muted = isMuted;
-  });
+  if(currentMusic) currentMusic.muted = isMuted;
+  document.querySelectorAll("audio, video").forEach(media => media.muted = isMuted);
 });
 
-// Make ALL future Audio respect global mute
 if (!Audio.prototype._originalPlay) {
   Audio.prototype._originalPlay = Audio.prototype.play;
   Audio.prototype.play = function () {
@@ -424,54 +497,43 @@ if (!Audio.prototype._originalPlay) {
   };
 }
 
-// ==================== BACKGROUND MUSIC ====================
-// Auto-load song1.mp3 → song21.mp3
+// -------------------- BACKGROUND MUSIC -------------------
 const SONG_COUNT = 21;
 const SONG_PREFIX = "song";
 const SONG_EXT = ".mp3";
 
-let currentMusic = null;
-let musicStarted = false;
-let lastSong = null;
-
 function getRandomSong() {
   let index;
-  do {
-    index = Math.floor(Math.random() * SONG_COUNT) + 1;
-  } while (index === lastSong && SONG_COUNT > 1);
-
+  do { index = Math.floor(Math.random()*SONG_COUNT)+1; } while(index===lastSong && SONG_COUNT>1);
   lastSong = index;
   return `${SONG_PREFIX}${index}${SONG_EXT}`;
 }
 
 function playRandomMusic() {
-  if (currentMusic) {
-    currentMusic.pause();
-    currentMusic.currentTime = 0;
-  }
-
+  if(currentMusic){ currentMusic.pause(); currentMusic.currentTime=0; }
   const trackSrc = getRandomSong();
   currentMusic = new Audio(trackSrc);
   currentMusic.volume = 0.25;
   currentMusic.preload = "auto";
   currentMusic.loop = false;
   currentMusic.muted = isMuted;
-
   currentMusic.addEventListener("ended", playRandomMusic);
-
-  currentMusic.play().catch(err => {
-    console.log("Music blocked until interaction:", err);
-  });
+  currentMusic.play().catch(()=>{});
 }
 
 function startMusic() {
-  if (!musicStarted) {
+  if(!musicStarted){
     playRandomMusic();
     musicStarted = true;
   }
 }
 
-// ==================== USER INTERACTION START ====================
-["click", "touchstart", "keydown"].forEach(evt => {
-  document.addEventListener(evt, startMusic, { once: true });
+// User interaction required to start music
+["click","touchstart","keydown"].forEach(evt=>{
+  document.addEventListener(evt, startMusic, {once:true});
 });
+
+setInterval(applyIdleProgress, 1000); // idle every second
+setInterval(applyOfflineProgress, 60000); // offline progress every minute
+
+init();

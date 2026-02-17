@@ -54,6 +54,7 @@ function showPage(index){
     currentPage = index;
 }
 
+// Swipe handlers
 pages.forEach(page=>{
     page.addEventListener("touchstart", e=>{
         startX = e.touches[0].clientX;
@@ -133,6 +134,7 @@ function checkLoginStreak(){
 
 // -------------------- ROLL --------------------
 function getRandomRarity(){
+    if(rarities.length===0) return {rarity:"???", number:0};
     const total = rarities.reduce((s,r)=>s+1/r.number,0);
     let rand = Math.random()*total;
     let acc=0;
@@ -140,6 +142,7 @@ function getRandomRarity(){
         acc += 1/r.number;
         if(rand <= acc) return r;
     }
+    return rarities[0];
 }
 
 function getExtraRolls(){
@@ -148,7 +151,7 @@ function getExtraRolls(){
 }
 
 function roll(extra=0){
-    if(!canRoll || rarities.length===0) return;
+    if(!canRoll) return;
     canRoll=false;
     const rolls = 1+extra;
     const results = [];
@@ -183,23 +186,9 @@ function roll(extra=0){
         saveData();
         resultDiv.removeChild(wipe);
         canRoll=true;
-    }, getRollDelay());
+    }, Math.max(120, 650));
 }
 
-function getSpeedBonus(){
-    let bonus = 0;
-    ["speed1","speed2","speed3"].forEach(id=>{
-        const u = upgrades.find(u=>u.id===id);
-        if(u?.level) bonus += u.level * (id==="speed1"?1:id==="speed2"?2:5);
-    });
-    return bonus;
-}
-
-function getRollDelay(){
-    return Math.max(120, 650 - getSpeedBonus()*40);
-}
-
-// -------------------- UPDATE PANELS --------------------
 function updateRollHistory(){ rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>"); }
 
 function updateOdds(){
@@ -268,7 +257,7 @@ function startAutoRoll(interval){
     stopAutoRoll();
     if(interval===1000) isAutoRolling=true;
     if(interval===500) isFastAutoRolling=true;
-    autoRollInterval=setInterval(()=>{if(canRoll) roll(getExtraRolls());}, Math.max(120, interval-getSpeedBonus()*40));
+    autoRollInterval=setInterval(()=>{if(canRoll) roll(getExtraRolls());}, interval);
 }
 
 function stopAutoRoll(){ clearInterval(autoRollInterval); autoRollInterval=null; isAutoRolling=false; isFastAutoRolling=false; }
@@ -303,14 +292,18 @@ function startMusic(){if(!musicStarted){playRandomMusic(); musicStarted=true;}}
 function applyTheme(theme){
     currentTheme=theme;
     document.body.dataset.theme=theme;
-    if(theme==="dark"){ document.body.style.background="radial-gradient(circle at top,#111 0%,#050505 60%)"; document.body.style.color="#eee"; }
-    else if(theme==="light"){ document.body.style.background="#f0f0f0"; document.body.style.color="#111"; }
-    else if(theme==="blue"){ document.body.style.background="linear-gradient(135deg,#1e3c72,#2a5298)"; document.body.style.color="#fff"; }
+    const elements = document.querySelectorAll(".roll-btn, .upgrade-box, .odds-box, #stats-panel, #upgrades-panel");
+    elements.forEach(el=>{
+        if(theme==="dark"){ el.style.background="#111"; el.style.color="#eee"; }
+        else if(theme==="light"){ el.style.background="#f0f0f0"; el.style.color="#111"; }
+        else if(theme==="blue"){ el.style.background="linear-gradient(135deg,#1e3c72,#2a5298)"; el.style.color="#fff"; }
+    });
     localStorage.setItem("theme",currentTheme);
 }
+
 function setVolume(v){
     currentVolume=v/100;
-    if(v===0) isMuted=true;
+    if(v===0){ isMuted=true; currentVolume=0.1; } // auto toggle
     else isMuted=false;
     if(currentMusic){ currentMusic.volume=currentVolume; currentMusic.muted=isMuted; }
     localStorage.setItem("volume",currentVolume);
@@ -348,7 +341,7 @@ async function init(){
 
     // Auto-roll on start only if upgrades unlocked
     if(upgrades.find(u=>u.id==="autoRoll"&&u.unlocked)) startAutoRoll(1000);
-    else if(upgrades.find(u=>u.id==="fastAuto"&&u.unlocked)) startAutoRoll(500);
+    if(upgrades.find(u=>u.id==="fastAuto"&&u.unlocked)) startAutoRoll(500);
 }
 
 init();

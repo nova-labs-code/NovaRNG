@@ -31,7 +31,7 @@ const autoRollBtn = document.getElementById("auto-roll-btn");
 const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
 const resetStatsBtn = document.getElementById("reset-stats");
 
-// Settings page elements
+// Settings elements
 const volumeSlider = document.getElementById("volume-slider");
 const volumeLabel = document.getElementById("volume-label");
 const muteToggle = document.getElementById("mute-toggle");

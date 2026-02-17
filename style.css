@@ -6,11 +6,48 @@
 }
 
 body {
-  font-family: "Courier New", Courier, monospace;
-  background: linear-gradient(180deg,#0f0f0f,#080808);
+  font-family: "Inter", sans-serif;
+  background: #111;
   color: #eee;
   overflow: hidden;
-  touch-action: manipulation;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===================== THEMES ===================== */
+body[data-theme="dark"] {
+  --bg-gradient: linear-gradient(180deg, #0f0f0f, #080808);
+  --primary-color: #ffdd55;
+  --secondary-color: #55cfff;
+  --panel-bg: #111;
+  --panel-border: #333;
+  --btn-bg: #1e1e1e;
+  --btn-border: #444;
+  --btn-hover: #2a2a2a;
+  --text-color: #eee;
+}
+
+body[data-theme="light"] {
+  --bg-gradient: linear-gradient(180deg, #f0f0f0, #dcdcdc);
+  --primary-color: #ff9900;
+  --secondary-color: #3399ff;
+  --panel-bg: #fff;
+  --panel-border: #ccc;
+  --btn-bg: #e0e0e0;
+  --btn-border: #999;
+  --btn-hover: #d0d0d0;
+  --text-color: #111;
+}
+
+body[data-theme="blue"] {
+  --bg-gradient: linear-gradient(180deg, #001f3f, #00122a);
+  --primary-color: #00ccff;
+  --secondary-color: #3399ff;
+  --panel-bg: #001a33;
+  --panel-border: #004466;
+  --btn-bg: #003366;
+  --btn-border: #006699;
+  --btn-hover: #004080;
+  --text-color: #eee;
 }
 
 /* ===================== CONTAINER ===================== */
@@ -19,43 +56,39 @@ body {
   height: 100vh;
   position: relative;
   overflow: hidden;
+  background: var(--bg-gradient);
 }
 
 /* ===================== PAGES ===================== */
 .page {
   position: absolute;
   inset: 0;
-  padding: 40px;
-  background: linear-gradient(180deg,#0f0f0f,#080808);
-  color: #eee;
-  transition: transform 0.5s ease;
+  padding: 30px 20px;
+  background: var(--bg-gradient);
+  color: var(--text-color);
+  transition: transform 0.5s ease, background 0.3s, color 0.3s;
   overflow-y: auto;
-  box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
+  display: none; /* only show the active page */
 }
 
+.page.active {
+  display: block;
+}
+
+/* ===================== HEADINGS ===================== */
 h1, h2 {
   text-align: center;
-  color: #ffdd55;
-  margin-bottom: 10px;
-  text-shadow: 0 0 12px rgba(255,221,85,0.4);
-}
-
-/* ===================== LOGIN STREAK ===================== */
-#login-streak {
-  text-align: center;
-  margin-bottom: 12px;
-  font-weight: bold;
-  color: #55cfff;
-  text-shadow: 0 0 6px rgba(85,207,255,0.5);
+  color: var(--primary-color);
+  margin-bottom: 16px;
 }
 
 /* ===================== ROLL BUTTONS ===================== */
 #roll-buttons {
   display: flex;
   justify-content: center;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
 .roll-btn-container {
@@ -65,44 +98,34 @@ h1, h2 {
 }
 
 button.roll-btn {
-  padding: 12px 22px;
-  font-weight: bold;
+  padding: 12px 20px;
+  font-weight: 600;
   cursor: pointer;
-  background: linear-gradient(180deg, #1e1e1e, #111);
-  color: #fff;
-  border: 2px solid #444;
+  background: var(--btn-bg);
+  color: var(--text-color);
+  border: 2px solid var(--btn-border);
   border-radius: 10px;
   transition: all 0.25s ease;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
 }
 
 button.roll-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #2a2a2a, #151515);
-  color: #ffdd55;
-  border-color: #ffdd55;
-  transform: translateY(-2px);
-}
-
-button.roll-btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+  background: var(--btn-hover);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 button.roll-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* ===================== RESULT ===================== */
 #result {
-  margin-top: 22px;
-  font-size: 1.7rem;
+  margin-top: 18px;
+  font-size: 1.6rem;
   text-align: center;
-  color: #ffdd55;
-  min-height: 56px;
+  min-height: 60px;
   position: relative;
-  overflow: hidden;
-  text-shadow: 0 0 10px rgba(255,221,85,0.4);
 }
 
 .result-text {
@@ -110,175 +133,116 @@ button.roll-btn:disabled {
   z-index: 1;
 }
 
-.wipe-bar {
-  position: absolute;
-  inset: 0;
-  left: -100%;
-  background: linear-gradient(90deg, rgba(0,157,255,0), rgba(0,157,255,0.95), rgba(0,157,255,0));
-  z-index: 2;
-  animation: wipeLeftToRight 0.65s ease forwards;
-}
-
-@keyframes wipeLeftToRight {
-  0% { left: -100%; }
-  50% { left: 0%; }
-  100% { left: 100%; }
-}
-
 /* ===================== ROLL HISTORY ===================== */
 #roll-history {
-  margin-top: 18px;
+  margin-top: 16px;
   font-size: 0.95rem;
-  color: #ccc;
   max-height: 180px;
   overflow-y: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--panel-bg);
 }
 
 /* ===================== ODDS PANEL ===================== */
 #odds-panel {
   display: flex;
   flex-direction: column;
-  padding-bottom: 20px;
+  gap: 10px;
 }
 
 .odds-box {
-  background: linear-gradient(180deg, #191919, #101010);
-  border: 2px solid #333;
-  border-radius: 12px;
-  padding: 14px 20px;
-  margin: 10px 0;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   transition: all 0.25s ease;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.7);
 }
 
 .odds-box:hover {
-  border-color: #009dff;
-  box-shadow: 0 0 14px rgba(0,157,255,0.35);
+  border-color: var(--secondary-color);
 }
 
 /* ===================== STATS ===================== */
 #stats-panel {
-  margin-top: 16px;
-  padding: 14px;
-  border-top: 2px solid #333;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .stats-box {
-  background: #111;
-  border: 2px solid #333;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
   border-radius: 8px;
   padding: 8px 12px;
   display: flex;
   justify-content: space-between;
   font-size: 0.95rem;
-  color: #ffdd55;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
-}
-
-/* ===================== RESET BUTTON ===================== */
-#reset-stats {
-  display: block;
-  margin: 20px auto 0;
-  padding: 12px 18px;
-  background: linear-gradient(180deg, #222, #111);
-  color: #fff;
-  border: 2px solid #444;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-#reset-stats:hover {
-  color: #ffdd55;
-  border-color: #ffdd55;
+  color: var(--primary-color);
 }
 
 /* ===================== UPGRADES ===================== */
 #upgrades-panel {
-  margin-top: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 20px;
+  margin-top: 10px;
 }
 
 .upgrade-box {
-  background: linear-gradient(180deg, #1b1b1b, #101010);
-  border: 2px solid #333;
-  border-radius: 12px;
-  padding: 14px 18px;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
-}
-
-.upgrade-box:hover {
-  border-color: #55ff55;
-  box-shadow: 0 0 14px rgba(85,255,85,0.35);
 }
 
 .upgrade-box strong {
-  font-size: 1.1rem;
-  color: #ffdd55;
+  color: var(--primary-color);
 }
 
 .upgrade-box p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #bbb;
+  color: var(--text-color);
 }
 
 .upgrade-box span {
   align-self: flex-end;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 0.85rem;
 }
 
 /* ===================== SETTINGS ===================== */
-#settings-panel {
-  margin-top: 20px;
+.settings-box {
+  margin-bottom: 12px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.settings-row {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 8px 12px;
 }
 
-.settings-row label {
-  font-weight: bold;
+.settings-box label {
+  font-weight: 600;
+  color: var(--primary-color);
 }
 
-.settings-row input[type="number"] {
+.settings-box input,
+.settings-box select {
+  background: var(--btn-bg);
+  border: 2px solid var(--btn-border);
+  border-radius: 6px;
+  color: var(--text-color);
+  padding: 4px 8px;
   width: 60px;
-  padding: 4px 6px;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  border: 2px solid #333;
-  text-align: center;
-  background: #111;
-  color: #eee;
-}
-
-.settings-row select {
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 2px solid #333;
-  background: #111;
-  color: #eee;
 }
 
 /* ===================== POPUP ===================== */
@@ -286,8 +250,8 @@ button.roll-btn:disabled {
   position: fixed;
   bottom: 14px;
   right: 14px;
-  background: #1c1c1c;
-  color: #fff;
+  background: var(--panel-bg);
+  color: var(--text-color);
   padding: 10px 16px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -295,13 +259,13 @@ button.roll-btn:disabled {
   display: none;
   z-index: 100;
   box-shadow: 0 0 14px rgba(0,0,0,0.9);
-  pointer-events: none;
 }
 
 /* ===================== MOBILE ===================== */
 @media (max-width: 480px) {
-  .page { padding: 18px 12px; }
+  .page { padding: 20px 12px; }
   #result { font-size: 1.35rem; }
   button.roll-btn { padding: 10px 14px; font-size: 0.9rem; }
-  .settings-row input[type="number"] { width: 50px; }
+  .settings-box input,
+  .settings-box select { width: 50px; }
 }

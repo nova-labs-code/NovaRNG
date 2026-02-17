@@ -25,7 +25,3 @@ Nova RNG is a browser-based random number generator game with upgradeable mechan
 1. Clone or download the repository.
 2. Open `index.html` in a modern browser (Chrome, Firefox, Edge, Safari).
 3. Ensure `rarities.json`, `upgrades.json`, and music files (`song1.mp3` – `song21.mp3`) are in the same folder as `index.html`.
-
----
-
-## File Structure

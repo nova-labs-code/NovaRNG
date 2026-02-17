@@ -1,11 +1,7 @@
 /* ===================== RESET ===================== */
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   font-family: "Courier New", Courier, monospace;
   background: radial-gradient(circle at top, #111 0%, #050505 60%);
   color: #eee;
@@ -104,21 +100,13 @@ button.roll-btn:disabled {
   text-shadow: 0 0 10px rgba(255,221,85,0.4);
 }
 
-.result-text {
-  position: relative;
-  z-index: 1;
-}
+.result-text { position: relative; z-index: 1; }
 
 .wipe-bar {
   position: absolute;
   inset: 0;
   left: -100%;
-  background: linear-gradient(
-    90deg,
-    rgba(0,157,255,0),
-    rgba(0,157,255,0.95),
-    rgba(0,157,255,0)
-  );
+  background: linear-gradient(90deg, rgba(0,157,255,0), rgba(0,157,255,0.95), rgba(0,157,255,0));
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
@@ -165,14 +153,7 @@ button.roll-btn:disabled {
 }
 
 /* ===================== STATS ===================== */
-#stats-panel {
-  margin-top: 16px;
-  padding: 14px;
-  border-top: 2px solid #333;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+#stats-panel { margin-top: 16px; padding: 14px; border-top: 2px solid #333; display: flex; flex-direction: column; gap: 8px; }
 
 .stats-box {
   background: #111;
@@ -206,13 +187,7 @@ button.roll-btn:disabled {
 }
 
 /* ===================== UPGRADES ===================== */
-#upgrades-panel {
-  margin-top: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 20px;
-}
+#upgrades-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
 
 .upgrade-box {
   background: linear-gradient(180deg, #1b1b1b, #101010);
@@ -231,37 +206,42 @@ button.roll-btn:disabled {
   box-shadow: 0 0 14px rgba(85,255,85,0.35);
 }
 
-.upgrade-box strong {
-  font-size: 1.1rem;
+.upgrade-box strong { font-size: 1.1rem; color: #ffdd55; }
+.upgrade-box p { margin: 0; font-size: 0.9rem; color: #bbb; }
+.upgrade-box span { align-self: flex-end; font-weight: bold; font-size: 0.85rem; }
+
+/* ===================== LOCK SCREEN PANEL ===================== */
+#lockscreen-panel {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  background: rgba(0,0,0,0.85);
+  border: 2px solid #55ff55;
+  border-radius: 10px;
+  padding: 14px 18px;
   color: #ffdd55;
+  font-size: 0.95rem;
+  box-shadow: 0 0 18px rgba(85,255,85,0.5);
+  display: block;
+  z-index: 999;
 }
 
-.upgrade-box p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #bbb;
-}
+#lockscreen-panel span { display: block; margin-bottom: 6px; }
 
-.upgrade-box span {
-  align-self: flex-end;
-  font-weight: bold;
-  font-size: 0.85rem;
-}
-
-/* ===================== UPGRADE LEVEL BAR ===================== */
-.upgrade-level {
-  background: #222;
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.upgrade-level-fill {
-  background: linear-gradient(90deg, #55ff55, #99ff99);
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
+/* ===================== IDLE POINTS PANEL ===================== */
+#idle-points {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(0,0,0,0.85);
+  border: 2px solid #55cfff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #55cfff;
+  font-size: 0.95rem;
+  box-shadow: 0 0 16px rgba(85,207,255,0.4);
+  display: block;
+  z-index: 998;
 }
 
 /* ===================== POPUP ===================== */

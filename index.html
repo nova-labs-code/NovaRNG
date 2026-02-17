@@ -5,8 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Nova RNG</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  /* Position mute button top-left */
+  #mute-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 999;
+    font-size: 24px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: none;
+    background: #222;
+    color: #fff;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body data-theme="dark">
+
+<!-- Mute button -->
+<button id="mute-btn">🔊</button>
 
 <div class="container">
 
@@ -51,26 +70,6 @@
     <h2>Your Stats</h2>
     <div id="stats-panel"></div>
     <button id="reset-stats" class="roll-btn">Reset Stats</button>
-  </div>
-
-  <!-- Page 5: Settings -->
-  <div class="page" id="page5">
-    <h2>Settings</h2>
-    <div class="settings-panel">
-      <label for="theme-select">Theme:</label>
-      <select id="theme-select">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-        <option value="blue">Blue</option>
-      </select>
-
-      <label for="volume-input">Volume (0-100):</label>
-      <input type="number" id="volume-input" min="0" max="100" value="25">
-
-      <label for="mute-checkbox">
-        <input type="checkbox" id="mute-checkbox"> Mute
-      </label>
-    </div>
   </div>
 
   <!-- Popup -->

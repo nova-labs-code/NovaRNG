@@ -19,13 +19,9 @@ body {
 /* ===================== PAGES ===================== */
 .page {
   position: absolute;
-  inset: 0;
-  padding: 40px;
-  background: linear-gradient(180deg, #0f0f0f, #080808);
-  color: #eee;
+  inset: 0;        /* top:0; right:0; bottom:0; left:0; */
   transition: transform 0.5s ease;
   overflow-y: auto;
-  box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
 }
 
 h1, h2 {

@@ -419,25 +419,97 @@ resetStatsBtn.onclick = async()=>{
   showPopup("Stats reset");
 };
 
-// -------------------- SETTINGS --------------------
-idleCheckbox?.addEventListener("change", ()=> {
-  settings.showIdlePoints = idleCheckbox.checked;
-  saveData();
-  updateStatsText();
+// ==================== SETTINGS ====================
+// Grab Settings DOM elements
+const toggleIdle = document.getElementById("toggle-idle");
+const toggleLockscreen = document.getElementById("toggle-lockscreen");
+const toggleMusic = document.getElementById("toggle-music");
+const toggleAutoHints = document.getElementById("toggle-autohints");
+const toggleGlobalMute = document.getElementById("toggle-globalmute");
+
+// Initialize settings from localStorage
+let settings = JSON.parse(localStorage.getItem("settings")) || {
+  idleEnabled: true,
+  lockscreenEnabled: true,
+  musicEnabled: true,
+  autoHintsEnabled: true,
+  globalMute: false
+};
+
+// Apply saved settings to checkboxes
+toggleIdle.checked = settings.idleEnabled;
+toggleLockscreen.checked = settings.lockscreenEnabled;
+toggleMusic.checked = settings.musicEnabled;
+toggleAutoHints.checked = settings.autoHintsEnabled;
+toggleGlobalMute.checked = settings.globalMute;
+
+// Internal flags for gameplay
+let idleEnabled = settings.idleEnabled;
+let lockscreenEnabled = settings.lockscreenEnabled;
+let musicEnabled = settings.musicEnabled;
+let autoHintsEnabled = settings.autoHintsEnabled;
+let globalMute = settings.globalMute;
+
+// Function to save current settings
+function saveSettings() {
+  settings = {
+    idleEnabled,
+    lockscreenEnabled,
+    musicEnabled,
+    autoHintsEnabled,
+    globalMute
+  };
+  localStorage.setItem("settings", JSON.stringify(settings));
+  updateLockscreenVisibility();
+  updateMusicState();
+}
+
+// ==================== TOGGLE LISTENERS ====================
+toggleIdle.addEventListener("change", () => {
+  idleEnabled = toggleIdle.checked;
+  saveSettings();
 });
 
-lockCheckbox?.addEventListener("change", ()=>{
-  settings.showLockScreenStats = lockCheckbox.checked;
-  saveData();
+toggleLockscreen.addEventListener("change", () => {
+  lockscreenEnabled = toggleLockscreen.checked;
+  updateLockscreenVisibility();
+  saveSettings();
 });
 
-musicCheckbox?.addEventListener("change", ()=>{
-  settings.enableMusic = musicCheckbox.checked;
-  if(settings.enableMusic) startMusic();
+toggleMusic.addEventListener("change", () => {
+  musicEnabled = toggleMusic.checked;
+  updateMusicState();
+  saveSettings();
+});
+
+toggleAutoHints.addEventListener("change", () => {
+  autoHintsEnabled = toggleAutoHints.checked;
+  saveSettings();
+});
+
+toggleGlobalMute.addEventListener("change", () => {
+  globalMute = toggleGlobalMute.checked;
+  isMuted = globalMute;
+  if(currentMusic) currentMusic.muted = globalMute;
+  document.querySelectorAll("audio, video").forEach(media => media.muted = globalMute);
+  muteBtn.textContent = globalMute ? "🔇" : "🔊";
+  saveSettings();
+});
+
+// ==================== HELPER FUNCTIONS ====================
+function updateLockscreenVisibility() {
+  const panel = document.getElementById("lockscreen-panel");
+  panel.style.display = lockscreenEnabled ? "block" : "none";
+}
+
+function updateMusicState() {
+  if(musicEnabled) startMusic();
   else if(currentMusic) currentMusic.pause();
-  saveData();
-});
+}
 
+// Call on init to apply settings
+updateLockscreenVisibility();
+updateMusicState();
 // -------------------- INIT --------------------
 async function init(){
   rarities = await fetch("rarities.json").then(r=>r.json());

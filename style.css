@@ -27,17 +27,14 @@ body {
   padding: 40px;
   background: linear-gradient(180deg, #0f0f0f, #080808);
   color: #eee;
-  transition: transform 0.5s ease;
   overflow-y: auto;
   box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
-}
-
-/* Page hidden initially */
-.page:not(.active) {
   transform: translateX(100%);
+  transition: transform 0.5s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Active page */
 .page.active {
   transform: translateX(0%);
 }
@@ -196,6 +193,65 @@ button.roll-btn:disabled {
   box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
 }
 
+/* ===================== UPGRADES ===================== */
+#upgrades-panel {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+
+.upgrade-box {
+  background: linear-gradient(180deg, #1b1b1b, #101010);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+}
+
+.upgrade-box:hover {
+  border-color: #55ff55;
+  box-shadow: 0 0 14px rgba(85,255,85,0.35);
+}
+
+.upgrade-box strong {
+  font-size: 1.1rem;
+  color: #ffdd55;
+}
+
+.upgrade-box p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+.upgrade-box span {
+  align-self: flex-end;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+/* ===================== UPGRADE LEVEL BAR ===================== */
+.upgrade-level {
+  background: #222;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.upgrade-level-fill {
+  background: linear-gradient(90deg, #55ff55, #99ff99);
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
 /* ===================== SETTINGS ===================== */
 .settings-item {
   margin: 14px 0;
@@ -204,30 +260,27 @@ button.roll-btn:disabled {
   gap: 6px;
 }
 
-.settings-item input,
-.settings-item select,
-.settings-item button {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 2px solid #333;
-  background: #111;
-  color: #fff;
-  font-size: 0.95rem;
-  box-shadow: inset 0 0 6px rgba(0,0,0,0.4);
+.settings-item label {
+  font-weight: bold;
+  color: #ffdd55;
 }
 
-.settings-item input[type=range] {
+.settings-item input[type="range"] {
   width: 100%;
 }
 
-.settings-item button {
-  cursor: pointer;
-  transition: all 0.25s ease;
+.settings-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
 }
 
-.settings-item button:hover {
-  color: #ffdd55;
-  border-color: #ffdd55;
+.settings-item select {
+  width: 100%;
+  padding: 6px;
+  background: #111;
+  color: #fff;
+  border: 2px solid #333;
+  border-radius: 6px;
 }
 
 /* ===================== POPUP ===================== */

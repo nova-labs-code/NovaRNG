@@ -1,15 +1,16 @@
 /* ===================== RESET ===================== */
 * {
   box-sizing: border-box;
+}
+body {
   margin: 0;
   padding: 0;
-}
-
-body {
-  font-family: "Courier New", monospace;
-  overflow: hidden;
+  font-family: "Courier New", Courier, monospace;
   background: radial-gradient(circle at top, #111 0%, #050505 60%);
   color: #eee;
+  overflow: hidden;
+  touch-action: manipulation;
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
 .container {
@@ -19,93 +20,96 @@ body {
   overflow: hidden;
 }
 
-/* ===================== PAGES ===================== */
+/* ===================== PAGE ===================== */
 .page {
   position: absolute;
   inset: 0;
   padding: 40px;
-  transition: transform 0.5s ease;
-  overflow-y: auto;
   background: linear-gradient(180deg, #0f0f0f, #080808);
+  color: #eee;
+  transition: transform 0.5s ease, background 0.5s ease;
+  overflow-y: auto;
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
 }
 
 h1, h2 {
   text-align: center;
   color: #ffdd55;
-  margin-bottom: 10px;
-  text-shadow: 0 0 12px rgba(255, 221, 85, 0.4);
+  margin: 0 0 10px;
+  text-shadow: 0 0 12px rgba(255,221,85,0.4);
 }
 
 /* ===================== LOGIN STREAK ===================== */
 #login-streak {
   text-align: center;
+  margin-bottom: 12px;
   font-weight: bold;
   color: #55cfff;
-  text-shadow: 0 0 6px rgba(85, 207, 255, 0.5);
-  margin-bottom: 12px;
+  text-shadow: 0 0 6px rgba(85,207,255,0.5);
 }
 
 /* ===================== ROLL BUTTONS ===================== */
 #roll-buttons {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
+  margin-top: 10px;
   flex-wrap: wrap;
-  margin-top: 12px;
 }
-
-.roll-btn {
-  padding: 12px 20px;
+.roll-btn-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+button.roll-btn {
+  padding: 12px 22px;
   font-weight: bold;
   cursor: pointer;
   background: linear-gradient(180deg, #1e1e1e, #111);
   color: #fff;
   border: 2px solid #444;
   border-radius: 10px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
-  transition: all 0.25s;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
 }
-
-.roll-btn:hover:not(:disabled) {
+button.roll-btn:hover:not(:disabled) {
   background: linear-gradient(180deg, #2a2a2a, #151515);
   color: #ffdd55;
   border-color: #ffdd55;
   transform: translateY(-2px);
 }
-
-.roll-btn:disabled {
-  opacity: 0.5;
+button.roll-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+}
+button.roll-btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 /* ===================== RESULT ===================== */
 #result {
-  margin-top: 20px;
+  margin-top: 22px;
   font-size: 1.7rem;
   text-align: center;
+  color: #ffdd55;
   min-height: 56px;
   position: relative;
-  color: #ffdd55;
-  text-shadow: 0 0 10px rgba(255, 221, 85, 0.4);
+  overflow: hidden;
+  text-shadow: 0 0 10px rgba(255,221,85,0.4);
 }
-
-.result-text {
-  position: relative;
-  z-index: 1;
-}
-
+.result-text { position: relative; z-index: 1; }
 .wipe-bar {
   position: absolute;
   inset: 0;
   left: -100%;
-  background: linear-gradient(90deg, rgba(0, 157, 255, 0), rgba(0, 157, 255, 0.95), rgba(0, 157, 255, 0));
+  background: linear-gradient(90deg, rgba(0,157,255,0), rgba(0,157,255,0.95), rgba(0,157,255,0));
   z-index: 2;
   animation: wipeLeftToRight 0.65s ease forwards;
 }
-
 @keyframes wipeLeftToRight {
   0% { left: -100%; }
-  50% { left: 0; }
+  50% { left: 0%; }
   100% { left: 100%; }
 }
 
@@ -122,22 +126,21 @@ h1, h2 {
 #odds-panel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
+  padding-bottom: 20px;
 }
-
 .odds-box {
   background: linear-gradient(180deg, #191919, #101010);
   border: 2px solid #333;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 14px 20px;
+  margin: 10px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 1.05rem;
+  transition: all 0.25s ease;
   box-shadow: 0 6px 14px rgba(0,0,0,0.7);
-  transition: all 0.25s;
 }
-
 .odds-box:hover {
   border-color: #009dff;
   box-shadow: 0 0 14px rgba(0,157,255,0.35);
@@ -146,13 +149,12 @@ h1, h2 {
 /* ===================== STATS ===================== */
 #stats-panel {
   margin-top: 16px;
-  padding: 12px;
+  padding: 14px;
   border-top: 2px solid #333;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
 .stats-box {
   background: #111;
   border: 2px solid #333;
@@ -160,18 +162,26 @@ h1, h2 {
   padding: 8px 12px;
   display: flex;
   justify-content: space-between;
+  font-size: 0.95rem;
   color: #ffdd55;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
 }
+#reset-stats {
+  display: block;
+  margin: 20px auto 0;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, #222, #111);
+  color: #fff;
+  border: 2px solid #444;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+#reset-stats:hover { color: #ffdd55; border-color: #ffdd55; }
 
 /* ===================== UPGRADES ===================== */
-#upgrades-panel {
-  margin-top: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+#upgrades-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
 .upgrade-box {
   background: linear-gradient(180deg, #1b1b1b, #101010);
   border: 2px solid #333;
@@ -183,52 +193,20 @@ h1, h2 {
   transition: all 0.25s ease;
   box-shadow: 0 6px 16px rgba(0,0,0,0.7);
 }
-
-.upgrade-box:hover {
-  border-color: #55ff55;
-  box-shadow: 0 0 14px rgba(85,255,85,0.35);
-}
-
-.upgrade-box strong {
-  font-size: 1.1rem;
-  color: #ffdd55;
-}
-
-.upgrade-box p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #bbb;
-}
-
-.upgrade-box span {
-  font-size: 0.85rem;
-  font-weight: bold;
-  align-self: flex-end;
-}
+.upgrade-box strong { font-size: 1.1rem; color: #ffdd55; }
+.upgrade-box p { margin: 0; font-size: 0.9rem; color: #bbb; }
+.upgrade-box span { align-self: flex-end; font-weight: bold; font-size: 0.85rem; }
 
 /* ===================== SETTINGS ===================== */
-.settings-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 300px;
-  margin: 0 auto;
-}
-
-.settings-panel label {
+.settings-box {
+  margin: 14px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: bold;
 }
-
-#volume-slider {
-  width: 100%;
-}
-
-#reset-game-btn {
-  margin-top: 12px;
-}
+.settings-box label { font-weight: bold; }
+.settings-box input[type=range] { width: 60%; }
+.settings-box select { width: 60%; }
 
 /* ===================== POPUP ===================== */
 #popup {
@@ -243,32 +221,25 @@ h1, h2 {
   opacity: 0.95;
   display: none;
   z-index: 100;
-}
-
-/* ===================== THEMES ===================== */
-body[data-theme="default"] {
-  background: radial-gradient(circle at top,#111 0%,#050505 60%);
-  color: #eee;
-}
-
-body[data-theme="dark"] {
-  background: #000;
-  color: #fff;
-}
-
-body[data-theme="neon"] {
-  background: #0a0a0a;
-  color: #0ff;
-}
-
-body[data-theme="cyber"] {
-  background: #050505;
-  color: #ff00ff;
+  box-shadow: 0 0 14px rgba(0,0,0,0.9);
+  pointer-events: none;
 }
 
 /* ===================== MOBILE ===================== */
-@media (max-width:480px) {
+@media (max-width: 480px) {
   .page { padding: 18px 12px; }
   #result { font-size: 1.35rem; }
-  .roll-btn { padding: 10px 14px; font-size: 0.9rem; }
+  button.roll-btn { padding: 10px 14px; font-size: 0.9rem; }
 }
+
+/* ===================== THEMES ===================== */
+body.light {
+  background: radial-gradient(circle at top, #f0f0f0 0%, #d0d0d0 60%);
+  color: #111;
+}
+body.light .page { background: linear-gradient(180deg, #fefefe, #e0e0e0); color: #111; }
+body.light h1, body.light h2 { color: #333; text-shadow: none; }
+body.light #login-streak { color: #0077cc; text-shadow: none; }
+body.light .roll-btn { background: linear-gradient(180deg, #e0e0e0, #c0c0c0); color: #111; border-color: #888; }
+body.light .roll-btn:hover:not(:disabled) { color: #ff8800; border-color: #ff8800; }
+body.light #result { color: #ff8800; text-shadow: none; }

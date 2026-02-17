@@ -1,94 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Nova RNG</title>
-
-  <!-- IMPORTANT: CSS -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- IMPORTANT: defer prevents blank screen -->
-  <script src="script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nova RNG</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
-<body data-theme="dark">
+<body>
 
 <div class="container">
 
-  <!-- ================= PAGE 1 : ROLL ================= -->
-  <div class="page">
+  <!-- Page 1: Roll -->
+  <div class="page" id="page1">
     <h1>Nova RNG</h1>
-
     <div id="login-streak">Login Streak: 0</div>
 
     <div id="roll-buttons">
       <button id="pick-btn" class="roll-btn">🎲 Roll</button>
-      <button id="auto-roll-btn" class="roll-btn">Auto Roll</button>
-      <button id="fast-auto-roll-btn" class="roll-btn">Fast Auto Roll</button>
+      <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
+      <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
     </div>
 
     <div id="result">
-      <div class="result-text">Ready to roll!</div>
+      <div class="result-text">🎉 Ready to roll!</div>
     </div>
 
     <div id="roll-history"></div>
   </div>
 
-  <!-- ================= PAGE 2 : ODDS ================= -->
-  <div class="page">
+  <!-- Page 2: Odds -->
+  <div class="page" id="page2">
     <h2>Rarity Odds</h2>
     <div id="odds-panel"></div>
   </div>
 
-  <!-- ================= PAGE 3 : UPGRADES ================= -->
-  <div class="page">
+  <!-- Page 3: Upgrades -->
+  <div class="page" id="page3">
     <h2>Upgrades</h2>
     <div id="upgrades-panel"></div>
   </div>
 
-  <!-- ================= PAGE 4 : STATS ================= -->
-  <div class="page">
-    <h2>Stats</h2>
+  <!-- Page 4: Stats -->
+  <div class="page" id="page4">
+    <h2>Your Stats</h2>
     <div id="stats-panel"></div>
     <button id="reset-stats" class="roll-btn">Reset Stats</button>
   </div>
 
-  <!-- ================= PAGE 5 : SETTINGS ================= -->
-  <div class="page">
+  <!-- Page 5: Settings -->
+  <div class="page" id="page5">
     <h2>Settings</h2>
-
-    <div class="settings-group">
-      <label for="theme-select">Theme</label>
-      <select id="theme-select">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-        <option value="blue">Blue</option>
-      </select>
-    </div>
-
-    <div class="settings-group">
-      <label for="volume-input">Volume (0–100)</label>
-      <input id="volume-input" type="number" min="0" max="100" />
-    </div>
-
-    <div class="settings-group">
-      <label>
-        <input id="mute-checkbox" type="checkbox" />
-        Mute Audio
+    <div class="settings-row">
+      <label>Theme:
+        <select id="theme-select">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="blue">Blue</option>
+        </select>
       </label>
     </div>
 
-    <p class="settings-note">
-      Music starts after your first interaction.
-    </p>
-  </div>
+    <div class="settings-row">
+      <label>Volume (0-100):
+        <input type="number" id="volume-input" min="0" max="100">
+      </label>
+    </div>
 
-  <!-- ================= POPUP ================= -->
-  <div id="popup"></div>
+    <div class="settings-row">
+      <label>Mute:
+        <input type="checkbox" id="mute-checkbox">
+      </label>
+    </div>
+  </div>
 
 </div>
 
+<div id="popup"></div>
+
+<script src="script.js"></script>
 </body>
 </html>

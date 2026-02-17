@@ -348,28 +348,66 @@ resetStatsBtn.onclick = ()=>{
   showPopup("Stats reset");
 };
 
-// ===================== SETTINGS EVENTS =====================
-volumeSlider.oninput = ()=>{
+// ===================== SETTINGS PAGE =====================
+const volumeSlider = document.getElementById("volume-slider");
+const volumeLabel = document.getElementById("volume-label");
+const muteToggle = document.getElementById("mute-toggle");
+const themeSelect = document.getElementById("theme-select");
+const resetGameBtn = document.getElementById("reset-game-btn");
+
+// Volume slider
+volumeSlider.oninput = () => {
   const val = volumeSlider.value;
   volumeLabel.innerText = val + "%";
-  if(currentMusic) currentMusic.volume = val/100;
+  if (currentMusic) currentMusic.volume = val / 100;
   localStorage.setItem("volume", val);
-}
+};
 
-muteToggle.onchange = ()=>{
+// Mute toggle
+muteToggle.onchange = () => {
   isMuted = muteToggle.checked;
-  if(currentMusic) currentMusic.muted = isMuted;
+  if (currentMusic) currentMusic.muted = isMuted;
   localStorage.setItem("mute", isMuted);
-}
+  showPopup(isMuted ? "Muted" : "Unmuted");
+};
 
-themeSelect.onchange = ()=>{
-  document.body.className = themeSelect.value;
-  localStorage.setItem("theme", themeSelect.value);
-}
+// Theme select
+themeSelect.onchange = () => {
+  const theme = themeSelect.value;
+  document.body.className = theme; // Switch CSS theme
+  localStorage.setItem("theme", theme);
+  showPopup(`Theme set to ${theme}`);
+};
 
-resetGameBtn.onclick = ()=>{
-  localStorage.clear();
-  location.reload();
+// Reset game button
+resetGameBtn.onclick = () => {
+  if (confirm("Are you sure you want to reset all progress?")) {
+    localStorage.clear();
+    location.reload();
+  }
+};
+
+// Load saved settings on init
+function loadSettings() {
+  const vol = localStorage.getItem("volume");
+  if (vol) {
+    volumeSlider.value = vol;
+    volumeLabel.innerText = vol + "%";
+    if (currentMusic) currentMusic.volume = vol / 100;
+  }
+
+  const mute = localStorage.getItem("mute");
+  if (mute) {
+    isMuted = mute === "true";
+    muteToggle.checked = isMuted;
+    if (currentMusic) currentMusic.muted = isMuted;
+  }
+
+  const theme = localStorage.getItem("theme");
+  if (theme) {
+    document.body.className = theme;
+    themeSelect.value = theme;
+  }
 }
 
 // ===================== MUSIC =====================

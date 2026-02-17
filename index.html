@@ -16,9 +16,15 @@
     <div id="login-streak">Login Streak: 0</div>
 
     <div id="roll-buttons">
-      <button id="pick-btn" class="roll-btn">🎲 Roll</button>
-      <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
-      <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+      <div class="roll-btn-container">
+        <button id="pick-btn" class="roll-btn">🎲 Roll</button>
+      </div>
+      <div class="roll-btn-container">
+        <button id="auto-roll-btn" class="roll-btn">🎲 Auto Roll</button>
+      </div>
+      <div class="roll-btn-container">
+        <button id="fast-auto-roll-btn" class="roll-btn">🎲 Fast Auto Roll</button>
+      </div>
     </div>
 
     <div id="result">
@@ -44,30 +50,26 @@
   <div class="page" id="page4">
     <h2>Your Stats</h2>
     <div id="stats-panel"></div>
-    <button id="reset-stats">Reset Stats</button>
+    <button id="reset-stats" class="roll-btn">Reset Stats</button>
   </div>
 
   <!-- Page 5: Settings -->
   <div class="page" id="page5">
     <h2>Settings</h2>
-
-    <div class="settings-item">
+    <div class="settings-panel">
       <label for="theme-select">Theme:</label>
       <select id="theme-select">
         <option value="dark">Dark</option>
         <option value="light">Light</option>
         <option value="blue">Blue</option>
       </select>
-    </div>
 
-    <div class="settings-item">
       <label for="volume-input">Volume (0-100):</label>
-      <input type="number" id="volume-input" min="0" max="100">
-    </div>
+      <input type="number" id="volume-input" min="0" max="100" value="25">
 
-    <div class="settings-item">
-      <label for="mute-checkbox">Mute:</label>
-      <input type="checkbox" id="mute-checkbox">
+      <label for="mute-checkbox">
+        <input type="checkbox" id="mute-checkbox"> Mute
+      </label>
     </div>
   </div>
 

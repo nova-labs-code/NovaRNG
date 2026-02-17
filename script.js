@@ -16,6 +16,11 @@ let autoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
 
+let currentMusic = null;
+let musicStarted = false;
+let lastSong = null;
+let isMuted = localStorage.getItem("mute")==="true";
+
 // ===================== DOM =====================
 const resultDiv = document.getElementById("result");
 const oddsPanel = document.getElementById("odds-panel");
@@ -291,6 +296,58 @@ function updateAutoRollButtons(){
   fastAutoRollBtn.innerText = isFastAutoRolling ? "Stop Fast Auto Roll" : "Fast Auto Roll";
 }
 
+// ===================== MUSIC =====================
+const SONG_COUNT = 21;
+const SONG_PREFIX = "song";
+const SONG_EXT = ".mp3";
+
+function getRandomSong() {
+  let index;
+  do { index = Math.floor(Math.random() * SONG_COUNT) + 1; } 
+  while(index===lastSong && SONG_COUNT>1);
+  lastSong=index;
+  return `${SONG_PREFIX}${index}${SONG_EXT}`;
+}
+
+function playRandomMusic(){
+  if(currentMusic){ currentMusic.pause(); currentMusic.currentTime=0; }
+  const trackSrc = getRandomSong();
+  currentMusic = new Audio(trackSrc);
+  currentMusic.volume = volumeSlider?.value/100 || 0.25;
+  currentMusic.loop = false;
+  currentMusic.muted = isMuted;
+  currentMusic.addEventListener("ended", playRandomMusic);
+  currentMusic.play().catch(()=>{});
+}
+
+function startMusic(){
+  if(!musicStarted){ playRandomMusic(); musicStarted=true; }
+}
+
+["click","touchstart","keydown"].forEach(evt=>document.addEventListener(evt,startMusic,{once:true}));
+
+// ===================== SETTINGS =====================
+volumeSlider.addEventListener("input", () => {
+  const vol = volumeSlider.value;
+  volumeLabel.innerText = `${vol}%`;
+  if(currentMusic) currentMusic.volume = vol/100;
+  localStorage.setItem("volume", vol);
+});
+
+muteToggle.addEventListener("change", () => {
+  isMuted = muteToggle.checked;
+  if(currentMusic) currentMusic.muted = isMuted;
+  localStorage.setItem("mute", isMuted);
+  showPopup(isMuted ? "Muted" : "Unmuted");
+});
+
+themeSelect.addEventListener("change", () => {
+  document.body.dataset.theme = themeSelect.value;
+  localStorage.setItem("theme", themeSelect.value);
+});
+
+resetGameBtn.addEventListener("click", () => { localStorage.clear(); location.reload(); });
+
 // ===================== EVENTS =====================
 pickBtn.onclick = ()=>roll(getExtraRolls());
 autoRollBtn.onclick = ()=>isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
@@ -313,41 +370,15 @@ async function init(){
   showPage(0);
 
   // Apply saved settings
-  const savedVol = localStorage.getItem("volume") || 25;
-  volumeSlider.value = savedVol;
-  volumeLabel.innerText = `${savedVol}%`;
-  const savedMute = localStorage.getItem("mute") === "true";
-  muteToggle.checked = savedMute;
-  isMuted = savedMute;
-  const savedTheme = localStorage.getItem("theme") || "default";
-  themeSelect.value = savedTheme;
-  document.body.dataset.theme = savedTheme;
+  volumeSlider.value = localStorage.getItem("volume") || 25;
+  volumeLabel.innerText = `${volumeSlider.value}%`;
+  muteToggle.checked = isMuted;
+  themeSelect.value = localStorage.getItem("theme") || "default";
+  document.body.dataset.theme = themeSelect.value;
 
-  // Start auto-roll if saved
-  if(localStorage.getItem("autoRoll") === "true" && upgrades.find(u=>u.id==="autoRoll" && u.unlocked)) startAutoRoll(1000);
-  if(localStorage.getItem("fastAuto") === "true" && upgrades.find(u=>u.id==="fastAuto" && u.unlocked)) startAutoRoll(500);
+  // Auto-roll start
+  if(localStorage.getItem("autoRoll")==="true" && upgrades.find(u=>u.id==="autoRoll" && u.unlocked)) startAutoRoll(1000);
+  if(localStorage.getItem("fastAuto")==="true" && upgrades.find(u=>u.id==="fastAuto" && u.unlocked)) startAutoRoll(500);
 }
 
 init();
-
-// ===================== SETTINGS LISTENERS =====================
-volumeSlider.addEventListener("input", () => {
-  const vol = volumeSlider.value;
-  volumeLabel.innerText = `${vol}%`;
-  if(currentMusic) currentMusic.volume = vol/100;
-  localStorage.setItem("volume", vol);
-});
-
-muteToggle.addEventListener("change", () => {
-  isMuted = muteToggle.checked;
-  if(currentMusic) currentMusic.muted = isMuted;
-  localStorage.setItem("mute", isMuted);
-  showPopup(isMuted ? "Muted" : "Unmuted");
-});
-
-themeSelect.addEventListener("change", () => {
-  document.body.dataset.theme = themeSelect.value;
-  localStorage.setItem("theme", themeSelect.value);
-});
-
-resetGameBtn.addEventListener("click", () => { localStorage.clear(); location.reload(); });

@@ -1,7 +1,11 @@
 /* ===================== RESET ===================== */
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
 body {
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
   font-family: "Courier New", Courier, monospace;
   background: radial-gradient(circle at top, #111 0%, #050505 60%);
   color: #eee;
@@ -18,16 +22,17 @@ body {
 
 /* ===================== PAGES ===================== */
 .page {
-  position: absolute;      /* so pages stack and can slide */
-  inset: 0;                /* top:0; right:0; bottom:0; left:0 */
+  position: absolute;     /* ensures pages stack and can slide */
+  inset: 0;               /* top:0; right:0; bottom:0; left:0 */
   padding: 40px;
   background: linear-gradient(180deg, #0f0f0f, #080808);
   color: #eee;
-  transition: transform 0.5s ease; /* for smooth swipe */
+  transition: transform 0.5s ease;  /* for smooth swipe */
   overflow-y: auto;
   box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
 }
 
+/* ===================== HEADINGS ===================== */
 h1, h2 {
   text-align: center;
   color: #ffdd55;
@@ -51,12 +56,6 @@ h1, h2 {
   gap: 14px;
   margin-top: 10px;
   flex-wrap: wrap;
-}
-
-.roll-btn-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 button.roll-btn {
@@ -100,7 +99,10 @@ button.roll-btn:disabled {
   text-shadow: 0 0 10px rgba(255,221,85,0.4);
 }
 
-.result-text { position: relative; z-index: 1; }
+.result-text {
+  position: relative;
+  z-index: 1;
+}
 
 .wipe-bar {
   position: absolute;
@@ -153,7 +155,14 @@ button.roll-btn:disabled {
 }
 
 /* ===================== STATS ===================== */
-#stats-panel { margin-top: 16px; padding: 14px; border-top: 2px solid #333; display: flex; flex-direction: column; gap: 8px; }
+#stats-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border-top: 2px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 .stats-box {
   background: #111;
@@ -165,83 +174,6 @@ button.roll-btn:disabled {
   font-size: 0.95rem;
   color: #ffdd55;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
-}
-
-/* ===================== RESET BUTTON ===================== */
-#reset-stats {
-  display: block;
-  margin: 20px auto 0;
-  padding: 12px 18px;
-  background: linear-gradient(180deg, #222, #111);
-  color: #fff;
-  border: 2px solid #444;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-#reset-stats:hover {
-  color: #ffdd55;
-  border-color: #ffdd55;
-}
-
-/* ===================== UPGRADES ===================== */
-#upgrades-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
-
-.upgrade-box {
-  background: linear-gradient(180deg, #1b1b1b, #101010);
-  border: 2px solid #333;
-  border-radius: 12px;
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
-}
-
-.upgrade-box:hover {
-  border-color: #55ff55;
-  box-shadow: 0 0 14px rgba(85,255,85,0.35);
-}
-
-.upgrade-box strong { font-size: 1.1rem; color: #ffdd55; }
-.upgrade-box p { margin: 0; font-size: 0.9rem; color: #bbb; }
-.upgrade-box span { align-self: flex-end; font-weight: bold; font-size: 0.85rem; }
-
-/* ===================== LOCK SCREEN PANEL ===================== */
-#lockscreen-panel {
-  position: fixed;
-  right: 12px;
-  bottom: 12px;
-  background: rgba(0,0,0,0.85);
-  border: 2px solid #55ff55;
-  border-radius: 10px;
-  padding: 14px 18px;
-  color: #ffdd55;
-  font-size: 0.95rem;
-  box-shadow: 0 0 18px rgba(85,255,85,0.5);
-  display: block;
-  z-index: 999;
-}
-
-#lockscreen-panel span { display: block; margin-bottom: 6px; }
-
-/* ===================== IDLE POINTS PANEL ===================== */
-#idle-points {
-  position: fixed;
-  left: 12px;
-  bottom: 12px;
-  background: rgba(0,0,0,0.85);
-  border: 2px solid #55cfff;
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: #55cfff;
-  font-size: 0.95rem;
-  box-shadow: 0 0 16px rgba(85,207,255,0.4);
-  display: block;
-  z-index: 998;
 }
 
 /* ===================== POPUP ===================== */
@@ -259,6 +191,17 @@ button.roll-btn:disabled {
   z-index: 100;
   box-shadow: 0 0 14px rgba(0,0,0,0.9);
   pointer-events: none;
+}
+
+/* ===================== TOP BUTTON ===================== */
+.top-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 /* ===================== MOBILE ===================== */

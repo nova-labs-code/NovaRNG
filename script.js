@@ -1,4 +1,4 @@
-// -------------------- DATA --------------------
+// ===================== DATA =====================
 let rarities = [];
 let upgrades = [];
 
@@ -15,19 +15,9 @@ let canRoll = true;
 let autoRollInterval = null;
 let isAutoRolling = false;
 let isFastAutoRolling = false;
+let idleStart = null;
 
-let idlePointsAccumulated = 0;
-let lastIdleCheck = Date.now();
-let lockScreenActive = false;
-
-// -------------------- SETTINGS --------------------
-let settings = {
-  showIdlePoints: true,
-  showLockScreenStats: true,
-  enableMusic: true
-};
-
-// -------------------- DOM --------------------
+// ===================== DOM =====================
 const resultDiv = document.getElementById("result");
 const oddsPanel = document.getElementById("odds-panel");
 const rollHistoryDiv = document.getElementById("roll-history");
@@ -41,78 +31,59 @@ const autoRollBtn = document.getElementById("auto-roll-btn");
 const fastAutoRollBtn = document.getElementById("fast-auto-roll-btn");
 const resetStatsBtn = document.getElementById("reset-stats");
 
-const idlePanel = document.getElementById("idle-points");
-const lockPanel = document.getElementById("lockscreen-panel");
-const lockTotal = document.getElementById("lock-total-rolls");
-const lockRarest = document.getElementById("lock-rarest");
-
-// Settings inputs
-const idleCheckbox = document.getElementById("show-idle-points");
-const lockCheckbox = document.getElementById("enable-lockscreen-stats");
-const musicCheckbox = document.getElementById("enable-music");
-
-// -------------------- PAGE SWIPE --------------------
+// ===================== PAGE SWIPE =====================
 let currentPage = 0;
 const pages = document.querySelectorAll(".page");
 let startX = null;
 let isSwiping = false;
 
-function showPage(index){
-  pages.forEach((page,i)=>{
-    page.style.transform = `translateX(${(i-index)*100}%)`;
+function showPage(index) {
+  pages.forEach((page, i) => {
+    page.style.transform = `translateX(${(i - index) * 100}%)`;
   });
   currentPage = index;
 }
 
-pages.forEach(page=>{
-  page.addEventListener("touchstart", e=>{
+pages.forEach(page => {
+  page.addEventListener("touchstart", e => {
     startX = e.touches[0].clientX;
     isSwiping = true;
   });
-
-  page.addEventListener("touchmove", e=>{
-    if(!isSwiping) return;
+  page.addEventListener("touchmove", e => {
+    if (!isSwiping) return;
     const deltaX = e.touches[0].clientX - startX;
-    pages.forEach((p,i)=>{
+    pages.forEach((p, i) => {
       p.style.transition = "none";
-      p.style.transform = `translateX(${(i-currentPage)*100 + deltaX / window.innerWidth * 100}%)`;
+      p.style.transform = `translateX(${(i - currentPage) * 100 + deltaX / window.innerWidth * 100}%)`;
     });
   });
-
-  page.addEventListener("touchend", e=>{
-    if(!isSwiping) return;
+  page.addEventListener("touchend", e => {
+    if (!isSwiping) return;
     const deltaX = e.changedTouches[0].clientX - startX;
     isSwiping = false;
-    pages.forEach(p=>p.style.transition = "transform 0.5s ease");
-    if(deltaX > 50) showPage(Math.max(0,currentPage-1));
-    else if(deltaX < -50) showPage(Math.min(pages.length-1,currentPage+1));
+    pages.forEach(p => p.style.transition = "transform 0.5s ease");
+    if (deltaX > 50) showPage(Math.max(0, currentPage - 1));
+    else if (deltaX < -50) showPage(Math.min(pages.length - 1, currentPage + 1));
     else showPage(currentPage);
   });
 });
-// Make sure this runs after all pages exist in DOM
-function initPages() {
-  pages.forEach((page, i) => {
-    page.style.transform = `translateX(${(i - currentPage) * 100}%)`;
-  });
-}
 
-
-// -------------------- HELPERS --------------------
-function getRarityColor(number){
-  if(number<=100) return "#aaaaaa";
-  if(number<=215) return "#55ff55";
-  if(number<=330) return "#55aaff";
-  if(number<=400) return "#ffdd55";
+// ===================== HELPERS =====================
+function getRarityColor(number) {
+  if (number <= 100) return "#aaaaaa";
+  if (number <= 215) return "#55ff55";
+  if (number <= 330) return "#55aaff";
+  if (number <= 400) return "#ffdd55";
   return "#aa55ff";
 }
 
-function showPopup(msg){
+function showPopup(msg) {
   popup.innerText = msg;
   popup.style.display = "block";
-  setTimeout(()=>popup.style.display="none",3000);
+  setTimeout(() => popup.style.display = "none", 3000);
 }
 
-function saveData(){
+function saveData() {
   localStorage.setItem("owned", JSON.stringify(owned));
   localStorage.setItem("rollHistory", JSON.stringify(rollHistory.slice(-5)));
   localStorage.setItem("loginStreak", loginStreak);
@@ -123,29 +94,22 @@ function saveData(){
   localStorage.setItem("prestiges", prestiges);
 
   const upgradeSave = {};
-  upgrades.forEach(u=>{
-    upgradeSave[u.id] = {
-      level: u.level || 0,
-      unlocked: u.unlocked || false,
-      price: u.price
-    };
+  upgrades.forEach(u => {
+    upgradeSave[u.id] = { level: u.level || 0, unlocked: u.unlocked || false, price: u.price };
   });
-
   localStorage.setItem("upgrades", JSON.stringify(upgradeSave));
-  localStorage.setItem("settings", JSON.stringify(settings));
 }
 
-// -------------------- LOGIN STREAK --------------------
-function updateLoginStreak(){
+// ===================== LOGIN STREAK =====================
+function updateLoginStreak() {
   loginStreakDiv.innerText = `Login Streak: ${loginStreak}`;
 }
 
-function checkLoginStreak(){
+function checkLoginStreak() {
   const today = new Date().toISOString().split("T")[0];
-  if(lastLogin === today){ updateLoginStreak(); return; }
-  if(lastLogin){
-    const y = new Date();
-    y.setDate(y.getDate()-1);
+  if (lastLogin === today) { updateLoginStreak(); return; }
+  if (lastLogin) {
+    const y = new Date(); y.setDate(y.getDate() - 1);
     loginStreak = lastLogin === y.toISOString().split("T")[0] ? loginStreak + 1 : 1;
   } else loginStreak = 1;
   lastLogin = today;
@@ -153,469 +117,231 @@ function checkLoginStreak(){
   updateLoginStreak();
 }
 
-// -------------------- ROLL HELPERS --------------------
-function getRandomRarity(){
-  let total = rarities.reduce((s,r)=>s+(1/r.number),0);
-  let rand = Math.random()*total;
+// ===================== ROLL HELPERS =====================
+function getRandomRarity() {
+  let total = rarities.reduce((s, r) => s + (1 / r.number), 0);
+  let rand = Math.random() * total;
   let acc = 0;
-  for(const r of rarities){
-    acc += 1/r.number;
-    if(rand <= acc) return r;
+  for (const r of rarities) {
+    acc += 1 / r.number;
+    if (rand <= acc) return r;
   }
 }
 
-function getExtraRolls(){
-  const upgrade = upgrades.find(u=>u.id==="extra1");
-  return upgrade?.level ? Math.min(upgrade.level,5) : 0;
+function getExtraRolls() {
+  const upgrade = upgrades.find(u => u.id === "extra1");
+  return upgrade?.level ? Math.min(upgrade.level, 5) : 0;
 }
 
-function getSpeedBonus(){
+// ===================== SPEED HELPERS =====================
+function getSpeedBonus() {
   let bonus = 0;
-  const s1 = upgrades.find(u=>u.id==="speed1");
-  const s2 = upgrades.find(u=>u.id==="speed2");
-  const s3 = upgrades.find(u=>u.id==="speed3");
-  if(s1?.level) bonus += s1.level * 1;
-  if(s2?.level) bonus += s2.level * 2;
-  if(s3?.level) bonus += s3.level * 5;
+  ["speed1", "speed2", "speed3"].forEach(id => {
+    const u = upgrades.find(up => up.id === id);
+    if (u?.level) bonus += (id === "speed1" ? 1 : id === "speed2" ? 2 : 5) * u.level;
+  });
   return bonus;
 }
 
-function getRollDelay(){
-  const base = 650;
-  const reduction = getSpeedBonus() * 40;
-  return Math.max(120, base - reduction);
-}
+function getRollDelay() { return Math.max(120, 650 - getSpeedBonus() * 40); }
 
-// -------------------- ROLL --------------------
-function roll(extra=0, showResult=true){
-  if(!canRoll || rarities.length===0) return;
-  canRoll=false;
+// ===================== ROLL =====================
+function roll(extra = 0) {
+  if (!canRoll || rarities.length === 0) return;
+  canRoll = false;
   const rolls = 1 + extra;
   const results = [];
-  for(let i=0;i<rolls;i++){
-    results.push(getRandomRarity());
-  }
+  for (let i = 0; i < rolls; i++) results.push(getRandomRarity());
 
-  if(showResult){
-    const wipe = document.createElement("div");
-    wipe.className = "wipe-bar";
-    resultDiv.appendChild(wipe);
-    setTimeout(()=>{
-      resultDiv.querySelector(".result-text").innerHTML =
-        results.map(r=>`<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
-      resultDiv.removeChild(wipe);
-    }, getRollDelay());
-  }
+  const wipe = document.createElement("div"); wipe.className = "wipe-bar"; resultDiv.appendChild(wipe);
 
-  // compute points
-  const multUpgrade = upgrades.find(u=>u.id==="pointsMultiplier");
-  const mult = 1 + ((multUpgrade?.level||0) * 0.08);
-  const rebirthUpgrade = upgrades.find(u=>u.id==="rebirthLimit");
-  const rebirthMultiplier = 1 + (rebirthUpgrade?.level||0);
-  const prestigeUpgrade = upgrades.find(u=>u.id==="prestigeLimit");
-  const prestigeMultiplier = 1 + (prestigeUpgrade?.level||0);
+  setTimeout(() => {
+    resultDiv.querySelector(".result-text").innerHTML = results.map(r => `<span style="color:${getRarityColor(r.number)}">${r.rarity}</span>`).join("<br>");
 
-  results.forEach(r=>{
-    owned[r.rarity]=(owned[r.rarity]||0)+1;
-    rollHistory.push(r.rarity);
-    points += (r.number/2)*mult*Math.pow(1.5, rebirths*rebirthMultiplier)*Math.pow(1.5, prestiges*prestigeMultiplier);
-    totalRolls++;
-  });
+    const multUpgrade = upgrades.find(u => u.id === "pointsMultiplier");
+    const mult = 1 + ((multUpgrade?.level || 0) * 0.08);
+    const rebirthUpgrade = upgrades.find(u => u.id === "rebirthLimit");
+    const rebirthMultiplier = 1 + (rebirthUpgrade?.level || 0);
+    const prestigeUpgrade = upgrades.find(u => u.id === "prestigeLimit");
+    const prestigeMultiplier = 1 + (prestigeUpgrade?.level || 0);
 
-  rollHistory = rollHistory.slice(-5);
-  updateRollHistory();
-  updateOdds();
-  updateStatsText();
-  updateUpgrades();
-  updateLockScreenStats();
-  updateAutoRollButtons();
-  saveData();
+    results.forEach(r => {
+      owned[r.rarity] = (owned[r.rarity] || 0) + 1;
+      rollHistory.push(r.rarity);
+      points += (r.number / 2) * mult * Math.pow(1.5, rebirths * rebirthMultiplier) * Math.pow(1.5, prestiges * prestigeMultiplier);
+      totalRolls++;
+    });
 
-  canRoll=true;
+    rollHistory = rollHistory.slice(-5);
+    updateRollHistory();
+    updateOdds();
+    updateStatsText();
+    updateUpgrades();
+    updateAutoRollButtons();
+    saveData();
+
+    resultDiv.removeChild(wipe);
+    canRoll = true;
+  }, getRollDelay());
 }
 
-// -------------------- UPDATE PANELS --------------------
-function updateRollHistory(){
-  rollHistoryDiv.innerHTML="Last Rolls:<br>"+rollHistory.join("<br>");
-}
+// ===================== UPDATE PANELS =====================
+function updateRollHistory() { rollHistoryDiv.innerHTML = "Last Rolls:<br>" + rollHistory.join("<br>"); }
 
-function updateOdds(){
-  oddsPanel.innerHTML="";
-  const total = rarities.reduce((s,r)=>s+(1/r.number),0);
-  rarities.forEach(r=>{
-    const ownedCount = owned[r.rarity]||0;
-    const chance = ((1/r.number)/total*100).toFixed(6);
-    const div=document.createElement("div");
-    div.className="odds-box";
-    div.style.borderColor=getRarityColor(r.number);
-    div.style.background=ownedCount?`${getRarityColor(r.number)}33`:"#1a1a1a";
-    div.innerHTML=`<span>${ownedCount?r.rarity:"???"}</span><span>${ownedCount} owned</span><span>${chance}%</span>`;
+function updateOdds() {
+  oddsPanel.innerHTML = "";
+  const total = rarities.reduce((s, r) => s + (1 / r.number), 0);
+  rarities.forEach(r => {
+    const ownedCount = owned[r.rarity] || 0;
+    const chance = ((1 / r.number) / total * 100).toFixed(6);
+    const div = document.createElement("div");
+    div.className = "odds-box";
+    div.style.borderColor = getRarityColor(r.number);
+    div.style.background = ownedCount ? `${getRarityColor(r.number)}33` : "#1a1a1a";
+    div.innerHTML = `<span>${ownedCount ? r.rarity : "???"}</span><span>${ownedCount} owned</span><span>${chance}%</span>`;
     oddsPanel.appendChild(div);
   });
 }
 
-function updateStatsText(){
-  statsPanel.innerHTML=`
+function updateStatsText() {
+  statsPanel.innerHTML = `
     Total Rolls: ${totalRolls}<br>
     Points: ${points.toFixed(1)}<br>
     Rebirths: ${rebirths}<br>
     Prestiges: ${prestiges}<br>
-    Unique Owned: ${Object.values(owned).filter(v=>v>0).length}
+    Unique Owned: ${Object.values(owned).filter(v => v > 0).length}
   `;
-  if(settings.showIdlePoints && idlePanel) idlePanel.innerText = idlePointsAccumulated.toFixed(1);
 }
 
-// -------------------- UPGRADES --------------------
-function updateUpgrades(){
+// ===================== UPGRADES =====================
+function updateUpgrades() {
   upgradesPanel.innerHTML = "";
-  upgrades.forEach(u=>{
+  upgrades.forEach(u => {
     const div = document.createElement("div");
     div.className = "upgrade-box";
-    if(u.multiBuy && !u.infinite){
-      const pct = ((u.level||0)/(u.maxLevel||1))*100;
+
+    if (u.multiBuy && !u.infinite) {
+      const pct = ((u.level || 0) / (u.maxLevel || 1)) * 100;
       div.style.background = `linear-gradient(to right,#55aa55 ${pct}%,#222 ${pct}%)`;
-    } else if(u.infinite){
-      const pct = Math.min((u.level||0)*5,100);
+    } else if (u.infinite) {
+      const pct = Math.min((u.level || 0) * 5, 100);
       div.style.background = `linear-gradient(to right,#ffaa55 ${pct}%,#222 ${pct}%)`;
-    } else {
-      div.style.background = u.unlocked ? "#55aa55" : "#222";
-    }
+    } else { div.style.background = u.unlocked ? "#55aa55" : "#222"; }
 
     let levelText = "";
-    if(u.multiBuy && !u.infinite) levelText = `Level: ${u.level||0}/${u.maxLevel||1}`;
-    else if(u.infinite) levelText = `Purchased: ${u.level||0} times`;
+    if (u.multiBuy && !u.infinite) levelText = `Level: ${u.level || 0}/${u.maxLevel || 1}`;
+    else if (u.infinite) levelText = `Purchased: ${u.level || 0} times`;
     else levelText = u.unlocked ? "✅ Unlocked" : "🔒 Locked";
 
-    div.innerHTML = `
-      <strong>${u.name}</strong>
-      <p>${u.description}</p>
-      <span>${levelText}</span>
-      <span>Cost: ${Math.ceil(u.price)} pts</span>
-    `;
+    div.innerHTML = `<strong>${u.name}</strong><p>${u.description}</p><span>${levelText}</span><span>Cost: ${Math.ceil(u.price)} pts</span>`;
 
     const canBuy =
-      (u.multiBuy && !u.infinite && (u.level||0)<u.maxLevel && points>=u.price) ||
-      (!u.multiBuy && !u.unlocked && points>=u.price) ||
-      (u.infinite && points>=u.price);
+      (u.multiBuy && !u.infinite && (u.level || 0) < u.maxLevel && points >= u.price) ||
+      (!u.multiBuy && !u.unlocked && points >= u.price) ||
+      (u.infinite && points >= u.price);
 
-    if(canBuy){
-      div.style.cursor = "pointer";
-      div.onclick = ()=>{
-        points -= u.price;
-        if(u.multiBuy && !u.infinite){
-          u.level = (u.level||0) + 1;
-          u.price = Math.ceil(u.price * 1.5);
-          if(u.level >= u.maxLevel) u.unlocked = true;
-        } else if(u.infinite){
-          u.level = (u.level||0) + 1;
-          u.price = Math.ceil(u.price * 1.5);
-        } else {
-          u.unlocked = true;
-        }
-        showPopup(`${u.name} purchased`);
-        saveData();
-        updateUpgrades();
-        updateStatsText();
-      };
-    }
-
+    if (canBuy) div.onclick = () => {
+      points -= u.price;
+      if (u.multiBuy && !u.infinite) {
+        u.level = (u.level || 0) + 1; u.price = Math.ceil(u.price * 1.5); if (u.level >= u.maxLevel) u.unlocked = true;
+      } else if (u.infinite) u.level = (u.level || 0) + 1, u.price = Math.ceil(u.price * 1.5);
+      else u.unlocked = true;
+      showPopup(`${u.name} purchased`);
+      saveData(); updateUpgrades(); updateStatsText();
+    };
     upgradesPanel.appendChild(div);
   });
 }
 
-// -------------------- AUTO ROLL --------------------
-function startAutoRoll(interval){
+// ===================== AUTO ROLL =====================
+function startAutoRoll(interval) {
   stopAutoRoll();
-  if(interval===1000) isAutoRolling=true;
-  if(interval===500) isFastAutoRolling=true;
-  autoRollInterval=setInterval(()=>{
-    if(canRoll) roll(getExtraRolls());
-  }, Math.max(120, interval - getSpeedBonus()*40));
+  if (interval === 1000) isAutoRolling = true;
+  if (interval === 500) isFastAutoRolling = true;
+  autoRollInterval = setInterval(() => { if (canRoll) roll(getExtraRolls()); }, Math.max(120, interval - getSpeedBonus() * 40));
 }
 
-function stopAutoRoll(){
-  clearInterval(autoRollInterval);
-  autoRollInterval=null;
-  isAutoRolling=false;
-  isFastAutoRolling=false;
-}
+function stopAutoRoll() { clearInterval(autoRollInterval); autoRollInterval = null; isAutoRolling = false; isFastAutoRolling = false; }
 
-function updateAutoRollButtons(){
-  const auto = upgrades.find(u=>u.id==="autoRoll" && u.unlocked);
-  const fast = upgrades.find(u=>u.id==="fastAuto" && u.unlocked);
-  autoRollBtn.disabled = !auto;
-  fastAutoRollBtn.disabled = !fast;
+function updateAutoRollButtons() {
+  const auto = upgrades.find(u => u.id === "autoRoll" && u.unlocked);
+  const fast = upgrades.find(u => u.id === "fastAuto" && u.unlocked);
+  autoRollBtn.disabled = !auto; fastAutoRollBtn.disabled = !fast;
   autoRollBtn.innerText = isAutoRolling ? "Stop Auto Roll" : "Auto Roll";
   fastAutoRollBtn.innerText = isFastAutoRolling ? "Stop Fast Auto Roll" : "Fast Auto Roll";
 }
 
-// -------------------- LOCK SCREEN --------------------
-function getRarestRolled() {
-  if(Object.keys(owned).length === 0) return "???";
-  let rarest = null;
-  for(const r of rarities){
-    if(owned[r.rarity] > 0){
-      if(!rarest || r.number > rarest.number) rarest = r;
-    }
-  }
-  return rarest ? rarest.rarity : "???";
-}
+// ===================== EVENTS =====================
+pickBtn.onclick = () => roll(getExtraRolls());
+autoRollBtn.onclick = () => isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
+fastAutoRollBtn.onclick = () => isFastAutoRolling ? stopAutoRoll() : startAutoRoll(500);
 
-function updateLockScreenStats(){
-  if(!settings.showLockScreenStats) return;
-  if(lockTotal) lockTotal.innerText = totalRolls;
-  if(lockRarest) lockRarest.innerText = getRarestRolled();
-}
-
-function toggleLockScreenPanel(show){
-  if(!settings.showLockScreenStats) return;
-  if(lockPanel) lockPanel.style.display = show ? "block" : "none";
-}
-
-document.addEventListener("visibilitychange", () => {
-  lockScreenActive = document.hidden;
-  toggleLockScreenPanel(lockScreenActive);
-});
-
-// -------------------- IDLE PROGRESS --------------------
-function applyIdleProgress(){
-  const now = Date.now();
-  const deltaSeconds = Math.floor((now - lastIdleCheck)/1000);
-  if(deltaSeconds<=0) return;
-
-  for(let i=0;i<deltaSeconds;i++){
-    roll(getExtraRolls(), false);
-  }
-
-  idlePointsAccumulated += 0; // optionally show separate points
-  lastIdleCheck = now;
-  updateStatsText();
-  updateLockScreenStats();
-}
-
-// -------------------- OFFLINE PROGRESS --------------------
-function applyOfflineProgress(){
-  const offlineUpgrade = upgrades.find(u=>u.id==="offline" && u.level>0);
-  if(!offlineUpgrade) return;
-  const lastTime = parseInt(localStorage.getItem("lastOffline")) || Date.now();
-  const deltaSeconds = Math.floor((Date.now()-lastTime)/1000);
-  const efficiency = 0.25;
-  for(let i=0;i<deltaSeconds;i++){
-    roll(getExtraRolls(), false);
-    points *= efficiency; // offline reduced efficiency
-  }
-  localStorage.setItem("lastOffline", Date.now());
-  updateLockScreenStats();
-}
-
-// -------------------- EVENTS --------------------
-pickBtn.onclick = ()=>roll(getExtraRolls());
-autoRollBtn.onclick = ()=>isAutoRolling ? stopAutoRoll() : startAutoRoll(1000);
-fastAutoRollBtn.onclick = ()=>isFastAutoRolling ? stopAutoRoll() : startAutoRoll(500);
-
-resetStatsBtn.onclick = async()=>{
-  owned={}; rollHistory=[]; totalRolls=0; points=0;
-  rebirths=0; prestiges=0;
+resetStatsBtn.onclick = async () => {
+  owned = {}; rollHistory = []; totalRolls = 0; points = 0; rebirths = 0; prestiges = 0;
   localStorage.removeItem("upgrades");
-  upgrades = await fetch("upgrades.json").then(r=>r.json());
-  saveData();
-  updateUpgrades();
-  updateStatsText();
-  updateOdds();
-  updateLockScreenStats();
-  showPopup("Stats reset");
+  upgrades = await fetch("upgrades.json").then(r => r.json());
+  saveData(); updateUpgrades(); updateStatsText(); updateOdds(); showPopup("Stats reset");
 };
 
-// ==================== SETTINGS ====================
-// Grab Settings DOM elements
-const toggleIdle = document.getElementById("toggle-idle");
-const toggleLockscreen = document.getElementById("toggle-lockscreen");
-const toggleMusic = document.getElementById("toggle-music");
-const toggleAutoHints = document.getElementById("toggle-autohints");
-const toggleGlobalMute = document.getElementById("toggle-globalmute");
-
-// Initialize settings from localStorage
-let settings = JSON.parse(localStorage.getItem("settings")) || {
-  idleEnabled: true,
-  lockscreenEnabled: true,
-  musicEnabled: true,
-  autoHintsEnabled: true,
-  globalMute: false
-};
-
-// Apply saved settings to checkboxes
-toggleIdle.checked = settings.idleEnabled;
-toggleLockscreen.checked = settings.lockscreenEnabled;
-toggleMusic.checked = settings.musicEnabled;
-toggleAutoHints.checked = settings.autoHintsEnabled;
-toggleGlobalMute.checked = settings.globalMute;
-
-// Internal flags for gameplay
-let idleEnabled = settings.idleEnabled;
-let lockscreenEnabled = settings.lockscreenEnabled;
-let musicEnabled = settings.musicEnabled;
-let autoHintsEnabled = settings.autoHintsEnabled;
-let globalMute = settings.globalMute;
-
-// Function to save current settings
-function saveSettings() {
-  settings = {
-    idleEnabled,
-    lockscreenEnabled,
-    musicEnabled,
-    autoHintsEnabled,
-    globalMute
-  };
-  localStorage.setItem("settings", JSON.stringify(settings));
-  updateLockscreenVisibility();
-  updateMusicState();
-}
-
-// ==================== TOGGLE LISTENERS ====================
-toggleIdle.addEventListener("change", () => {
-  idleEnabled = toggleIdle.checked;
-  saveSettings();
-});
-
-toggleLockscreen.addEventListener("change", () => {
-  lockscreenEnabled = toggleLockscreen.checked;
-  updateLockscreenVisibility();
-  saveSettings();
-});
-
-toggleMusic.addEventListener("change", () => {
-  musicEnabled = toggleMusic.checked;
-  updateMusicState();
-  saveSettings();
-});
-
-toggleAutoHints.addEventListener("change", () => {
-  autoHintsEnabled = toggleAutoHints.checked;
-  saveSettings();
-});
-
-toggleGlobalMute.addEventListener("change", () => {
-  globalMute = toggleGlobalMute.checked;
-  isMuted = globalMute;
-  if(currentMusic) currentMusic.muted = globalMute;
-  document.querySelectorAll("audio, video").forEach(media => media.muted = globalMute);
-  muteBtn.textContent = globalMute ? "🔇" : "🔊";
-  saveSettings();
-});
-
-// ==================== HELPER FUNCTIONS ====================
-function updateLockscreenVisibility() {
-  const panel = document.getElementById("lockscreen-panel");
-  panel.style.display = lockscreenEnabled ? "block" : "none";
-}
-
-function updateMusicState() {
-  if(musicEnabled) startMusic();
-  else if(currentMusic) currentMusic.pause();
-}
-
-// Call on init to apply settings
-updateLockscreenVisibility();
-updateMusicState();
-// -------------------- INIT --------------------
-async function init(){
-  rarities = await fetch("rarities.json").then(r=>r.json());
-  upgrades = await fetch("upgrades.json").then(r=>r.json());
-
-  const saved = JSON.parse(localStorage.getItem("upgrades")) || {};
-  const savedSettings = JSON.parse(localStorage.getItem("settings")) || {};
-  Object.assign(settings, savedSettings);
-
-  upgrades.forEach(u=>{
-    const s = saved[u.id];
-    if(s){
-      u.level = s.level;
-      u.unlocked = s.unlocked;
-      u.price = s.price;
-    } else {
-      u.level = u.multiBuy || u.infinite ? 0 : undefined;
-      u.unlocked = false;
-    }
-  });
-
-  idleCheckbox.checked = settings.showIdlePoints;
-  lockCheckbox.checked = settings.showLockScreenStats;
-  musicCheckbox.checked = settings.enableMusic;
-
-  updateOdds();
-  updateStatsText();
-  updateUpgrades();
-  updateRollHistory();
-  checkLoginStreak();
-  updateAutoRollButtons();
-  showPage(0);
-  lastIdleCheck = Date.now();
-
-  if(settings.enableMusic) startMusic();
-}
-
-// -------------------- GLOBAL MUTE -------------------
+// ===================== GLOBAL MUTE ====================
 let isMuted = false;
 const muteBtn = document.getElementById("mute-btn");
-let currentMusic = null;
-let musicStarted = false;
-let lastSong = null;
-
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
-  if(currentMusic) currentMusic.muted = isMuted;
-  document.querySelectorAll("audio, video").forEach(media => media.muted = isMuted);
+  if (currentMusic) currentMusic.muted = isMuted;
+  document.querySelectorAll("audio,video").forEach(m => m.muted = isMuted);
 });
 
 if (!Audio.prototype._originalPlay) {
   Audio.prototype._originalPlay = Audio.prototype.play;
-  Audio.prototype.play = function () {
-    this.muted = isMuted;
-    return this._originalPlay.apply(this, arguments);
-  };
+  Audio.prototype.play = function () { this.muted = isMuted; return this._originalPlay.apply(this, arguments); };
 }
 
-// -------------------- BACKGROUND MUSIC -------------------
-const SONG_COUNT = 21;
-const SONG_PREFIX = "song";
-const SONG_EXT = ".mp3";
+// ===================== BACKGROUND MUSIC ====================
+const SONG_COUNT = 21, SONG_PREFIX = "song", SONG_EXT = ".mp3";
+let currentMusic = null, musicStarted = false, lastSong = null;
 
 function getRandomSong() {
-  let index;
-  do { index = Math.floor(Math.random()*SONG_COUNT)+1; } while(index===lastSong && SONG_COUNT>1);
-  lastSong = index;
-  return `${SONG_PREFIX}${index}${SONG_EXT}`;
+  let index; do { index = Math.floor(Math.random() * SONG_COUNT) + 1; } while (index === lastSong && SONG_COUNT > 1);
+  lastSong = index; return `${SONG_PREFIX}${index}${SONG_EXT}`;
 }
 
 function playRandomMusic() {
-  if(currentMusic){ currentMusic.pause(); currentMusic.currentTime=0; }
+  if (currentMusic) { currentMusic.pause(); currentMusic.currentTime = 0; }
   const trackSrc = getRandomSong();
   currentMusic = new Audio(trackSrc);
-  currentMusic.volume = 0.25;
-  currentMusic.preload = "auto";
-  currentMusic.loop = false;
-  currentMusic.muted = isMuted;
+  currentMusic.volume = 0.25; currentMusic.preload = "auto"; currentMusic.loop = false; currentMusic.muted = isMuted;
   currentMusic.addEventListener("ended", playRandomMusic);
-  currentMusic.play().catch(()=>{});
+  currentMusic.play().catch(err => console.log("Music blocked until interaction:", err));
 }
 
-function startMusic() {
-  if(!musicStarted){
-    playRandomMusic();
-    musicStarted = true;
-  }
+function startMusic() { if (!musicStarted) { playRandomMusic(); musicStarted = true; } }
+["click","touchstart","keydown"].forEach(evt => document.addEventListener(evt, startMusic, { once:true }));
+
+// ===================== LOCK SCREEN / IDLE =====================
+function showLockScreen() {
+  const rarest = rarities.reduce((prev, cur) => (owned[cur.rarity] || 0) < (owned[prev.rarity] || 0) ? cur : prev, rarities[0]);
+  resultDiv.innerHTML = `<div class="result-text">🔒 Idle Mode<br>Total Rolls: ${totalRolls}<br>Rarest: ${rarest.rarity}</div>`;
 }
+function checkIdle() {
+  if (!idleStart) idleStart = Date.now();
+  const elapsed = Date.now() - idleStart;
+  if (elapsed >= 5000) showLockScreen(); // 5s idle
+}
+setInterval(checkIdle, 1000);
+["click","keydown","touchstart"].forEach(e => document.addEventListener(e, () => idleStart = null));
 
-// User interaction required to start music
-["click","touchstart","keydown"].forEach(evt=>{
-  document.addEventListener(evt, startMusic, {once:true});
-});
-
-setInterval(applyIdleProgress, 1000); // idle every second
-setInterval(applyOfflineProgress, 60000); // offline progress every minute
-
-// At the end of init()
-showPage(0);  // Already in your code
-initPages();  // Make sure pages are positioned correctly
+// ===================== INIT =====================
+async function init() {
+  rarities = await fetch("rarities.json").then(r => r.json());
+  upgrades = await fetch("upgrades.json").then(r => r.json());
+  const saved = JSON.parse(localStorage.getItem("upgrades")) || {};
+  upgrades.forEach(u => {
+    const s = saved[u.id]; if (s) { u.level = s.level; u.unlocked = s.unlocked; u.price = s.price; } 
+    else { u.level = u.multiBuy || u.infinite ? 0 : undefined; u.unlocked = false; }
+  });
+  updateOdds(); updateStatsText(); updateUpgrades(); updateRollHistory(); checkLoginStreak(); updateAutoRollButtons();
+  showPage(0);
+}
 init();

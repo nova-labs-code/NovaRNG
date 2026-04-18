@@ -222,7 +222,11 @@ function updateOdds(){
     div.className="odds-box";
     div.style.borderColor=getRarityColor(r.number);
     div.style.background=ownedCount?`${getRarityColor(r.number)}33`:"#1a1a1a";
-    div.innerHTML=`<span>${ownedCount?r.rarity:"???"}</span><span>${ownedCount} owned</span><span>${chance}%</span>`;
+    div.innerHTML = `
+  <div class="odds-top"><span class="odds-name">${ownedCount ? r.rarity : "???"}</span></div>
+  <div class="odds-row"><span class="odds-label">Owned</span><span class="odds-value">${ownedCount}</span></div>
+  <div class="odds-row"><span class="odds-label">Chance</span><span class="odds-value">${chance}%</span></div>
+`;
     oddsPanel.appendChild(div);
   });
 }

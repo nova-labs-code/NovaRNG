@@ -76,6 +76,7 @@ function getRarityColor(number){
   if(number<=215) return "#55ff55";
   if(number<=330) return "#55aaff";
   if(number<=400) return "#ffdd55";
+  if(number<=800) return "#ffdd55";
   return "#aa55ff";
 }
 

@@ -131,9 +131,15 @@ button.roll-btn:disabled {
     color: #ccc;
     max-height: 180px;
     overflow-y: auto;
-    padding: 8px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.2);
+    padding: 14px; /* thicker spacing inside */
+    border-radius: 10px;
+
+    background: rgba(0, 0, 0, 0.35); /* deeper backdrop */
+
+    border: 2px solid rgba(255, 255, 255, 0.08); /* gives structure */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);  /* adds depth */
+
+    font-weight: 500; /* makes text feel a bit heavier */
 }
 
 /* ===================== PANELS ===================== */

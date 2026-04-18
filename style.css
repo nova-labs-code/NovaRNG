@@ -131,15 +131,12 @@ button.roll-btn:disabled {
     color: #ccc;
     max-height: 180px;
     overflow-y: auto;
-    padding: 14px; /* thicker spacing inside */
+    padding: 14px;
     border-radius: 10px;
-
-    background: rgba(0, 0, 0, 0.35); /* deeper backdrop */
-
-    border: 2px solid rgba(255, 255, 255, 0.08); /* gives structure */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);  /* adds depth */
-
-    font-weight: 500; /* makes text feel a bit heavier */
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-weight: 500;
 }
 
 /* ===================== PANELS ===================== */
@@ -151,6 +148,54 @@ button.roll-btn:disabled {
     flex-direction: column;
     gap: 14px;
     padding: 6px;
+}
+
+/* ===================== 🎯 ODDS PANEL (FULL UPGRADE) ===================== */
+
+.odds-box {
+    padding: 10px 12px;
+    border-radius: 10px;
+
+    border: 2px solid rgba(255,255,255,0.08);
+    background: #1a1a1a;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.odds-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+}
+
+.odds-top {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.odds-name {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.odds-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.odds-label {
+    opacity: 0.7;
+}
+
+.odds-value {
+    font-weight: 500;
+    opacity: 0.95;
 }
 
 /* ===================== POPUP ===================== */
